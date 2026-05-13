@@ -1954,6 +1954,8 @@ function asigCardCompletada(a) {
    FORMULARIO
 ================================================================ */
 function openAsigForm(tipo, editData) {
+  const fab = document.getElementById('fabBtn');
+  if (fab) fab.style.display = 'none';
   _asigEdit = editData || null;
   const tipoFinal  = editData ? editData.tipo : tipo;
   const tipoCustom = tiposPersonalizados.find(t => t.id === tipoFinal);
@@ -2378,17 +2380,3 @@ async function init() {
 init();
 
 
-// boton de 0 hoy (aparacer la ultima fecha que se modifico) ✅
-// modificar js de boton de hoy de lña ultima fecha que reghistraste tus horas fecha y dia (solo aparecer en precursorado)✅
-// revisitas no en informe ✅
-// guardar las hroas de los meses que se borre despues de una semana ✅
-// todos las targetas diferente color 
-// que te notifique de la preunta pendiente 
-// que te recuerde los aspectos a mejorar de tu prox abnimacion 
-// registro manual llendo a google maps mover el boton rojo boton de direccion hacia el lugar que quieres
-
-// section asignaciones poner uhn boton princiopal que sea el que guarde el tu proxima asigancion
-//vida y ministerio, seamos mejo bñablaba
-//funcion de añadir asignaciones en cada 1 para añadir asignacion color y emoji 
-//al ghacerlo se va tener que adengtro otra funcion de registrar esa tal asignacion y eso
-//cambiar el nombre 
