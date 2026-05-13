@@ -1215,7 +1215,7 @@ async function enviarInforme() {
   } else {
     txt += 'Participación: ' + (informe.participo ? 'Sí' : 'No') + '\n';
   }
-  txt += 'Estudios Bíblicos: ' + informe.cursos;
+  txt += 'Cursos Bíblicos: ' + informe.cursos;
 
   if (Cap.Share) { try { await Cap.Share.share({ text: txt }); } catch(e){} }
   else if (navigator.share) { try { await navigator.share({ title:'Mi Informe - ServTrack', text:txt }); } catch(e){} }
@@ -1240,7 +1240,7 @@ async function reenviarInforme(mes) {
   } else {
     txt += 'Participación: ' + (inf.participo ? 'Sí' : 'No') + '\n';
   }
-  txt += 'Estudios Bíblicos: ' + inf.cursos;
+  txt += 'Cursos Bíblicos: ' + inf.cursos;
 
   if (Cap.Share) { try { await Cap.Share.share({ text: txt }); return; } catch(e){} }
   if (navigator.share) { try { await navigator.share({ title:'Mi Informe', text:txt }); return; } catch(e){} }
@@ -1264,7 +1264,7 @@ function editarInformeHist(mes) {
   document.getElementById('det-title').textContent = 'Editar informe';
   document.getElementById('detBody').innerHTML =
     '<div style="font-size:13px;font-weight:600;color:var(--navy);margin-bottom:16px">' + inf.mesNombre + '</div>'
-    + '<div class="fgroup"><label>Estudios Bíblicos</label>'
+    + '<div class="fgroup"><label>Cursos Bíblicos</label>'
       + '<input type="number" id="editCursos" min="0" value="' + inf.cursos + '" style="width:80px"/>'
     + '</div>'
     + (inf.horas !== null
