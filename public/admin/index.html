@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ServTrack — Admin</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --navy: #1a2b40; --accent: #2e6be6;
+    --bg: #f4f3f0; --surface: #fff;
+    --border: #e2dfd9; --tx: #18170f; --tx2: #5c5a52; --tx3: #9c9a92;
+    --green: #1e7e34; --green-bg: #edf7ef;
+    --red: #9b2335; --red-bg: #fef0f2;
+    --amber: #a0660a; --amber-bg: #fff8ee;
+  }
+  body { font-family: -apple-system, sans-serif; background: var(--bg); color: var(--tx); display: flex; height: 100vh; overflow: hidden; }
+  #loginScreen { position: fixed; inset: 0; background: var(--navy); display: flex; align-items: center; justify-content: center; z-index: 999; }
+  .login-box { background: #fff; border-radius: 20px; padding: 40px 36px; width: 100%; max-width: 360px; text-align: center; }
+  .login-box h1 { font-size: 22px; font-weight: 700; color: var(--navy); margin-bottom: 6px; }
+  .login-box p { font-size: 13px; color: var(--tx3); margin-bottom: 24px; }
+  .login-input { width: 100%; padding: 13px 14px; border: 1.5px solid var(--border); border-radius: 12px; font-size: 15px; font-family: inherit; outline: none; margin-bottom: 12px; text-align: center; letter-spacing: 2px; }
+  .login-input:focus { border-color: var(--navy); }
+  .login-btn { width: 100%; padding: 14px; background: var(--navy); color: #fff; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; }
+  .login-error { font-size: 13px; color: var(--red); margin-top: 10px; }
+  .sidebar { width: 220px; flex-shrink: 0; background: var(--navy); color: #fff; display: flex; flex-direction: column; }
+  .sidebar-logo { padding: 24px 20px 20px; border-bottom: 1px solid rgba(255,255,255,.1); }
+  .sidebar-logo h1 { font-size: 18px; font-weight: 700; }
+  .sidebar-logo p { font-size: 11px; opacity: .5; margin-top: 3px; }
+  .sidebar-nav { flex: 1; padding: 12px 0; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 11px 20px; cursor: pointer; font-size: 13px; font-weight: 500; color: rgba(255,255,255,.6); border-left: 3px solid transparent; transition: all .15s; }
+  .nav-item:hover { background: rgba(255,255,255,.07); color: #fff; }
+  .nav-item.active { background: rgba(255,255,255,.1); color: #fff; border-left-color: var(--accent); }
+  .sidebar-footer { padding: 14px 20px; border-top: 1px solid rgba(255,255,255,.1); font-size: 11px; color: rgba(255,255,255,.35); }
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  .topbar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+  .topbar-title { font-size: 16px; font-weight: 700; }
+  .content { flex: 1; overflow-y: auto; padding: 24px; }
+  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; }
+  .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 18px; }
+  .stat-label { font-size: 11px; font-weight: 700; color: var(--tx3); text-transform: uppercase; letter-spacing: .7px; margin-bottom: 8px; }
+  .stat-value { font-size: 32px; font-weight: 700; color: var(--navy); line-height: 1; }
+  .stat-sub { font-size: 12px; color: var(--tx3); margin-top: 6px; }
+  .table-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; margin-bottom: 20px; }
+  .table-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .table-title { font-size: 14px; font-weight: 700; }
+  .btn-sm { padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; border: none; background: var(--navy); color: #fff; }
+  table { width: 100%; border-collapse: collapse; }
+  th { padding: 10px 16px; font-size: 11px; font-weight: 700; color: var(--tx3); text-transform: uppercase; letter-spacing: .6px; text-align: left; border-bottom: 1px solid var(--border); background: var(--bg); }
+  td { padding: 12px 16px; font-size: 13px; color: var(--tx2); border-bottom: 1px solid var(--border); }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--bg); }
+  .badge { display: inline-block; padding: 3px 9px; border-radius: 6px; font-size: 11px; font-weight: 700; }
+  .badge-green { background: var(--green-bg); color: var(--green); }
+  .badge-red { background: var(--red-bg); color: var(--red); }
+  .badge-amber { background: var(--amber-bg); color: var(--amber); }
+  .badge-blue { background: #eef3fa; color: #1a2b40; }
+  .search-input { padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; font-family: inherit; outline: none; width: 220px; background: var(--bg); }
+  .section { display: none; }
+  .section.active { display: block; }
+  .loading { text-align: center; padding: 40px; color: var(--tx3); font-size: 14px; }
+  .empty { text-align: center; padding: 40px; color: var(--tx3); font-size: 13px; }
+</style>
+<script src="http://localhost:3000/socket.io/socket.io.js"></script>
+</head>
+<body>
+
+<div id="loginScreen">
+  <div class="login-box">
+    <h1>ServTrack Admin</h1>
+    <p>Ingresa la clave de acceso</p>
+    <input id="adminUser" class="login-input" type="text" placeholder="Usuario" style="letter-spacing:0"/>
+    <input id="adminPass" class="login-input" type="password" placeholder="Contraseña"/>
+    <button class="login-btn" onclick="doLogin()">Entrar</button>
+    <div class="login-error" id="loginError"></div>
+  </div>
+</div>
+
+<div class="sidebar">
+  <div class="sidebar-logo"><h1>ServTrack</h1><p>Panel Admin</p></div>
+  <nav class="sidebar-nav">
+    <div class="nav-item active" onclick="goSection('dashboard',this)"> Dashboard</div>
+    <div class="nav-item" onclick="goSection('usuarios',this)"> Usuarios</div>
+    <div class="nav-item" onclick="goSection('personas',this)"> Personas</div>
+    <div class="nav-item" onclick="goSection('informes',this)"> Informes</div>
+    <div class="nav-item" onclick="goSection('asignaciones',this)"> Asignaciones</div>
+    <div class="nav-item" onclick="goSection('notificaciones',this)"> Notificaciones</div>
+  </nav>
+  <div class="sidebar-footer">v1.0.0 · Admin</div>
+</div>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-title" id="topbarTitle">Dashboard</div>
+    <button class="btn-sm" onclick="logout()" style="background:var(--red)">Salir</button>
+  </div>
+  <div class="content">
+
+    <div class="section active" id="sec-dashboard">
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-label">Usuarios</div><div class="stat-value" id="statUsuarios">—</div></div>
+        <div class="stat-card"><div class="stat-label">Personas</div><div class="stat-value" id="statPersonas">—</div></div>
+        <div class="stat-card"><div class="stat-label">Informes mes</div><div class="stat-value" id="statInformes">—</div></div>
+        <div class="stat-card"><div class="stat-label">Asignaciones</div><div class="stat-value" id="statAsig">—</div></div>
+      </div>
+      <div class="table-card">
+        <div class="table-header"><span class="table-title">Últimos usuarios</span></div>
+        <table><thead><tr><th>Nombre</th><th>Email</th><th>Congregación</th><th>Registro</th></tr></thead>
+        <tbody id="dashUsuarios"><tr><td colspan="4" class="loading">Cargando...</td></tr></tbody></table>
+      </div>
+    </div>
+
+    <div class="section" id="sec-usuarios">
+      <div class="table-card">
+        <div class="table-header">
+          <span class="table-title">Usuarios</span>
+          <input class="search-input" placeholder="Buscar..." oninput="filterTable(this,'tbl-usuarios')"/>
+        </div>
+        <table id="tbl-usuarios">
+            <thead><tr><th>ID</th><th>Nombre</th><th>Email</th><th>Registro</th></tr></thead>
+            <tbody id="bodyUsuarios"><tr><td colspan="5" class="loading">Cargando...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="section" id="sec-personas">
+      <div class="table-card">
+        <div class="table-header">
+          <span class="table-title">Personas</span>
+          <input class="search-input" placeholder="Buscar..." oninput="filterTable(this,'tbl-personas')"/>
+        </div>
+        <table id="tbl-personas">
+          <thead><tr><th>ID</th><th>Nombre</th><th>Usuario ID</th><th>Tipo</th><th>Estado</th></tr></thead>
+          <tbody id="bodyPersonas"><tr><td colspan="5" class="loading">Cargando...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="section" id="sec-informes">
+      <div class="table-card">
+        <div class="table-header"><span class="table-title">Informes</span></div>
+        <table>
+          <thead><tr><th>Usuario ID</th><th>Mes</th><th>Año</th><th>Horas</th><th>Cursos</th><th>Estado</th></tr></thead>
+          <tbody id="bodyInformes"><tr><td colspan="6" class="loading">Cargando...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="section" id="sec-asignaciones">
+      <div class="table-card">
+        <div class="table-header">
+          <span class="table-title">Asignaciones</span>
+          <input class="search-input" placeholder="Buscar..." oninput="filterTable(this,'tbl-asig')"/>
+        </div>
+        <table id="tbl-asig">
+          <thead><tr><th>ID</th><th>Usuario ID</th><th>Sección</th><th>Título</th><th>Fecha</th><th>Estado</th></tr></thead>
+          <tbody id="bodyAsig"><tr><td colspan="6" class="loading">Cargando...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="section" id="sec-notificaciones">
+        <div class="table-card">
+        <div class="table-header"><span class="table-title">Enviar notificación</span></div>
+        <!-- Agrega después del botón Enviar: -->
+<div id="notifMsg" style="display:none;padding:12px 16px;border-radius:10px;font-size:13px;font-weight:600;margin-top:4px"></div>
+        <div style="padding:20px;display:flex;flex-direction:column;gap:12px">
+        <select id="notifDestinatario" style="padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;outline:none;background:var(--bg)">
+            <option value="todos">Todos los usuarios</option>
+        </select>
+        <input id="notifTitulo" class="search-input" style="width:100%" placeholder="Título..."/>
+        <textarea id="notifCuerpo" style="padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;resize:none;height:80px;outline:none" placeholder="Mensaje..."></textarea>
+        <button class="btn-sm" style="width:fit-content" onclick="enviarNotif()">Enviar</button>
+        </div>
+    </div>
+    </div>
+
+  </div>
+</div>
+
+
+<script>
+const ADMIN_URL = window.location.origin;
+
+const socket = io('http://localhost:3000');
+socket.on('activos:update', (activos) => {
+  document.querySelectorAll('[data-userid]').forEach(dot => {
+    const id = parseInt(dot.dataset.userid);
+    dot.style.background = activos.includes(id) ? '#1e7e34' : '#ccc';
+  });
+});
+
+async function doLogin() {
+  const user = document.getElementById('adminUser').value.trim();
+  const pass = document.getElementById('adminPass').value.trim();
+  if (!user || !pass) return;
+  const key = btoa(JSON.stringify({ user, pass }));
+  try {
+    const res = await fetch(ADMIN_URL + '/control/panel/verify/' + key);
+    if (res.ok) {
+      adminKey = key;
+      document.getElementById('loginScreen').style.display = 'none';
+      loadDashboard();
+    } else {
+      document.getElementById('loginError').textContent = 'Credenciales incorrectas';
+    }
+  } catch(e) {
+    document.getElementById('loginError').textContent = 'Error de conexión';
+  }
+}
+
+
+
+async function api(path) {
+  const res = await fetch(ADMIN_URL + '/control/panel/' + adminKey + '/api' + path);
+  return res.json();
+}
+
+function logout() {
+  adminKey = '';
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('adminKey').value = '';
+}
+
+function mostrarMensaje(msg, tipo) {
+  const el = document.getElementById('notifMsg');
+  const colores = {
+    green: { bg: '#edf7ef', color: '#1e7e34' },
+    amber: { bg: '#fff8ee', color: '#a0660a' },
+    red:   { bg: '#fef0f2', color: '#9b2335' }
+  };
+  const c = colores[tipo] || colores.amber;
+  el.style.display = 'block';
+  el.style.background = c.bg;
+  el.style.color = c.color;
+  el.textContent = msg;
+  setTimeout(() => el.style.display = 'none', 4000);
+}
+
+async function loadDashboard() {
+  try {
+    const [usuarios, personas, informes, asig] = await Promise.all([
+      api('/usuarios'), api('/personas'), api('/informes'), api('/asignaciones')
+    ]);
+    document.getElementById('statUsuarios').textContent = usuarios.length || 0;
+    document.getElementById('statPersonas').textContent = personas.length || 0;
+    const mes = new Date().getMonth() + 1;
+    const año = new Date().getFullYear();
+    document.getElementById('statInformes').textContent = informes.filter(i => i.mes == mes && i.año == año).length || 0;
+    document.getElementById('statAsig').textContent = asig.filter(a => a.estado !== 'Completado').length || 0;
+    const tbody = document.getElementById('dashUsuarios');
+    tbody.innerHTML = usuarios.slice(0,5).map(u => `
+      <tr><td>${u.nombre}</td><td>${u.email}</td><td>${u.congregacion||'—'}</td><td>${u.fecha_registro ? new Date(u.fecha_registro).toLocaleDateString('es-PE') : '—'}</td></tr>
+    `).join('') || '<tr><td colspan="4" class="empty">Sin usuarios</td></tr>';
+  } catch(e) { console.error(e); }
+}
+
+async function loadUsuarios() {
+  const tbody = document.getElementById('bodyUsuarios');
+  try {
+    const data = await api('/usuarios');
+  tbody.innerHTML = data.map(u => {
+    const activo = u.ultimo_acceso && (Date.now() - new Date(u.ultimo_acceso)) < 5 * 60 * 1000;
+    return `<tr>
+        <td>#${u.id}</td>
+        <td>
+        <span data-userid="${u.id}" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#ccc;margin-right:6px"></span>
+        ${u.nombre}
+        </td>
+        <td>${u.email}</td>
+        <td>${u.personas || 0}</td>
+        <td>${u.fecha_registro ? new Date(u.fecha_registro).toLocaleDateString('es-PE') : '—'}</td>
+        <td><button onclick="notificarUsuario(${u.id})" style="padding:4px 10px;border-radius:6px;font-size:11px;border:1px solid var(--border);background:var(--surface);cursor:pointer">📢</button></td>
+    </tr>`;
+    }).join('');
+  } catch(e) { tbody.innerHTML = '<tr><td colspan="5" class="empty">Error</td></tr>'; }
+}
+async function loadPersonas() {
+  const tbody = document.getElementById('bodyPersonas');
+  try {
+    const data = await api('/personas');
+    tbody.innerHTML = data.map(p => `
+      <tr><td>#${p.id}</td><td>${p.nombre}</td><td>#${p.usuario_id}</td><td><span class="badge badge-blue">${p.tipo}</span></td><td><span class="badge ${p.estado==='regular'?'badge-green':'badge-amber'}">${p.estado}</span></td></tr>
+    `).join('') || '<tr><td colspan="5" class="empty">Sin datos</td></tr>';
+  } catch(e) { tbody.innerHTML = '<tr><td colspan="5" class="empty">Error</td></tr>'; }
+}
+
+async function loadInformes() {
+  const tbody = document.getElementById('bodyInformes');
+  try {
+    const data = await api('/informes');
+    tbody.innerHTML = data.map(i => `
+      <tr><td>#${i.usuario_id}</td><td>${i.mes}</td><td>${i.año}</td><td>${i.horas||0}h</td><td>${i.cursos_biblicos||0}</td><td><span class="badge ${i.enviado?'badge-green':'badge-amber'}">${i.enviado?'Enviado':'Pendiente'}</span></td></tr>
+    `).join('') || '<tr><td colspan="6" class="empty">Sin datos</td></tr>';
+  } catch(e) { tbody.innerHTML = '<tr><td colspan="6" class="empty">Error</td></tr>'; }
+}
+
+async function loadAsignaciones() {
+  const tbody = document.getElementById('bodyAsig');
+  try {
+    const data = await api('/asignaciones');
+    tbody.innerHTML = data.map(a => `
+      <tr><td>#${a.id}</td><td>#${a.usuario_id}</td><td>${a.seccion}</td><td>${a.titulo||'—'}</td><td>${a.fecha_reunion?a.fecha_reunion.split('T')[0]:'—'}</td><td><span class="badge ${a.estado==='Completado'?'badge-green':'badge-amber'}">${a.estado}</span></td></tr>
+    `).join('') || '<tr><td colspan="6" class="empty">Sin datos</td></tr>';
+  } catch(e) { tbody.innerHTML = '<tr><td colspan="6" class="empty">Error</td></tr>'; }
+}
+
+async function notificarUsuario(userId) {
+  const titulo = prompt('Título:');
+  const cuerpo = prompt('Mensaje:');
+  if (!titulo || !cuerpo) return;
+  const res = await fetch(ADMIN_URL + '/control/panel/' + adminKey + '/api/notificar/' + userId, {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ titulo, cuerpo })
+  });
+  const data = await res.json();
+  alert(data.enviados ? 'Enviado ✔' : 'No se pudo enviar');
+}
+// ELIMINA esta:
+
+async function cargarDestinatarios() {
+  const data = await api('/usuarios');
+  const sel = document.getElementById('notifDestinatario');
+  data.forEach(u => {
+    const opt = document.createElement('option');
+    opt.value = u.id;
+    opt.textContent = '👤 ' + u.nombre + ' — ' + u.email;
+    sel.appendChild(opt);
+  });
+}
+
+async function enviarNotif() {
+  const dest = document.getElementById('notifDestinatario').value;
+  const titulo = document.getElementById('notifTitulo').value.trim();
+  const cuerpo = document.getElementById('notifCuerpo').value.trim();
+  if (!titulo || !cuerpo) { mostrarMensaje('Completa título y mensaje', 'red'); return; }
+
+  const destNombre = dest === 'todos' ? 'todos los usuarios' : document.getElementById('notifDestinatario').selectedOptions[0].textContent;
+  
+  // Confirmación
+  const modal = document.createElement('div');
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px';
+  modal.innerHTML = `
+    <div style="background:#fff;border-radius:16px;padding:28px 24px;width:100%;max-width:340px;text-align:center">
+      <div style="font-size:17px;font-weight:700;color:#18170f;margin-bottom:8px">¿Enviar notificación?</div>
+      <div style="font-size:13px;color:#9c9a92;margin-bottom:6px">Para: <strong>${destNombre}</strong></div>
+      <div style="font-size:13px;color:#9c9a92;margin-bottom:6px">Título: <strong>${titulo}</strong></div>
+      <div style="font-size:13px;color:#9c9a92;margin-bottom:24px">Mensaje: ${cuerpo}</div>
+      <button id="confirmNotif" style="width:100%;padding:13px;background:#1a2b40;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;margin-bottom:8px">Sí, enviar</button>
+      <button onclick="this.closest('div').parentElement.remove()" style="width:100%;padding:12px;background:transparent;color:#9c9a92;border:none;font-size:13px;cursor:pointer">Cancelar</button>
+    </div>
+  `;
+  document.body.appendChild(modal);
+
+  document.getElementById('confirmNotif').onclick = async () => {
+    modal.remove();
+    const url = dest === 'todos'
+      ? ADMIN_URL + '/control/panel/' + adminKey + '/api/notificar'
+      : ADMIN_URL + '/control/panel/' + adminKey + '/api/notificar/' + dest;
+    try {
+      const res = await fetch(url, {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ titulo, cuerpo })
+      });
+      const data = await res.json();
+      mostrarMensaje(data.enviados > 0 ? '✔ Notificación enviada correctamente' : '⚠ No se pudo enviar — el usuario no tiene notificaciones activas', data.enviados > 0 ? 'green' : 'amber');
+    } catch(e) { mostrarMensaje('❌ Error al enviar', 'red'); }
+  };
+}
+function goSection(id, el) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('sec-' + id).classList.add('active');
+  el.classList.add('active');
+  const titles = {dashboard:'Dashboard',usuarios:'Usuarios',personas:'Personas',informes:'Informes',asignaciones:'Asignaciones',notificaciones:'Notificaciones'};
+  document.getElementById('topbarTitle').textContent = titles[id]||id;
+  if (id === 'notificaciones') cargarDestinatarios();
+  if (id==='usuarios') loadUsuarios();
+  if (id==='personas') loadPersonas();
+  if (id==='informes') loadInformes();
+  if (id==='asignaciones') loadAsignaciones();
+}
+
+function filterTable(input, tableId) {
+  const q = input.value.toLowerCase();
+  document.getElementById(tableId).querySelectorAll('tbody tr').forEach(row => {
+    row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+}
+
+setInterval(() => {
+  if (document.getElementById('sec-usuarios').classList.contains('active')) {
+    loadUsuarios();
+  }
+}, 30000);
+</script>
+<script src="http://localhost:3000/socket.io/socket.io.js"></script>
+</body>
+</html>
