@@ -190,5 +190,6 @@ async function handleGoogleLogin(response) {
   }
 
   saveSession(data.token, data.user);
+  subscribeToPush(); 
   location.reload();
 }
