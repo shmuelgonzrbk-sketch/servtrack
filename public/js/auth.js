@@ -175,7 +175,7 @@ function showAuthScreen() {
 async function handleGoogleLogin(response) {
   const idToken = response.credential;
 
-    const res = await fetch('http://localhost:3000/api/auth/google', {
+    const res = await fetch('https://servtrack-api.onrender.com/api/auth/google', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ idToken })
