@@ -182,7 +182,7 @@
 <script>
 const ADMIN_URL = window.location.origin;
 
-const socket = io('http://localhost:3000');
+const socket = io('https://servtrack-api.onrender.com');
 socket.on('activos:update', (activos) => {
   document.querySelectorAll('[data-userid]').forEach(dot => {
     const id = parseInt(dot.dataset.userid);
@@ -394,6 +394,6 @@ setInterval(() => {
   }
 }, 30000);
 </script>
-<script src="http://localhost:3000/socket.io/socket.io.js"></script>
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 </body>
 </html>
