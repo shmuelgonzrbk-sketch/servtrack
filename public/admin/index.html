@@ -259,22 +259,24 @@ async function loadUsuarios() {
   const tbody = document.getElementById('bodyUsuarios');
   try {
     const data = await api('/usuarios');
-  tbody.innerHTML = data.map(u => {
-    const activo = u.ultimo_acceso && (Date.now() - new Date(u.ultimo_acceso)) < 5 * 60 * 1000;
-    return `<tr>
-        <td>#${u.id}</td>
-        <td>
-        <span data-userid="${u.id}" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#ccc;margin-right:6px"></span>
-        ${u.nombre}
-        </td>
-        <td>${u.email}</td>
-        <td>${u.personas || 0}</td>
-        <td>${u.fecha_registro ? new Date(u.fecha_registro).toLocaleDateString('es-PE') : '—'}</td>
-        <td><button onclick="notificarUsuario(${u.id})" style="padding:4px 10px;border-radius:6px;font-size:11px;border:1px solid var(--border);background:var(--surface);cursor:pointer">📢</button></td>
-    </tr>`;
+    tbody.innerHTML = data.map(u => {
+      return `<tr>
+          <td>#${u.id}</td>
+          <td>
+          <span data-userid="${u.id}" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#ccc;margin-right:6px"></span>
+          ${u.nombre}
+          </td>
+          <td>${u.email}</td>
+          <td>${u.personas || 0}</td>
+          <td>${u.fecha_registro ? new Date(u.fecha_registro).toLocaleDateString('es-PE') : '—'}</td>
+          <td><button onclick="notificarUsuario(${u.id})" style="padding:4px 10px;border-radius:6px;font-size:11px;border:1px solid var(--border);background:var(--surface);cursor:pointer">📢</button></td>
+      </tr>`;
     }).join('');
+    socket.emit('get:activos'); // ← AGREGA ESTA LÍNEA
   } catch(e) { tbody.innerHTML = '<tr><td colspan="5" class="empty">Error</td></tr>'; }
 }
+
+ 
 async function loadPersonas() {
   const tbody = document.getElementById('bodyPersonas');
   try {
