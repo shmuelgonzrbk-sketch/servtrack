@@ -23,7 +23,13 @@ router.get('/', auth, async (req, res) => {
   }
 });
 
-// Enviar un mensaje nuevo (con categoría opcional)
+const FAQ_KEYWORDS = [
+  { match: ['color', 'tema', 'personalizar'], respuesta: 'Para cambiar el color del tema: Ve a Ajustes → Personalización → Color del tema. Puedes elegir uno de la paleta o tocar "Elegir color exacto".' },
+  { match: ['notificacion', 'notificaciones', 'aviso', 'avisos'], respuesta: 'Para activar las notificaciones: Ve a Ajustes → Notificaciones → activa "Notificame". Si el navegador te pide permiso, acéptalo.' },
+  { match: ['asignacion', 'asignaciones', 'parte'], respuesta: 'Para agregar una asignación: Ve al menú → Asignaciones → toca "Agregar asignación" y elige la sección.' },
+];
+
+// Enviar un mensaje nuevo (con categoría opcional) + respuesta automática del bot
 router.post('/', auth, async (req, res) => {
   const { mensaje, categoria } = req.body;
   if (!mensaje || !mensaje.trim()) return res.status(400).json({ error: 'Mensaje vacío' });
@@ -33,12 +39,30 @@ router.post('/', auth, async (req, res) => {
       [req.userId, mensaje.trim(), categoria || null]
     );
 
-    // ¿Es el primer mensaje de esta conversación?
     const total = await pool.query('SELECT COUNT(*) FROM reportes WHERE usuario_id = $1', [req.userId]);
-    if (parseInt(total.rows[0].count) === 1) {
+    const esPrimero = parseInt(total.rows[0].count) === 1;
+
+    // Busca coincidencia con alguna FAQ conocida
+    const textoLower = mensaje.toLowerCase();
+    const faqEncontrada = FAQ_KEYWORDS.find(f => f.match.some(k => textoLower.includes(k)));
+
+    let respuestaBot = null;
+    if (esPrimero) {
+      const saludos = [
+        '✅ Hemos recibido tu mensaje. Muy pronto recibirás una respuesta.',
+        '👋 ¡Hola! Gracias por escribir, en breve te respondemos.',
+      ];
+      respuestaBot = saludos[Math.floor(Math.random() * saludos.length)];
+    } else if (faqEncontrada) {
+      respuestaBot = faqEncontrada.respuesta;
+    } else {
+      respuestaBot = 'Estamos para ayudarte 🙌 En breve un miembro del equipo te responde directamente. Mientras tanto, aquí tienes algunas preguntas comunes:\n\n• ¿Cómo cambio el color del tema?\n• ¿Cómo activo las notificaciones?\n• ¿Cómo agrego una asignación?\n\nEscríbeme cualquiera de esas y te respondo al toque.';
+    }
+
+    if (respuestaBot) {
       await pool.query(
         `INSERT INTO reportes (usuario_id, remitente, mensaje) VALUES ($1, 'admin', $2)`,
-        [req.userId, '✅ Hemos recibido tu mensaje. Muy pronto recibirás una respuesta.']
+        [req.userId, respuestaBot]
       );
     }
 

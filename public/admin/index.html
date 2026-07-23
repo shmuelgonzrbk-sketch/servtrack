@@ -85,6 +85,7 @@
     <div class="nav-item" onclick="goSection('informes',this)"> Informes</div>
     <div class="nav-item" onclick="goSection('asignaciones',this)"> Asignaciones</div>
     <div class="nav-item" onclick="goSection('notificaciones',this)"> Notificaciones</div>
+    <div class="nav-item" id="navReportes" onclick="goSection('reportes',this)"> Reportes <span id="reportesBadge" style="display:none;background:var(--red);color:#fff;font-size:10px;font-weight:700;padding:1px 6px;border-radius:99px;margin-left:4px"></span></div>
   </nav>
   <div class="sidebar-footer">v1.0.0 · Admin</div>
 </div>
@@ -160,7 +161,7 @@
     </div>
 
     <div class="section" id="sec-notificaciones">
-        <div class="table-card">
+      <div class="table-card">
         <div class="table-header"><span class="table-title">Enviar notificación</span></div>
         <div id="notifMsg" style="display:none;padding:12px 16px;border-radius:10px;font-size:13px;font-weight:600;margin-top:4px"></div>
         <div style="padding:20px;display:flex;flex-direction:column;gap:12px">
@@ -171,7 +172,11 @@
         <textarea id="notifCuerpo" style="padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;resize:none;height:80px;outline:none" placeholder="Mensaje..."></textarea>
         <button class="btn-sm" style="width:fit-content" onclick="enviarNotif()">Enviar</button>
         </div>
+      </div>
     </div>
+
+    <div class="section" id="sec-reportes">
+      <div id="reportesGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px"></div>
     </div>
 
   </div>
@@ -201,6 +206,7 @@ async function doLogin() {
       adminKey = key;
       document.getElementById('loginScreen').style.display = 'none';
       loadDashboard();
+      pedirPermisoNotifAdmin();
     } else {
       document.getElementById('loginError').textContent = 'Credenciales incorrectas';
     }
@@ -249,6 +255,7 @@ async function loadDashboard() {
     tbody.innerHTML = usuarios.slice(0,5).map(u => `
       <tr><td>${u.nombre}</td><td>${u.email}</td><td>${u.congregacion||'—'}</td><td>${u.fecha_registro ? new Date(u.fecha_registro).toLocaleDateString('es-PE') : '—'}</td></tr>
     `).join('') || '<tr><td colspan="4" class="empty">Sin usuarios</td></tr>';
+    loadReportes();
   } catch(e) { console.error(e); }
 }
 
@@ -269,11 +276,10 @@ async function loadUsuarios() {
           <td><button onclick="notificarUsuario(${u.id})" style="padding:4px 10px;border-radius:6px;font-size:11px;border:1px solid var(--border);background:var(--surface);cursor:pointer">📢</button></td>
       </tr>`;
     }).join('');
-    socket.emit('get:activos'); // ← AGREGA ESTA LÍNEA
+    socket.emit('get:activos');
   } catch(e) { tbody.innerHTML = '<tr><td colspan="5" class="empty">Error</td></tr>'; }
 }
 
- 
 async function loadPersonas() {
   const tbody = document.getElementById('bodyPersonas');
   try {
@@ -364,18 +370,157 @@ async function enviarNotif() {
     } catch(e) { mostrarMensaje('❌ Error al enviar', 'red'); }
   };
 }
+
 function goSection(id, el) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById('sec-' + id).classList.add('active');
   el.classList.add('active');
-  const titles = {dashboard:'Dashboard',usuarios:'Usuarios',personas:'Personas',informes:'Informes',asignaciones:'Asignaciones',notificaciones:'Notificaciones'};
+  const titles = {dashboard:'Dashboard',usuarios:'Usuarios',personas:'Personas',informes:'Informes',asignaciones:'Asignaciones',notificaciones:'Notificaciones',reportes:'Reportes'};
   document.getElementById('topbarTitle').textContent = titles[id]||id;
   if (id === 'notificaciones') cargarDestinatarios();
   if (id==='usuarios') loadUsuarios();
   if (id==='personas') loadPersonas();
   if (id==='informes') loadInformes();
   if (id==='asignaciones') loadAsignaciones();
+  if (id==='reportes') loadReportes();
+}
+
+/* ═══════════════ REPORTES / CHAT DE SOPORTE ═══════════════ */
+
+let _reportesData = [];
+let _chatAdminMensajes = [];
+let _reporteActivo = null;
+
+const CATEGORIAS_ADMIN = {
+  problema: { label: '🐛 Problema', color: '#9b2335', bg: '#fef0f2' },
+  mejora:   { label: '💡 Mejora',   color: '#a0660a', bg: '#fff8ee' },
+  duda:     { label: '❓ Duda',      color: '#2e6be6', bg: '#eef3fa' },
+};
+
+async function loadReportes() {
+  const grid = document.getElementById('reportesGrid');
+  try {
+    _reportesData = await api('/reportes');
+    if (!grid) return;
+    if (!_reportesData.length) {
+      grid.innerHTML = '<div class="empty">Sin conversaciones aún</div>';
+      actualizarBadgeReportes();
+      return;
+    }
+    grid.innerHTML = _reportesData.map(r => {
+      const noLeidos = parseInt(r.no_leidos) || 0;
+      const cat = CATEGORIAS_ADMIN[r.categoria];
+      return `<div onclick="abrirConversacion(${r.usuario_id})" style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;cursor:pointer;position:relative;transition:border-color .15s" onmouseover="this.style.borderColor='var(--navy)'" onmouseout="this.style.borderColor='var(--border)'">
+        ${noLeidos > 0 ? `<span style="position:absolute;top:14px;right:14px;background:var(--red);color:#fff;font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px">${noLeidos}</span>` : ''}
+        <div style="font-size:15px;font-weight:700;color:var(--tx);margin-bottom:2px">${r.nombre}</div>
+        <div style="font-size:12px;color:var(--tx3);margin-bottom:10px">${r.email}</div>
+        ${cat ? `<span style="font-size:10px;font-weight:700;color:${cat.color};background:${cat.bg};padding:3px 8px;border-radius:6px;display:inline-block;margin-bottom:8px">${cat.label}</span>` : ''}
+        <div style="font-size:13px;color:var(--tx2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-top:1px solid var(--border);padding-top:8px;margin-top:4px">${r.ultimo_mensaje || 'Sin mensajes'}</div>
+      </div>`;
+    }).join('');
+    actualizarBadgeReportes();
+  } catch(e) { if(grid) grid.innerHTML = '<div class="empty">Error al cargar</div>'; }
+}
+
+function actualizarBadgeReportes() {
+  const total = _reportesData.reduce((sum, r) => sum + (parseInt(r.no_leidos) || 0), 0);
+  const badge = document.getElementById('reportesBadge');
+  if (badge) {
+    if (total > 0) { badge.style.display = 'inline'; badge.textContent = total; }
+    else badge.style.display = 'none';
+  }
+}
+
+async function abrirConversacion(userId) {
+  _reporteActivo = userId;
+  const r = _reportesData.find(x => x.usuario_id === userId);
+
+  const modal = document.createElement('div');
+  modal.id = 'chatAdminModal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px';
+  modal.innerHTML = `
+    <div style="background:var(--surface);border-radius:16px;width:100%;max-width:480px;height:80vh;display:flex;flex-direction:column;overflow:hidden">
+      <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div style="font-size:15px;font-weight:700">${r ? r.nombre : ''}</div>
+          <div style="font-size:12px;color:var(--tx3)">${r ? r.email : ''}</div>
+        </div>
+        <button onclick="document.getElementById('chatAdminModal').remove()" style="width:32px;height:32px;border-radius:50%;border:none;background:var(--bg);cursor:pointer;font-size:14px">✕</button>
+      </div>
+      <div id="chatAdminMensajes" style="flex:1;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:10px"></div>
+      <div style="display:flex;gap:8px;padding:14px 20px;border-top:1px solid var(--border)">
+        <input id="chatAdminInput" class="search-input" style="flex:1" placeholder="Escribe tu respuesta..." onkeydown="if(event.key==='Enter') enviarRespuestaAdmin()"/>
+        <button class="btn-sm" onclick="enviarRespuestaAdmin()">Enviar</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+  await cargarConversacionAdmin(userId);
+}
+
+async function cargarConversacionAdmin(userId) {
+  const cont = document.getElementById('chatAdminMensajes');
+  if (!cont) return;
+  cont.innerHTML = '<div class="loading">Cargando...</div>';
+  try {
+    _chatAdminMensajes = await api('/reportes/' + userId);
+    pintarChatAdmin();
+    await loadReportes();
+  } catch(e) { cont.innerHTML = '<div class="empty">Error al cargar</div>'; }
+}
+
+function pintarChatAdmin() {
+  const cont = document.getElementById('chatAdminMensajes');
+  if (!cont) return;
+  cont.innerHTML = _chatAdminMensajes.map(m => {
+    const esAdmin = m.remitente === 'admin';
+    const hora = new Date(m.fecha).toLocaleString('es-PE', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
+    const acciones = esAdmin
+      ? `<div style="display:flex;gap:8px;margin-top:6px">
+           <button onclick="editarMensajeAdmin(${m.id})" style="font-size:10px;background:none;border:none;color:rgba(255,255,255,.7);cursor:pointer;padding:0">✏️ Editar</button>
+           <button onclick="eliminarMensajeAdmin(${m.id})" style="font-size:10px;background:none;border:none;color:rgba(255,255,255,.7);cursor:pointer;padding:0">🗑️ Eliminar</button>
+         </div>`
+      : '';
+    return `<div style="display:flex;justify-content:${esAdmin ? 'flex-end' : 'flex-start'}">
+      <div style="max-width:75%;padding:10px 13px;border-radius:12px;font-size:13px;line-height:1.4;${esAdmin ? 'background:var(--navy);color:#fff' : 'background:var(--bg);color:var(--tx)'}">
+        ${m.mensaje}
+        <div style="font-size:10px;opacity:.65;margin-top:4px">${hora}${m.editado ? ' · editado' : ''}</div>
+        ${acciones}
+      </div>
+    </div>`;
+  }).join('');
+  cont.scrollTop = cont.scrollHeight;
+}
+
+async function enviarRespuestaAdmin() {
+  const input = document.getElementById('chatAdminInput');
+  const texto = input.value.trim();
+  if (!texto || !_reporteActivo) return;
+  input.value = '';
+  await fetch(ADMIN_URL + '/control/panel/' + adminKey + '/api/reportes/' + _reporteActivo, {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ mensaje: texto })
+  });
+  await cargarConversacionAdmin(_reporteActivo);
+}
+
+async function editarMensajeAdmin(id) {
+  const nuevo = prompt('Editar respuesta:');
+  if (nuevo === null || !nuevo.trim()) return;
+  await fetch(ADMIN_URL + '/control/panel/' + adminKey + '/api/reportes/msg/' + id, {
+    method: 'PUT', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ mensaje: nuevo.trim() })
+  });
+  await cargarConversacionAdmin(_reporteActivo);
+}
+
+async function eliminarMensajeAdmin(id) {
+  if (!confirm('¿Eliminar esta respuesta para ambos lados?')) return;
+  await fetch(ADMIN_URL + '/control/panel/' + adminKey + '/api/reportes/msg/' + id + '?tipo=todos', {
+    method: 'DELETE'
+  });
+  await cargarConversacionAdmin(_reporteActivo);
 }
 
 function filterTable(input, tableId) {
@@ -390,6 +535,63 @@ setInterval(() => {
     loadUsuarios();
   }
 }, 30000);
+
+/* ═══════════════ NOTIFICACIONES PARA EL ADMIN ═══════════════ */
+let _ultimoConteoNoLeidos = 0;
+
+function pedirPermisoNotifAdmin() {
+  if ('Notification' in window && Notification.permission === 'default') {
+    Notification.requestPermission();
+  }
+}
+
+function sonarAvisoAdmin() {
+  try {
+    const audio = new Audio('data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoAAAAAAAA=');
+    audio.volume = 0.3;
+    audio.play().catch(()=>{});
+  } catch(e) {}
+}
+
+async function chequearNuevosReportes() {
+  if (!adminKey) return;
+  try {
+    const data = await api('/reportes');
+    const totalNoLeidos = data.reduce((sum, r) => sum + (parseInt(r.no_leidos) || 0), 0);
+
+    if (totalNoLeidos > _ultimoConteoNoLeidos) {
+      const nuevos = totalNoLeidos - _ultimoConteoNoLeidos;
+      const conMasNoLeidos = data
+        .filter(r => parseInt(r.no_leidos) > 0)
+        .sort((a,b) => new Date(b.ultima_fecha) - new Date(a.ultima_fecha))[0];
+
+      if ('Notification' in window && Notification.permission === 'granted') {
+        const notif = new Notification('💬 Nuevo mensaje de soporte', {
+          body: conMasNoLeidos ? `${conMasNoLeidos.nombre}: ${conMasNoLeidos.ultimo_mensaje}` : `Tienes ${nuevos} mensaje(s) nuevo(s)`,
+          icon: 'https://servtrack-app.netlify.app/img/logotipo.png',
+          badge: 'https://servtrack-app.netlify.app/img/logotipo.png'
+        });
+        notif.onclick = () => {
+          window.focus();
+          document.querySelector('[onclick*="reportes"]')?.click();
+          notif.close();
+        };
+      }
+      sonarAvisoAdmin();
+    }
+    _ultimoConteoNoLeidos = totalNoLeidos;
+
+    if (document.getElementById('sec-reportes')?.classList.contains('active')) {
+      loadReportes();
+    } else {
+      _reportesData = data;
+      actualizarBadgeReportes();
+    }
+  } catch(e) {}
+}
+
+setInterval(chequearNuevosReportes, 15000);
+
 </script>
 </body>
 </html>

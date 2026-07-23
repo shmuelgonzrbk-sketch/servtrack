@@ -15,6 +15,7 @@ function headers() {
 // ── REPORTES ──
 async function apiGetReportes() {
   const res = await fetch(API_URL + '/reportes', { headers: headers() });
+  if (!res.ok) throw new Error('Error ' + res.status);
   return res.json();
 }
 async function apiEnviarReporte(mensaje, categoria) {

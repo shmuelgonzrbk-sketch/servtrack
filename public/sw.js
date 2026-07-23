@@ -212,8 +212,8 @@ self.addEventListener('push', function(e) {
   e.waitUntil(
     self.registration.showNotification(data.title, {
       body: data.body,
-      icon: '/img/icon-192.png',
-      badge: '/img/icon-192.png',
+      icon: '/img/logotipo.png',
+      badge: '/img/logotipo.png',
       vibrate: [200, 100, 200],
     })
   );

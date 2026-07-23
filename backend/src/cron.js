@@ -36,10 +36,7 @@ cron.schedule('0 * * * *', async () => {
       `SELECT p.usuario_id, p.nombre, p.estado
        FROM personas p
        WHERE p.estado != 'visitado'
-       AND EXISTS (
-         SELECT 1 FROM visitas v 
-         WHERE v.persona_id = p.id AND v.fecha = $1
-       )`,
+       AND p.proxima_visita = $1`,
       [fechaManana]
     );
 

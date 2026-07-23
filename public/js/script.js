@@ -924,6 +924,7 @@ function showImportPanel(d) {
     + '<button class="btn-save" style="margin-top:20px" onclick="confirmImport()">Agregar a mi lista</button>'
     + '<button class="btn-cancel" onclick="closeDet()">' + t('cancelar') + '</button>';
   document.getElementById('detBg').classList.add('open');
+  updateFabVisibility();
 }
 
 async function confirmImport() {
@@ -1115,7 +1116,10 @@ function openDet(id) {
   updateFabVisibility();
 }
 
-function closeDet() { document.getElementById('detBg').classList.remove('open'); updateFabVisibility(); }
+function closeDet() {
+  document.getElementById('detBg').classList.remove('open', 'chat-fullscreen');
+  updateFabVisibility();
+}
 
 async function markVisited(id) {
   const c = cards.find(x => x.id === id); if (!c) return;
@@ -1547,6 +1551,7 @@ function editarInformeHist(mes) {
     + '<button class="btn-save" onclick="guardarEdicionInforme(\'' + mes + '\')">Guardar</button>'
     + '<button class="btn-cancel" onclick="closeDet()">Cancelar</button>';
   document.getElementById('detBg').classList.add('open');
+  updateFabVisibility();
 }
 
 async function guardarEdicionInforme(mes) {
@@ -2269,6 +2274,7 @@ function abrirFormNuevoTipo(secId) {
     + '<button class="btn-save" onclick="guardarNuevoTipo(\'' + secId + '\')">Crear asignación</button>'
     + '<button class="btn-cancel" onclick="closeDet()">Cancelar</button>';
   document.getElementById('detBg').classList.add('open');
+  updateFabVisibility();
 }
 
 async function guardarNuevoTipo(secId) {
@@ -2643,6 +2649,7 @@ function openAsigDet(id) {
   document.getElementById('det-title').textContent = 'Detalle';
   document.getElementById('detBody').innerHTML = html;
   document.getElementById('detBg').classList.add('open');
+  updateFabVisibility();
 }
 
 /* ================================================================
@@ -2827,27 +2834,47 @@ let _chatMensajes = [];
 let _chatCategoriaElegida = null;
 
 async function reportarProblema() {
-  document.getElementById('det-title').textContent = 'Soporte';
+  document.getElementById('detBg').classList.add('open', 'chat-fullscreen');
   document.getElementById('detBody').innerHTML =
-    '<div id="chatMensajes" style="display:flex;flex-direction:column;gap:10px;min-height:300px;max-height:60vh;overflow-y:auto;padding:4px 2px;margin-bottom:12px"></div>'
-    + '<div id="chatCategoriaBar" style="display:none;gap:8px;flex-wrap:wrap;margin-bottom:10px"></div>'
-    + '<div style="display:flex;gap:8px;position:sticky;bottom:0;background:var(--surface);padding-top:8px">'
-      + '<input id="chatInput" type="text" placeholder="Escribe tu mensaje..." style="flex:1;padding:12px 14px;border:1.5px solid var(--border);border-radius:12px;font-size:14px;font-family:inherit;background:var(--input-bg);color:var(--tx);outline:none" onkeydown="if(event.key===\'Enter\') enviarMensajeChat()"/>'
-      + '<button onclick="enviarMensajeChat()" style="width:44px;height:44px;border-radius:12px;border:none;background:var(--navy);color:#fff;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center">'
+    '<div class="chat-header">'
+      + '<img src="img/logotipo.png" alt="ServTrack" class="chat-header-logo">'
+      + '<div class="chat-header-info">'
+        + '<div class="chat-header-title">Asistente Virtual</div>'
+        + '<div class="chat-header-status"><span class="chat-status-dot"></span>ServTrack Soporte</div>'
+      + '</div>'
+      + '<button class="chat-header-close" onclick="closeDet()">✕</button>'
+    + '</div>'
+    + '<div id="chatMensajes" class="chat-messages"></div>'
+    + '<div id="chatCategoriaBar" class="chat-cat-bar" style="display:none"></div>'
+    + '<div class="chat-input-row" id="chatInputRow">'
+        + '<textarea id="chatInput" placeholder="Escribe tu mensaje..." class="chat-input" rows="1" oninput="autoGrowChat(this)" onkeydown="if(event.key===\'Enter\' && !event.shiftKey){event.preventDefault();enviarMensajeChat();}"></textarea>'
+        + '<button onclick="enviarMensajeChat()" class="chat-send-btn">'
         + '<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>'
       + '</button>'
     + '</div>';
-  document.getElementById('detBg').classList.add('open');
   updateFabVisibility();
   await cargarChat();
 }
 
+function autoGrowChat(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 100) + 'px';
+}
+
 async function cargarChat() {
+  const cont = document.getElementById('chatMensajes');
   try {
     _chatMensajes = await apiGetReportes();
     pintarChat();
-  } catch(err) { console.error('Error cargando chat:', err); }
+  } catch(err) {
+    console.error('Error cargando chat:', err);
+    if (cont) cont.innerHTML = '<div style="text-align:center;color:#9b2335;font-size:12px;padding:20px">Error al cargar el chat. Intenta cerrar y abrir de nuevo.</div>';
+  }
 }
+
+
+
+
 
 function pintarChat() {
   const cont = document.getElementById('chatMensajes');
@@ -2856,53 +2883,93 @@ function pintarChat() {
 
   if (!_chatMensajes.length) {
     cont.innerHTML = '<div style="text-align:center;color:var(--tx3);font-size:13px;padding:24px 12px;line-height:1.6">¿Tienes un problema, sugerencia o pregunta?<br>Elige una opción abajo y cuéntame.</div>';
-    catBar.style.display = 'flex';
-    catBar.innerHTML = Object.entries(CATEGORIAS_REPORTE).map(([key, c]) =>
-      '<button onclick="elegirCategoria(\'' + key + '\')" style="flex:1;min-width:100px;padding:10px 8px;border-radius:10px;border:1.5px solid ' + c.color + '30;background:' + c.bg + ';color:' + c.color + ';font-size:12px;font-weight:600;cursor:pointer">' + c.label + '</button>'
-    ).join('');
-    return;
+  } else {
+    cont.innerHTML = _chatMensajes.map((m, i) => {
+      const esUsuario = m.remitente === 'usuario';
+      const hora = new Date(m.fecha).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' });
+      const cat = m.categoria ? CATEGORIAS_REPORTE[m.categoria] : null;
+      const avatar = !esUsuario ? '<img src="img/logotipo.png" class="chat-bubble-avatar">' : '';
+      return '<div class="chat-row ' + (esUsuario ? 'chat-row-user' : 'chat-row-admin') + '" style="animation-delay:' + Math.min(i * 0.03, 0.3) + 's">'
+        + avatar
+        + '<div onclick="abrirMenuMensaje(' + m.id + ',' + esUsuario + ')" class="chat-bubble ' + (esUsuario ? 'chat-bubble-user' : 'chat-bubble-admin') + '">'
+          + (cat ? '<div class="chat-bubble-cat">' + cat.label + '</div>' : '')
+          + m.mensaje
+          + '<div class="chat-bubble-time">' + hora + (m.editado ? ' · editado' : '') + '</div>'
+        + '</div>'
+      + '</div>';
+    }).join('');
+    cont.scrollTop = cont.scrollHeight;
   }
 
-  catBar.style.display = 'none';
-  cont.innerHTML = _chatMensajes.map(m => {
-    const esUsuario = m.remitente === 'usuario';
-    const hora = new Date(m.fecha).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' });
-    const cat = m.categoria ? CATEGORIAS_REPORTE[m.categoria] : null;
-    return '<div style="display:flex;justify-content:' + (esUsuario ? 'flex-end' : 'flex-start') + '">'
-      + '<div onclick="abrirMenuMensaje(' + m.id + ',' + esUsuario + ')" style="max-width:78%;padding:10px 13px;border-radius:14px;font-size:13.5px;line-height:1.45;cursor:pointer;'
-        + (esUsuario
-          ? 'background:var(--navy);color:#fff;border-bottom-right-radius:4px'
-          : 'background:var(--s2);color:var(--tx);border-bottom-left-radius:4px')
-        + '">'
-        + (cat ? '<div style="font-size:10px;font-weight:700;opacity:.75;margin-bottom:3px">' + cat.label + '</div>' : '')
-        + m.mensaje
-        + '<div style="font-size:10px;opacity:.6;margin-top:4px;text-align:right">' + hora + (m.editado ? ' · editado' : '') + '</div>'
-      + '</div>'
-    + '</div>';
+  // La barra de categorías SIEMPRE se muestra
+  catBar.style.display = 'flex';
+  catBar.innerHTML = Object.entries(CATEGORIAS_REPORTE).map(([key, c]) => {
+    const activo = _chatCategoriaElegida === key;
+    return '<button onclick="elegirCategoria(\'' + key + '\')" style="flex:1;min-width:100px;padding:10px 8px;border-radius:10px;border:1.5px solid ' + c.color + (activo ? '' : '30') + ';background:' + (activo ? c.color : c.bg) + ';color:' + (activo ? '#fff' : c.color) + ';font-size:12px;font-weight:600;cursor:pointer;transition:.15s">' + c.label + '</button>';
   }).join('');
-  cont.scrollTop = cont.scrollHeight;
 }
+
 
 function elegirCategoria(key) {
   _chatCategoriaElegida = key;
-  document.getElementById('chatInput').focus();
-  toast(CATEGORIAS_REPORTE[key].label + ' seleccionado, ¡ahora escribe tu mensaje!');
+  const cat = CATEGORIAS_REPORTE[key];
+  const inputRow = document.querySelector('.chat-input-row');
+  const input = document.getElementById('chatInput');
+  if (inputRow) {
+    inputRow.style.background = cat.bg;
+    inputRow.style.borderTop = '2px solid ' + cat.color;
+  }
+  if (input) {
+    input.style.borderColor = cat.color;
+    input.focus();
+  }
 }
 
 async function enviarMensajeChat() {
   const input = document.getElementById('chatInput');
   const texto = input.value.trim();
   if (!texto) return;
-  if (!_chatMensajes.length && !_chatCategoriaElegida) {
+  if (!_chatCategoriaElegida) {
     toast('Elige una opción arriba antes de escribir');
     return;
   }
   input.value = '';
+  input.style.height = 'auto';
+  const categoriaUsada = _chatCategoriaElegida;
+  _chatCategoriaElegida = null;
+
+  const inputRow = document.getElementById('chatInputRow');
+  if (inputRow) { inputRow.style.background = ''; inputRow.style.borderTop = ''; }
+  input.style.borderColor = '';
+
   try {
-    await apiEnviarReporte(texto, _chatCategoriaElegida);
-    _chatCategoriaElegida = null;
-    await cargarChat();
+    _chatMensajes = await apiGetReportes(); // trae lo que había antes de enviar
+    pintarChat();
+    mostrarEscribiendo();
+
+    await apiEnviarReporte(texto, categoriaUsada);
+
+    setTimeout(async () => {
+      ocultarEscribiendo();
+      await cargarChat();
+    }, 1200);
   } catch(err) { toast('Error al enviar el mensaje'); }
+}
+
+function mostrarEscribiendo() {
+  const cont = document.getElementById('chatMensajes');
+  if (!cont) return;
+  const div = document.createElement('div');
+  div.id = 'chatEscribiendo';
+  div.className = 'chat-row chat-row-admin';
+  div.innerHTML = '<img src="img/logotipo.png" class="chat-bubble-avatar">'
+    + '<div class="chat-bubble chat-bubble-admin"><span class="chat-typing"><span></span><span></span><span></span></span></div>';
+  cont.appendChild(div);
+  cont.scrollTop = cont.scrollHeight;
+}
+
+function ocultarEscribiendo() {
+  document.getElementById('chatEscribiendo')?.remove();
 }
 
 function abrirMenuMensaje(id, esUsuario) {
@@ -2931,9 +2998,28 @@ function iniciarEdicionMensaje(id) {
   document.getElementById('chatMsgMenu')?.remove();
   const msg = _chatMensajes.find(m => m.id === id);
   if (!msg) return;
-  const nuevo = prompt('Editar mensaje:', msg.mensaje);
-  if (nuevo === null || !nuevo.trim()) return;
-  apiEditarReporte(id, nuevo.trim()).then(() => cargarChat());
+
+  const modal = document.createElement('div');
+  modal.id = 'chatEditModal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:99999;display:flex;align-items:flex-end;justify-content:center';
+  modal.innerHTML = `
+    <div style="background:var(--surface);width:100%;max-width:400px;border-radius:16px 16px 0 0;padding:20px 20px calc(env(safe-area-inset-bottom,0px) + 20px)">
+      <div style="font-size:15px;font-weight:700;color:var(--tx);margin-bottom:12px">Editar mensaje</div>
+      <textarea id="chatEditInput" style="width:100%;min-height:80px;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;background:var(--input-bg);color:var(--tx);outline:none;resize:none">${msg.mensaje}</textarea>
+      <button class="btn-save" style="margin-top:12px" onclick="confirmarEdicionMensaje(${id})">Guardar cambios</button>
+      <button class="btn-cancel" onclick="document.getElementById('chatEditModal').remove()">Cancelar</button>
+    </div>
+  `;
+  document.body.appendChild(modal);
+  setTimeout(() => document.getElementById('chatEditInput')?.focus(), 50);
+}
+
+async function confirmarEdicionMensaje(id) {
+  const nuevo = document.getElementById('chatEditInput').value.trim();
+  if (!nuevo) return;
+  document.getElementById('chatEditModal')?.remove();
+  await apiEditarReporte(id, nuevo);
+  await cargarChat();
 }
 
 async function eliminarMensajeChat(id, tipo) {
