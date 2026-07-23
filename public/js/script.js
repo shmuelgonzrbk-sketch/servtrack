@@ -1177,6 +1177,7 @@ function openForm(editData) {
     document.getElementById('fId').value     = '';
   }
   document.getElementById('formBg').classList.add('open');
+  updateFabVisibility(); 
 }
 
 function closeForm() { document.getElementById('formBg').classList.remove('open'); updateFabVisibility(); }

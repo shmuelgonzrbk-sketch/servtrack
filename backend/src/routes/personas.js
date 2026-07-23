@@ -80,7 +80,8 @@ router.put('/:id', auth, async (req, res) => {
     const result = await pool.query(
       `UPDATE personas SET nombre=$1, direccion=$2, telefono=$3,
        gps_lat=$4, gps_lng=$5, tipo=$6, estado=$7, notas=$8,
-       proxima_visita=$9, proxima_visita_hora=$10
+       proxima_visita=$9, proxima_visita_hora=$10,
+       notif_1h_enviada=false, notif_30m_enviada=false
        WHERE id=$11 AND usuario_id=$12 RETURNING *`,
       [nombre, dirEncriptada, telefono, gps_lat, gps_lng, tipo, estado, notasEncriptadas, proxima_visita || null, proxima_visita_hora || null, req.params.id, req.userId]
     );
