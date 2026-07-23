@@ -2818,35 +2818,130 @@ async function deleteAsig(id) {
   toast('Asignación eliminada');
 }
 
+const CATEGORIAS_REPORTE = {
+  problema: { label: '🐛 Reportar un problema', color: '#9b2335', bg: '#fef0f2' },
+  mejora:   { label: '💡 Sugerir una mejora',   color: '#a0660a', bg: '#fff8ee' },
+  duda:     { label: '❓ Tengo una duda',        color: '#2e6be6', bg: '#eef3fa' },
+};
+let _chatMensajes = [];
+let _chatCategoriaElegida = null;
 
-function reportarProblema() {
-  document.getElementById('det-title').textContent = 'Reportar un problema';
+async function reportarProblema() {
+  document.getElementById('det-title').textContent = 'Soporte';
   document.getElementById('detBody').innerHTML =
-    '<div style="font-size:13px;color:var(--tx3);margin-bottom:16px;line-height:1.6">Cuéntame qué está pasando y te ayudo a arreglarlo lo antes posible.</div>'
-    + '<div class="fgroup"><label>¿Qué problema tienes?</label>'
-      + '<textarea id="reportTexto" placeholder="Ej: No me llegan las notificaciones de mis visitas..." style="min-height:100px"></textarea>'
-    + '</div>'
-    + '<button class="btn-save" onclick="enviarReporte()">Enviar reporte</button>'
-    + '<button class="btn-cancel" onclick="closeDet()">Cancelar</button>';
+    '<div id="chatMensajes" style="display:flex;flex-direction:column;gap:10px;min-height:300px;max-height:60vh;overflow-y:auto;padding:4px 2px;margin-bottom:12px"></div>'
+    + '<div id="chatCategoriaBar" style="display:none;gap:8px;flex-wrap:wrap;margin-bottom:10px"></div>'
+    + '<div style="display:flex;gap:8px;position:sticky;bottom:0;background:var(--surface);padding-top:8px">'
+      + '<input id="chatInput" type="text" placeholder="Escribe tu mensaje..." style="flex:1;padding:12px 14px;border:1.5px solid var(--border);border-radius:12px;font-size:14px;font-family:inherit;background:var(--input-bg);color:var(--tx);outline:none" onkeydown="if(event.key===\'Enter\') enviarMensajeChat()"/>'
+      + '<button onclick="enviarMensajeChat()" style="width:44px;height:44px;border-radius:12px;border:none;background:var(--navy);color:#fff;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center">'
+        + '<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>'
+      + '</button>'
+    + '</div>';
   document.getElementById('detBg').classList.add('open');
   updateFabVisibility();
+  await cargarChat();
 }
 
-function enviarReporte() {
-  const texto = document.getElementById('reportTexto').value.trim();
-  if (!texto) { toast('Escribe el problema que tienes'); return; }
-
-  const user = getUser();
-  const nombre = user?.nombre || 'Usuario';
-  const email = user?.email || 'Sin correo';
-
-  const mensaje = `🐛 Reporte ServTrack\n\nDe: ${nombre} (${email})\n\nProblema:\n${texto}`;
-  const url = 'https://wa.me/51TUNUMERO?text=' + encodeURIComponent(mensaje);
-
-  window.open(url, '_blank');
-  closeDet();
-  toast('Abriendo WhatsApp ✔');
+async function cargarChat() {
+  try {
+    _chatMensajes = await apiGetReportes();
+    pintarChat();
+  } catch(err) { console.error('Error cargando chat:', err); }
 }
+
+function pintarChat() {
+  const cont = document.getElementById('chatMensajes');
+  const catBar = document.getElementById('chatCategoriaBar');
+  if (!cont) return;
+
+  if (!_chatMensajes.length) {
+    cont.innerHTML = '<div style="text-align:center;color:var(--tx3);font-size:13px;padding:24px 12px;line-height:1.6">¿Tienes un problema, sugerencia o pregunta?<br>Elige una opción abajo y cuéntame.</div>';
+    catBar.style.display = 'flex';
+    catBar.innerHTML = Object.entries(CATEGORIAS_REPORTE).map(([key, c]) =>
+      '<button onclick="elegirCategoria(\'' + key + '\')" style="flex:1;min-width:100px;padding:10px 8px;border-radius:10px;border:1.5px solid ' + c.color + '30;background:' + c.bg + ';color:' + c.color + ';font-size:12px;font-weight:600;cursor:pointer">' + c.label + '</button>'
+    ).join('');
+    return;
+  }
+
+  catBar.style.display = 'none';
+  cont.innerHTML = _chatMensajes.map(m => {
+    const esUsuario = m.remitente === 'usuario';
+    const hora = new Date(m.fecha).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' });
+    const cat = m.categoria ? CATEGORIAS_REPORTE[m.categoria] : null;
+    return '<div style="display:flex;justify-content:' + (esUsuario ? 'flex-end' : 'flex-start') + '">'
+      + '<div onclick="abrirMenuMensaje(' + m.id + ',' + esUsuario + ')" style="max-width:78%;padding:10px 13px;border-radius:14px;font-size:13.5px;line-height:1.45;cursor:pointer;'
+        + (esUsuario
+          ? 'background:var(--navy);color:#fff;border-bottom-right-radius:4px'
+          : 'background:var(--s2);color:var(--tx);border-bottom-left-radius:4px')
+        + '">'
+        + (cat ? '<div style="font-size:10px;font-weight:700;opacity:.75;margin-bottom:3px">' + cat.label + '</div>' : '')
+        + m.mensaje
+        + '<div style="font-size:10px;opacity:.6;margin-top:4px;text-align:right">' + hora + (m.editado ? ' · editado' : '') + '</div>'
+      + '</div>'
+    + '</div>';
+  }).join('');
+  cont.scrollTop = cont.scrollHeight;
+}
+
+function elegirCategoria(key) {
+  _chatCategoriaElegida = key;
+  document.getElementById('chatInput').focus();
+  toast(CATEGORIAS_REPORTE[key].label + ' seleccionado, ¡ahora escribe tu mensaje!');
+}
+
+async function enviarMensajeChat() {
+  const input = document.getElementById('chatInput');
+  const texto = input.value.trim();
+  if (!texto) return;
+  if (!_chatMensajes.length && !_chatCategoriaElegida) {
+    toast('Elige una opción arriba antes de escribir');
+    return;
+  }
+  input.value = '';
+  try {
+    await apiEnviarReporte(texto, _chatCategoriaElegida);
+    _chatCategoriaElegida = null;
+    await cargarChat();
+  } catch(err) { toast('Error al enviar el mensaje'); }
+}
+
+function abrirMenuMensaje(id, esUsuario) {
+  if (!esUsuario) return; // solo puedes editar/eliminar tus propios mensajes
+  const msg = _chatMensajes.find(m => m.id === id);
+  if (!msg) return;
+
+  const modal = document.createElement('div');
+  modal.id = 'chatMsgMenu';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:99999;display:flex;align-items:flex-end;justify-content:center';
+  modal.innerHTML = `
+    <div style="background:var(--surface);width:100%;max-width:400px;border-radius:16px 16px 0 0;padding:8px 0 calc(env(safe-area-inset-bottom,0px) + 8px)">
+      <button onclick="iniciarEdicionMensaje(${id})" style="width:100%;text-align:left;padding:14px 20px;border:none;background:none;font-size:14px;color:var(--tx);cursor:pointer">✏️ Editar mensaje</button>
+      <div style="height:1px;background:var(--border)"></div>
+      <button onclick="eliminarMensajeChat(${id},'mio')" style="width:100%;text-align:left;padding:14px 20px;border:none;background:none;font-size:14px;color:var(--tx);cursor:pointer">🙈 Eliminar para mí</button>
+      <div style="height:1px;background:var(--border)"></div>
+      <button onclick="eliminarMensajeChat(${id},'todos')" style="width:100%;text-align:left;padding:14px 20px;border:none;background:none;font-size:14px;color:#9b2335;cursor:pointer">🗑️ Eliminar para todos</button>
+      <div style="height:1px;background:var(--border)"></div>
+      <button onclick="document.getElementById('chatMsgMenu').remove()" style="width:100%;text-align:center;padding:14px 20px;border:none;background:none;font-size:14px;color:var(--tx3);cursor:pointer">Cancelar</button>
+    </div>
+  `;
+  document.body.appendChild(modal);
+}
+
+function iniciarEdicionMensaje(id) {
+  document.getElementById('chatMsgMenu')?.remove();
+  const msg = _chatMensajes.find(m => m.id === id);
+  if (!msg) return;
+  const nuevo = prompt('Editar mensaje:', msg.mensaje);
+  if (nuevo === null || !nuevo.trim()) return;
+  apiEditarReporte(id, nuevo.trim()).then(() => cargarChat());
+}
+
+async function eliminarMensajeChat(id, tipo) {
+  document.getElementById('chatMsgMenu')?.remove();
+  await apiEliminarReporte(id, tipo);
+  await cargarChat();
+}
+
 
 function showLogoutConfirm() {
   const modal = document.createElement('div');

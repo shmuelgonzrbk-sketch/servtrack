@@ -12,6 +12,30 @@ function headers() {
 }
 
 
+// ── REPORTES ──
+async function apiGetReportes() {
+  const res = await fetch(API_URL + '/reportes', { headers: headers() });
+  return res.json();
+}
+async function apiEnviarReporte(mensaje, categoria) {
+  const res = await fetch(API_URL + '/reportes', {
+    method: 'POST', headers: headers(), body: JSON.stringify({ mensaje, categoria })
+  });
+  return res.json();
+}
+async function apiEditarReporte(id, mensaje) {
+  const res = await fetch(API_URL + '/reportes/' + id, {
+    method: 'PUT', headers: headers(), body: JSON.stringify({ mensaje })
+  });
+  return res.json();
+}
+async function apiEliminarReporte(id, tipo) {
+  const res = await fetch(API_URL + '/reportes/' + id + '?tipo=' + tipo, {
+    method: 'DELETE', headers: headers()
+  });
+  return res.json();
+}
+
 // ── AUTH ──
 async function apiRegister(nombre, email, password, congregacion) {
   const res = await fetch(API_URL + '/auth/register', {

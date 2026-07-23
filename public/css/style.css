@@ -1206,3 +1206,7 @@ html, body {
   30%, 50%, 70% { transform: translateX(-4px); }
   40%, 60% { transform: translateX(4px); }
 }
+
+#detBg #detPanel {
+  max-height: 88vh;
+}

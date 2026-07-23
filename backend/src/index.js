@@ -13,6 +13,7 @@ const experienciasRoutes = require('./routes/experiencias');
 const ajustesRoutes = require('./routes/ajustes');
 const notificacionesRoutes = require('./routes/notificaciones');
 const webpush = require('web-push');
+const reportesRoutes = require('./routes/reportes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -105,6 +106,84 @@ app.post('/control/panel/:key/api/notificar',   adminAuth, async (req, res) => {
   res.json({ enviados });
 });
 
+// Lista de conversaciones (agrupadas por usuario, con último mensaje y no leídos)
+// Lista de conversaciones (con categoría del primer mensaje = prioridad/tipo)
+app.get('/control/panel/:key/api/reportes', adminAuth, async (req, res) => {
+  const r = await pool.query(`
+    SELECT u.id as usuario_id, u.nombre, u.email,
+           (SELECT mensaje FROM reportes WHERE usuario_id = u.id AND oculto_para_admin = false ORDER BY fecha DESC LIMIT 1) as ultimo_mensaje,
+           (SELECT fecha FROM reportes WHERE usuario_id = u.id AND oculto_para_admin = false ORDER BY fecha DESC LIMIT 1) as ultima_fecha,
+           (SELECT categoria FROM reportes WHERE usuario_id = u.id AND categoria IS NOT NULL ORDER BY fecha ASC LIMIT 1) as categoria,
+           (SELECT COUNT(*) FROM reportes WHERE usuario_id = u.id AND remitente = 'usuario' AND leido = false) as no_leidos
+    FROM usuarios u
+    WHERE EXISTS (SELECT 1 FROM reportes WHERE usuario_id = u.id AND oculto_para_admin = false)
+    ORDER BY ultima_fecha DESC
+  `);
+  res.json(r.rows);
+});
+
+// Conversación completa con un usuario específico
+app.get('/control/panel/:key/api/reportes/:userId', adminAuth, async (req, res) => {
+  const r = await pool.query(
+    `SELECT id, remitente, mensaje, fecha, editado, categoria FROM reportes
+     WHERE usuario_id = $1 AND oculto_para_admin = false ORDER BY fecha ASC`,
+    [req.params.userId]
+  );
+  await pool.query(
+    "UPDATE reportes SET leido = true WHERE usuario_id = $1 AND remitente = 'usuario'",
+    [req.params.userId]
+  );
+  res.json(r.rows);
+});
+
+// Responder a un usuario (y notificarle por push)
+app.post('/control/panel/:key/api/reportes/:userId', adminAuth, async (req, res) => {
+  const { mensaje } = req.body;
+  const { userId } = req.params;
+  try {
+    const r = await pool.query(
+      `INSERT INTO reportes (usuario_id, remitente, mensaje) VALUES ($1, 'admin', $2) RETURNING *`,
+      [userId, mensaje]
+    );
+    const sub = await pool.query('SELECT subscription FROM push_subscriptions WHERE usuario_id = $1', [userId]);
+    if (sub.rows.length) {
+      try {
+        await webpush.sendNotification(JSON.parse(sub.rows[0].subscription), JSON.stringify({ title: '💬 Respuesta de soporte', body: mensaje }));
+      } catch(e) {}
+    }
+    res.status(201).json(r.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Admin edita su propio mensaje
+app.put('/control/panel/:key/api/reportes/msg/:id', adminAuth, async (req, res) => {
+  const { mensaje } = req.body;
+  const r = await pool.query(
+    `UPDATE reportes SET mensaje = $1, editado = true WHERE id = $2 AND remitente = 'admin' RETURNING *`,
+    [mensaje, req.params.id]
+  );
+  res.json(r.rows[0] || { error: 'No se pudo editar' });
+});
+
+// Admin elimina: ?tipo=mio (oculta solo para admin) o ?tipo=todos (solo si es mensaje propio del admin)
+app.delete('/control/panel/:key/api/reportes/msg/:id', adminAuth, async (req, res) => {
+  const { tipo } = req.query;
+  if (tipo === 'todos') {
+    const r = await pool.query(
+      `UPDATE reportes SET eliminado_global = true, mensaje = 'Mensaje eliminado'
+       WHERE id = $1 AND remitente = 'admin' RETURNING *`,
+      [req.params.id]
+    );
+    return res.json(r.rows[0] || { error: 'No se pudo eliminar' });
+  }
+  const r = await pool.query(
+    `UPDATE reportes SET oculto_para_admin = true WHERE id = $1 RETURNING *`,
+    [req.params.id]
+  );
+  res.json(r.rows[0]);
+});
 
 app.post('/control/panel/:key/api/notificar/:userId', adminAuth, async (req, res) => {
   const { titulo, cuerpo } = req.body;
@@ -120,6 +199,7 @@ app.post('/control/panel/:key/api/notificar/:userId', adminAuth, async (req, res
 });
 
 // ── API ROUTES ──
+app.use('/api/reportes', reportesRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/personas', personasRoutes);
 app.use('/api/precursorado', precursoradoRoutes);
