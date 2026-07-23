@@ -32,6 +32,16 @@ router.post('/', auth, async (req, res) => {
       `INSERT INTO reportes (usuario_id, remitente, mensaje, categoria) VALUES ($1, 'usuario', $2, $3) RETURNING *`,
       [req.userId, mensaje.trim(), categoria || null]
     );
+
+    // ¿Es el primer mensaje de esta conversación?
+    const total = await pool.query('SELECT COUNT(*) FROM reportes WHERE usuario_id = $1', [req.userId]);
+    if (parseInt(total.rows[0].count) === 1) {
+      await pool.query(
+        `INSERT INTO reportes (usuario_id, remitente, mensaje) VALUES ($1, 'admin', $2)`,
+        [req.userId, '✅ Hemos recibido tu mensaje. Muy pronto recibirás una respuesta.']
+      );
+    }
+
     res.status(201).json(r.rows[0]);
   } catch (err) {
     res.status(500).json({ error: err.message });
