@@ -37,12 +37,12 @@ async function subscribeToPush() {
   }
 }
 
-const API_URL = 'https://servtrack-api.onrender.com';
+const PUSH_API_URL = 'https://servtrack-api.onrender.com';
 
 async function sendSubscriptionToServer(subscription) {
   const token = localStorage.getItem('st_token');
   if (!token) return;
-  await fetch(API_URL + '/api/notificaciones/subscribe', {
+  await fetch(PUSH_API_URL + '/api/notificaciones/subscribe', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
