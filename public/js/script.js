@@ -528,6 +528,40 @@ function badge(est) {
     visitado:   ['b-vis',   t('visitado')],
   })[est] || ['b-pend', est];
 }
+
+let _psClickCount = 0;
+let _psLastClick = 0;
+const PS_MESSAGES = [
+  '🚀 Muy pronto disponible en Play Store',
+  '👀 Ya la vas a poder descargar pronto',
+  '😅 Tranquilo, ya casi está',
+  '🙃 En serio, ya casi...',
+  '😤 QUE ESPEREEES',
+  '🥲 Ok ya, en serio en serio',
+  '🫠 Bro por favor',
+  ' Ya no tengo más mensajes chistosos',
+  '🔁 ¿Vas a seguir tocando esto?',
+  '🤝 Está bien, respeto tu dedicación',
+];
+
+function clickPlaystore() {
+  const now = Date.now();
+  const rapido = (now - _psLastClick) < 900; // menos de 900ms entre clicks = "insistiendo"
+  _psLastClick = now;
+
+  _psClickCount = rapido ? (_psClickCount + 1) : 0;
+
+  const msg = PS_MESSAGES[Math.min(_psClickCount, PS_MESSAGES.length - 1)];
+  toast(msg);
+
+  const btn = document.getElementById('playstoreBtn');
+  if (btn) {
+    btn.style.animation = 'none';
+    void btn.offsetWidth;
+    btn.style.animation = 'psShake .4s ease';
+  }
+}
+
 function toast(msg) {
   let el = document.getElementById('_toast');
   if (!el) { el = document.createElement('div'); el.id = '_toast'; el.className = 'toast'; document.body.appendChild(el); }
@@ -547,10 +581,10 @@ function toggleDrawer() {
   if (fab) {
     if (isOpening) {
       fab.classList.add('fab-hidden');
-      setTimeout(() => { fab.style.zIndex = '5'; }, 280);
+      setTimeout(updateFabVisibility, 280);
     } else {
-      fab.style.zIndex = '999';
       fab.classList.remove('fab-hidden');
+      updateFabVisibility();
     }
   }
 }
@@ -558,10 +592,8 @@ function closeDrawer() {
   document.getElementById('drawer').classList.remove('open');
   document.getElementById('drawerScrim').classList.remove('open');
   const fab = document.getElementById('fabBtn');
-  if (fab) {
-    fab.style.zIndex = '999';
-    fab.classList.remove('fab-hidden');
-  }
+  if (fab) fab.classList.remove('fab-hidden');
+  updateFabVisibility();
 }
 
 function goTo(view) {
@@ -1080,9 +1112,10 @@ function openDet(id) {
     + '<button class="btn-save" style="margin-top:10px" onclick="markVisited(' + id + ')">' + t('visita_completada') + '</button>'
     + '<button class="btn-cancel" onclick="closeDet()">' + t('cerrar') + '</button>';
   document.getElementById('detBg').classList.add('open');
+  updateFabVisibility();
 }
 
-function closeDet() { document.getElementById('detBg').classList.remove('open'); }
+function closeDet() { document.getElementById('detBg').classList.remove('open'); updateFabVisibility(); }
 
 async function markVisited(id) {
   const c = cards.find(x => x.id === id); if (!c) return;
@@ -1142,7 +1175,7 @@ function openForm(editData) {
   document.getElementById('formBg').classList.add('open');
 }
 
-function closeForm() { document.getElementById('formBg').classList.remove('open'); }
+function closeForm() { document.getElementById('formBg').classList.remove('open'); updateFabVisibility(); }
 function resetMap()  { clearGPS(); }
 function editCard(id) { closeDet(); const c = cards.find(x => x.id === id); if(c) openForm(c); }
 
@@ -1721,6 +1754,16 @@ function buildSettings() {
         + '<div class="dark-toggle-track" onclick="toggleDarkMode()" id="darkBtn" style="cursor:pointer">'
           + '<div class="dark-toggle-thumb" id="darkThumb"></div>'
         + '</div>'
+      + '</div>'
+    + '</div>'
+
+    /* ── SOPORTE ── */
+    + '<div class="cfg-section-title">Soporte</div>'
+    + '<div class="cfg-card">'
+      + '<div class="cfg-row cfg-row-tap" onclick="reportarProblema()">'
+        + '<div class="cfg-row-icon" style="background:#fff8ee"><svg viewBox="0 0 24 24" width="18" height="18" fill="#a0660a"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-7 12h-2v-2h2v2zm0-4h-2V6h2v4z"/></svg></div>'
+        + '<div class="cfg-row-info"><div class="cfg-row-label">Reportar un problema</div><div class="cfg-row-sub">Avísame si algo no funciona</div></div>'
+        + '<svg class="cfg-chev" viewBox="0 0 24 24" width="18" height="18"><path d="M9 18l6-6-6-6v12z"/></svg>'
       + '</div>'
     + '</div>'
 
@@ -2428,11 +2471,13 @@ function openAsigForm(tipo, editData) {
 
   document.getElementById('asigFormPanel').innerHTML = html;
   document.getElementById('asigFormBg').classList.add('open');
+  updateFabVisibility();
 }
 
 function closeAsigForm() {
   document.getElementById('asigFormBg').classList.remove('open');
   _asigEdit = null;
+  updateFabVisibility();
 }
 
 ['formBg','detBg','asigFormBg'].forEach(id => {
@@ -2774,6 +2819,35 @@ async function deleteAsig(id) {
 }
 
 
+function reportarProblema() {
+  document.getElementById('det-title').textContent = 'Reportar un problema';
+  document.getElementById('detBody').innerHTML =
+    '<div style="font-size:13px;color:var(--tx3);margin-bottom:16px;line-height:1.6">Cuéntame qué está pasando y te ayudo a arreglarlo lo antes posible.</div>'
+    + '<div class="fgroup"><label>¿Qué problema tienes?</label>'
+      + '<textarea id="reportTexto" placeholder="Ej: No me llegan las notificaciones de mis visitas..." style="min-height:100px"></textarea>'
+    + '</div>'
+    + '<button class="btn-save" onclick="enviarReporte()">Enviar reporte</button>'
+    + '<button class="btn-cancel" onclick="closeDet()">Cancelar</button>';
+  document.getElementById('detBg').classList.add('open');
+  updateFabVisibility();
+}
+
+function enviarReporte() {
+  const texto = document.getElementById('reportTexto').value.trim();
+  if (!texto) { toast('Escribe el problema que tienes'); return; }
+
+  const user = getUser();
+  const nombre = user?.nombre || 'Usuario';
+  const email = user?.email || 'Sin correo';
+
+  const mensaje = `🐛 Reporte ServTrack\n\nDe: ${nombre} (${email})\n\nProblema:\n${texto}`;
+  const url = 'https://wa.me/51TUNUMERO?text=' + encodeURIComponent(mensaje);
+
+  window.open(url, '_blank');
+  closeDet();
+  toast('Abriendo WhatsApp ✔');
+}
+
 function showLogoutConfirm() {
   const modal = document.createElement('div');
   modal.id = 'logoutModal';
@@ -2860,6 +2934,14 @@ function applyThemeColor(color) {
     }
   }
 }
+
+function updateFabVisibility() {
+  const fab = document.getElementById('fabBtn');
+  if (!fab) return;
+  const anyOpen = ['formBg','detBg','asigFormBg','drawer'].some(id => document.getElementById(id)?.classList.contains('open'));
+  fab.style.zIndex = anyOpen ? '5' : '999';
+}
+
 
 function applyStackEffect() {
   if (currentView !== 'home') return;
@@ -2961,6 +3043,8 @@ if (!isLoggedIn()) {
   document.getElementById('splashLoader')?.remove();
   showAuthScreen();
 } else {
-  init();
-  subscribeToPush();
+  registerSW().then(() => {
+    init();
+    subscribeToPush();
+  });
 }
