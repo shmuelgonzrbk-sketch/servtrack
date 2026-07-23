@@ -27,12 +27,13 @@ const usuariosActivos = new Set();
 
 io.on('connection', (socket) => {
   socket.on('user:activo', (userId) => {
-    usuariosActivos.add(userId);
+    usuariosActivos.add(parseInt(userId));
     io.emit('activos:update', [...usuariosActivos]);
   });
-  socket.on('disconnect', () => {
-    // No sabemos cuál usuario fue, se limpia por timeout
+  socket.on('get:activos', () => {
+    socket.emit('activos:update', [...usuariosActivos]);
   });
+  socket.on('disconnect', () => {});
 });
 
 // Cambia app.listen por server.listen:

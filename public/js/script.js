@@ -2784,6 +2784,7 @@ if (!isLoggedIn()) {
   showAuthScreen();
 } else {
   init();
+  subscribeToPush();
 }
 
 
