@@ -61,7 +61,7 @@
   .loading { text-align: center; padding: 40px; color: var(--tx3); font-size: 14px; }
   .empty { text-align: center; padding: 40px; color: var(--tx3); font-size: 13px; }
 </style>
-<script src="http://localhost:3000/socket.io/socket.io.js"></script>
+<script src="https://servtrack-api.onrender.com/socket.io/socket.io.js"></script>
 </head>
 <body>
 
@@ -162,8 +162,7 @@
     <div class="section" id="sec-notificaciones">
         <div class="table-card">
         <div class="table-header"><span class="table-title">Enviar notificación</span></div>
-        <!-- Agrega después del botón Enviar: -->
-<div id="notifMsg" style="display:none;padding:12px 16px;border-radius:10px;font-size:13px;font-weight:600;margin-top:4px"></div>
+        <div id="notifMsg" style="display:none;padding:12px 16px;border-radius:10px;font-size:13px;font-weight:600;margin-top:4px"></div>
         <div style="padding:20px;display:flex;flex-direction:column;gap:12px">
         <select id="notifDestinatario" style="padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;outline:none;background:var(--bg)">
             <option value="todos">Todos los usuarios</option>
@@ -180,9 +179,10 @@
 
 
 <script>
+let adminKey = '';
 const ADMIN_URL = window.location.origin;
 
-const socket = io('http://localhost:3000');
+const socket = io('https://servtrack-api.onrender.com');
 socket.on('activos:update', (activos) => {
   document.querySelectorAll('[data-userid]').forEach(dot => {
     const id = parseInt(dot.dataset.userid);
@@ -209,8 +209,6 @@ async function doLogin() {
   }
 }
 
-
-
 async function api(path) {
   const res = await fetch(ADMIN_URL + '/control/panel/' + adminKey + '/api' + path);
   return res.json();
@@ -219,7 +217,6 @@ async function api(path) {
 function logout() {
   adminKey = '';
   document.getElementById('loginScreen').style.display = 'flex';
-  document.getElementById('adminKey').value = '';
 }
 
 function mostrarMensaje(msg, tipo) {
@@ -316,7 +313,6 @@ async function notificarUsuario(userId) {
   const data = await res.json();
   alert(data.enviados ? 'Enviado ✔' : 'No se pudo enviar');
 }
-// ELIMINA esta:
 
 async function cargarDestinatarios() {
   const data = await api('/usuarios');
@@ -336,8 +332,7 @@ async function enviarNotif() {
   if (!titulo || !cuerpo) { mostrarMensaje('Completa título y mensaje', 'red'); return; }
 
   const destNombre = dest === 'todos' ? 'todos los usuarios' : document.getElementById('notifDestinatario').selectedOptions[0].textContent;
-  
-  // Confirmación
+
   const modal = document.createElement('div');
   modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px';
   modal.innerHTML = `
@@ -394,6 +389,5 @@ setInterval(() => {
   }
 }, 30000);
 </script>
-<script src="http://localhost:3000/socket.io/socket.io.js"></script>
 </body>
 </html>

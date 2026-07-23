@@ -188,7 +188,7 @@ function logout() {
 }
 
 // Socket para indicador de actividad
-const _socket = io('http://localhost:3000');
+const _socket = io('https://servtrack-api.onrender.com');
 window.addEventListener('load', () => {
   const user = getUser();
   if (user?.id) _socket.emit('user:activo', user.id);
