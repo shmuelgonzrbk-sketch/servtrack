@@ -364,6 +364,8 @@ async function loadCards() {
         tipo: p.tipo,
         estado: p.estado,
         notas: p.notas,
+        fecha: p.proxima_visita ? p.proxima_visita.split('T')[0] : '',
+        hora:  p.proxima_visita_hora ? p.proxima_visita_hora.substring(0,5) : '',
         historial: []
       }));
       return true;
@@ -537,12 +539,29 @@ function toast(msg) {
    DRAWER / NAVEGACIÓN
 ================================================================ */
 function toggleDrawer() {
-  document.getElementById('drawer').classList.toggle('open');
+  const drawer = document.getElementById('drawer');
+  const isOpening = !drawer.classList.contains('open');
+  drawer.classList.toggle('open');
   document.getElementById('drawerScrim').classList.toggle('open');
+  const fab = document.getElementById('fabBtn');
+  if (fab) {
+    if (isOpening) {
+      fab.classList.add('fab-hidden');
+      setTimeout(() => { fab.style.zIndex = '5'; }, 280);
+    } else {
+      fab.style.zIndex = '999';
+      fab.classList.remove('fab-hidden');
+    }
+  }
 }
 function closeDrawer() {
   document.getElementById('drawer').classList.remove('open');
   document.getElementById('drawerScrim').classList.remove('open');
+  const fab = document.getElementById('fabBtn');
+  if (fab) {
+    fab.style.zIndex = '999';
+    fab.classList.remove('fab-hidden');
+  }
 }
 
 function goTo(view) {
@@ -557,6 +576,10 @@ function goTo(view) {
   } else if (prevEl) { prevEl.classList.remove('active'); }
 
   if (currentView === 'home') {
+    const list = document.getElementById('cardList');
+    const oldSpacer = list?.querySelector('.stack-spacer');
+    if (oldSpacer) oldSpacer.remove();
+
     document.querySelectorAll('#cardList .card').forEach(card => {
       card.style.position = '';
       card.style.top = '';
@@ -580,6 +603,8 @@ function goTo(view) {
   document.getElementById('dnav-' + view)?.classList.add('active');
   document.getElementById('hdrTitle').textContent = getViewTitle(view);
   renderView(view);
+  if (view === 'home') renderList();
+
   const fab = document.getElementById('fabBtn');
   if (fab) {
     fab.style.display = view === 'home' ? '' : 'none';
@@ -1142,6 +1167,8 @@ async function saveCard() {
     tipo:      document.getElementById('fTipo').value,
     estado:    document.getElementById('fEstado').value,
     notas:     document.getElementById('fNotas').value.trim(),
+    proxima_visita:      document.getElementById('fFecha').value || null,
+    proxima_visita_hora: document.getElementById('fHora').value || null,
   };
 
   if (eid) {
@@ -1162,6 +1189,8 @@ async function saveCard() {
       tipo: p.tipo,
       estado: p.estado,
       notas: p.notas,
+      fecha: p.proxima_visita ? p.proxima_visita.split('T')[0] : '',
+      hora:  p.proxima_visita_hora ? p.proxima_visita_hora.substring(0,5) : '',
       historial: []
     }));
   }
@@ -1680,17 +1709,18 @@ function buildSettings() {
       + '<div class="pal-drawer" id="palDrawer">'
         + buildPaletteHTML()
         + '<div class="pal-custom"><div class="pal-group-lbl">Elegir color exacto</div>'
-          + '<label class="pal-custom-btn"><span id="customSwatch" style="width:30px;height:30px;border-radius:50%;background:' + saved + ';border:3px solid rgba(0,0,0,.15);flex-shrink:0"></span><span style="flex:1;font-size:13px;color:var(--tx2)">Elegir color exacto</span><input type="color" id="colorPicker" value="' + saved + '" oninput="applyThemeColor(this.value)" onchange="saveThemeColor(this.value,\'Personalizado\')" style="position:absolute;opacity:0;width:100%;height:100%;cursor:pointer;top:0;left:0"></label>'
+          + '<button class="pal-custom-btn" onclick="openColorPicker()" style="width:100%;text-align:left;border:none;cursor:pointer"><span id="customSwatch" style="width:30px;height:30px;border-radius:50%;background:' + saved + ';border:3px solid rgba(0,0,0,.15);flex-shrink:0;display:inline-block;vertical-align:middle"></span><span style="flex:1;font-size:13px;color:var(--tx2);margin-left:12px">Elegir color exacto</span></button>'
         + '</div>'
       + '</div>'
     + '</div>'
 
-    + '<div class="cfg-divider"></div>'
-    + '<div class="cfg-row">'
-      + '<div class="cfg-row-icon" style="background:#1c2333"><svg viewBox="0 0 24 24" width="18" height="18" fill="#4a9eff"><path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/></svg></div>'
-      + '<div class="cfg-row-info"><div class="cfg-row-label">Modo oscuro</div><div class="cfg-row-sub">Cambia la apariencia</div></div>'
-      + '<div class="dark-toggle-track" onclick="toggleDarkMode()" id="darkBtn" style="cursor:pointer">'
-        + '<div class="dark-toggle-thumb" id="darkThumb"></div>'
+    + '<div class="cfg-card">'
+      + '<div class="cfg-row">'
+        + '<div class="cfg-row-icon" style="background:#1c2333"><svg viewBox="0 0 24 24" width="18" height="18" fill="#4a9eff"><path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/></svg></div>'
+        + '<div class="cfg-row-info"><div class="cfg-row-label">Modo oscuro</div><div class="cfg-row-sub">Cambia la apariencia</div></div>'
+        + '<div class="dark-toggle-track" onclick="toggleDarkMode()" id="darkBtn" style="cursor:pointer">'
+          + '<div class="dark-toggle-thumb" id="darkThumb"></div>'
+        + '</div>'
       + '</div>'
     + '</div>'
 
@@ -1782,7 +1812,152 @@ function saveThemeColor(color, name) {
 function loadThemeColor() { const saved=localStorage.getItem('mm_color'); if(saved) applyThemeColor(saved); }
 
 
+/* ================================================================
+   COLOR PICKER PERSONALIZADO (reemplazo del <input type="color"> nativo)
+================================================================ */
+let _cpCanvas = null, _cpCtx = null, _cpHue = 220, _cpSat = 60, _cpVal = 40;
 
+function hsvToHex(h, s, v) {
+  s /= 100; v /= 100;
+  const k = n => (n + h / 60) % 6;
+  const f = n => v - v * s * Math.max(0, Math.min(k(n), 4 - k(n), 1));
+  const toHex = x => Math.round(x * 255).toString(16).padStart(2, '0');
+  return '#' + toHex(f(5)) + toHex(f(3)) + toHex(f(1));
+}
+function hexToHsv(hex) {
+  hex = hex.replace('#','');
+  const r = parseInt(hex.substr(0,2),16)/255, g = parseInt(hex.substr(2,2),16)/255, b = parseInt(hex.substr(4,2),16)/255;
+  const max = Math.max(r,g,b), min = Math.min(r,g,b), d = max - min;
+  let h = 0;
+  if (d !== 0) {
+    if (max === r) h = 60 * (((g-b)/d) % 6);
+    else if (max === g) h = 60 * ((b-r)/d + 2);
+    else h = 60 * ((r-g)/d + 4);
+  }
+  if (h < 0) h += 360;
+  const s = max === 0 ? 0 : (d/max)*100;
+  const v = max*100;
+  return { h, s, v };
+}
+
+function openColorPicker() {
+  const saved = localStorage.getItem('mm_color') || '#1a2b40';
+  const hsv = hexToHsv(saved);
+  _cpHue = hsv.h; _cpSat = hsv.s; _cpVal = hsv.v;
+
+  const overlay = document.createElement('div');
+  overlay.id = 'colorPickerOverlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;display:flex;align-items:flex-end;justify-content:center';
+  overlay.innerHTML =
+    '<div style="background:var(--surface);border-radius:20px 20px 0 0;width:100%;max-width:480px;padding:20px 20px calc(env(safe-area-inset-bottom,0px) + 20px)">'
+      + '<div style="width:36px;height:4px;background:var(--border-dk);border-radius:99px;margin:0 auto 18px"></div>'
+      + '<div style="font-size:16px;font-weight:700;color:var(--tx);margin-bottom:16px">Elegir color exacto</div>'
+      + '<canvas id="cpSquare" width="280" height="180" style="width:100%;height:160px;border-radius:12px;cursor:pointer;touch-action:none"></canvas>'
+      + '<canvas id="cpHueBar" width="280" height="20" style="width:100%;height:20px;border-radius:99px;margin-top:14px;cursor:pointer;touch-action:none"></canvas>'
+      + '<div style="display:flex;align-items:center;gap:12px;margin-top:18px">'
+        + '<div id="cpPreview" style="width:44px;height:44px;border-radius:12px;flex-shrink:0;border:2px solid rgba(0,0,0,.1)"></div>'
+        + '<input id="cpHexInput" type="text" maxlength="7" style="flex:1;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:15px;font-family:monospace;background:var(--input-bg);color:var(--tx);outline:none" placeholder="#1a2b40">'
+      + '</div>'
+      + '<button class="btn-save" style="margin-top:16px" onclick="confirmColorPicker()">Aplicar color</button>'
+      + '<button class="btn-cancel" onclick="closeColorPicker()">Cancelar</button>'
+    + '</div>';
+  document.body.appendChild(overlay);
+
+  setTimeout(() => {
+    _cpCanvas = document.getElementById('cpSquare');
+    _cpCtx = _cpCanvas.getContext('2d');
+    const hueCanvas = document.getElementById('cpHueBar');
+    const hueCtx = hueCanvas.getContext('2d');
+
+    drawHueBar(hueCtx, hueCanvas.width, hueCanvas.height);
+    drawSquare();
+    updateCpPreview();
+
+    document.getElementById('cpHexInput').value = saved;
+
+    let draggingSquare = false, draggingHue = false;
+
+    const squarePos = e => {
+      const r = _cpCanvas.getBoundingClientRect();
+      const x = (e.touches ? e.touches[0].clientX : e.clientX) - r.left;
+      const y = (e.touches ? e.touches[0].clientY : e.clientY) - r.top;
+      _cpSat = Math.max(0, Math.min(100, (x / r.width) * 100));
+      _cpVal = Math.max(0, Math.min(100, 100 - (y / r.height) * 100));
+      drawSquare(); updateCpPreview();
+    };
+    const huePos = e => {
+      const r = hueCanvas.getBoundingClientRect();
+      const x = (e.touches ? e.touches[0].clientX : e.clientX) - r.left;
+      _cpHue = Math.max(0, Math.min(360, (x / r.width) * 360));
+      drawSquare(); updateCpPreview();
+    };
+
+    _cpCanvas.addEventListener('mousedown', e => { draggingSquare = true; squarePos(e); });
+    _cpCanvas.addEventListener('touchstart', e => { draggingSquare = true; squarePos(e); });
+    window.addEventListener('mousemove', e => { if (draggingSquare) squarePos(e); if (draggingHue) huePos(e); });
+    window.addEventListener('touchmove', e => { if (draggingSquare) squarePos(e); if (draggingHue) huePos(e); }, { passive:true });
+    window.addEventListener('mouseup', () => { draggingSquare = false; draggingHue = false; });
+    window.addEventListener('touchend', () => { draggingSquare = false; draggingHue = false; });
+    hueCanvas.addEventListener('mousedown', e => { draggingHue = true; huePos(e); });
+    hueCanvas.addEventListener('touchstart', e => { draggingHue = true; huePos(e); });
+
+    document.getElementById('cpHexInput').addEventListener('input', e => {
+      const val = e.target.value;
+      if (/^#[0-9A-Fa-f]{6}$/.test(val)) {
+        const hsv2 = hexToHsv(val);
+        _cpHue = hsv2.h; _cpSat = hsv2.s; _cpVal = hsv2.v;
+        drawSquare(); updateCpPreview(false);
+      }
+    });
+  }, 50);
+}
+
+function drawHueBar(ctx, w, h) {
+  const grad = ctx.createLinearGradient(0, 0, w, 0);
+  for (let i = 0; i <= 6; i++) grad.addColorStop(i/6, hsvToHex(i*60, 100, 100));
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, w, h);
+}
+
+function drawSquare() {
+  if (!_cpCtx) return;
+  const w = _cpCanvas.width, h = _cpCanvas.height;
+  const satGrad = _cpCtx.createLinearGradient(0, 0, w, 0);
+  satGrad.addColorStop(0, '#fff');
+  satGrad.addColorStop(1, hsvToHex(_cpHue, 100, 100));
+  _cpCtx.fillStyle = satGrad;
+  _cpCtx.fillRect(0, 0, w, h);
+  const valGrad = _cpCtx.createLinearGradient(0, 0, 0, h);
+  valGrad.addColorStop(0, 'rgba(0,0,0,0)');
+  valGrad.addColorStop(1, '#000');
+  _cpCtx.fillStyle = valGrad;
+  _cpCtx.fillRect(0, 0, w, h);
+
+  const x = (_cpSat/100) * w, y = (1 - _cpVal/100) * h;
+  _cpCtx.beginPath();
+  _cpCtx.arc(x, y, 8, 0, Math.PI*2);
+  _cpCtx.strokeStyle = '#fff'; _cpCtx.lineWidth = 3; _cpCtx.stroke();
+  _cpCtx.strokeStyle = 'rgba(0,0,0,.3)'; _cpCtx.lineWidth = 1; _cpCtx.stroke();
+}
+
+function updateCpPreview(syncHex = true) {
+  const hex = hsvToHex(_cpHue, _cpSat, _cpVal);
+  const prev = document.getElementById('cpPreview');
+  if (prev) prev.style.background = hex;
+  if (syncHex) { const inp = document.getElementById('cpHexInput'); if (inp) inp.value = hex; }
+}
+
+function confirmColorPicker() {
+  const hex = hsvToHex(_cpHue, _cpSat, _cpVal);
+  applyThemeColor(hex);
+  saveThemeColor(hex, 'Personalizado');
+  closeColorPicker();
+}
+
+function closeColorPicker() {
+  document.getElementById('colorPickerOverlay')?.remove();
+  _cpCanvas = null; _cpCtx = null;
+}
 
 
 
@@ -2743,7 +2918,9 @@ async function init() {
 
   updateStats();
   renderList();
-
+  
+  const splash = document.getElementById('splashLoader');
+  if (splash) { splash.style.transition = 'opacity .3s'; splash.style.opacity = '0'; setTimeout(() => splash.remove(), 300); }
 
   window.addEventListener('mm:notification-tapped', function(e) {
     const cardId = e.detail.cardId;
@@ -2781,10 +2958,9 @@ async function init() {
 }
 
 if (!isLoggedIn()) {
+  document.getElementById('splashLoader')?.remove();
   showAuthScreen();
 } else {
   init();
   subscribeToPush();
 }
-
-

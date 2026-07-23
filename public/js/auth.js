@@ -4,138 +4,151 @@ function showAuthScreen() {
   const root = document.getElementById('root');
   root.innerHTML = `
     <style>
+      @keyframes floatIn {
+        from { opacity: 0; transform: translateY(16px); }
+        to   { opacity: 1; transform: translateY(0); }
+      }
+      @keyframes orbFloat {
+        0%, 100% { transform: translate(0,0) scale(1); }
+        50%      { transform: translate(10px,-14px) scale(1.05); }
+      }
+      @keyframes checkPop {
+        0%   { transform: scale(0); }
+        60%  { transform: scale(1.15); }
+        100% { transform: scale(1); }
+      }
+
       .auth-bg {
         min-height: 100vh;
-        background: linear-gradient(135deg, #0f1c2e 0%, #1a2b40 50%, #0d1f35 100%);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding: 24px;
-        position: relative;
-        overflow: hidden;
+        background:
+          radial-gradient(ellipse 500px 400px at 15% -5%, rgba(46,107,230,.10), transparent 60%),
+          radial-gradient(ellipse 400px 350px at 100% 10%, rgba(160,102,10,.08), transparent 60%),
+          linear-gradient(180deg, #faf9f7 0%, #f4f3f0 100%);
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        padding: 28px 22px;
+        position: relative; overflow: hidden;
       }
-      .auth-bg::before {
-        content: '';
-        position: absolute;
-        width: 500px;
-        height: 500px;
-        background: radial-gradient(circle, rgba(59,130,246,0.08) 0%, transparent 70%);
-        top: -100px;
-        right: -100px;
+
+      .auth-logo { text-align: center; margin-bottom: 26px; animation: floatIn .5s ease both; }
+      .auth-logo-icon-wrap { position: relative; width: 72px; height: 72px; margin: 0 auto 14px; }
+      .auth-logo-orb {
+        position: absolute; inset: -10px;
+        background: radial-gradient(circle, rgba(46,107,230,.18), transparent 70%);
         border-radius: 50%;
-      }
-      .auth-bg::after {
-        content: '';
-        position: absolute;
-        width: 400px;
-        height: 400px;
-        background: radial-gradient(circle, rgba(99,102,241,0.06) 0%, transparent 70%);
-        bottom: -80px;
-        left: -80px;
-        border-radius: 50%;
-      }
-      .auth-logo {
-        text-align: center;
-        margin-bottom: 36px;
-        z-index: 1;
+        animation: orbFloat 4s ease-in-out infinite;
       }
       .auth-logo-icon {
-        width: 64px;
-        height: 64px;
-        background: linear-gradient(135deg, #3b82f6, #6366f1);
-        border-radius: 18px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0 auto 16px;
-        box-shadow: 0 8px 32px rgba(59,130,246,0.3);
+        position: relative; width: 72px; height: 72px;
+        background: linear-gradient(150deg, #1a2b40 0%, #243a56 100%);
+        border-radius: 20px;
+        display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 10px 30px rgba(26,43,64,.28), inset 0 1px 0 rgba(255,255,255,.08);
       }
+      .auth-logo-icon svg { animation: checkPop .5s cubic-bezier(.34,1.56,.64,1) .3s both; }
       .auth-logo-name {
-        font-size: 26px;
-        font-weight: 700;
-        color: #fff;
-        letter-spacing: -0.5px;
+        font-family: 'Playfair Display', Georgia, serif;
+        font-size: 26px; font-weight: 500; color: #18170f; letter-spacing: -.3px;
       }
-      .auth-logo-sub {
-        font-size: 13px;
-        color: rgba(255,255,255,0.45);
-        margin-top: 4px;
-        letter-spacing: 0.3px;
-      }
+      .auth-logo-sub { font-size: 12.5px; color: #8a887f; margin-top: 4px; }
+
       .auth-card {
-        width: 100%;
-        max-width: 360px;
-        background: rgba(255,255,255,0.04);
-        border: 1px solid rgba(255,255,255,0.08);
+        width: 100%; max-width: 368px;
+        background: #fff;
+        border: 1px solid #ebe8e2;
         border-radius: 24px;
-        padding: 32px 28px;
+        padding: 28px 26px;
         text-align: center;
-        backdrop-filter: blur(20px);
-        z-index: 1;
-        box-shadow: 0 24px 64px rgba(0,0,0,0.4);
+        box-shadow: 0 2px 8px rgba(20,20,15,.03), 0 20px 48px rgba(20,20,15,.07);
+        animation: floatIn .55s ease .08s both;
       }
-      .auth-card-title {
-        font-size: 18px;
-        font-weight: 600;
-        color: #fff;
-        margin-bottom: 6px;
+
+      .auth-card-title { font-size: 18px; font-weight: 700; color: #18170f; margin-bottom: 5px; letter-spacing: -.2px; }
+      .auth-card-sub { font-size: 13px; color: #8a887f; margin-bottom: 20px; line-height: 1.5; }
+
+      .auth-social {
+        display: flex; align-items: center; justify-content: center; gap: 8px;
+        margin-bottom: 18px; padding: 9px 14px;
+        background: #f4f3f0; border-radius: 99px;
       }
-      .auth-card-sub {
-        font-size: 13px;
-        color: rgba(255,255,255,0.4);
-        margin-bottom: 28px;
-        line-height: 1.5;
+      .auth-social-avatars { display: flex; }
+      .auth-social-avatars span {
+        width: 22px; height: 22px; border-radius: 50%;
+        border: 2px solid #f4f3f0; margin-left: -7px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 9px; font-weight: 700; color: #fff;
       }
-      .auth-divider {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        margin: 20px 0;
-      }
-      .auth-divider-line {
-        flex: 1;
-        height: 1px;
-        background: rgba(255,255,255,0.08);
-      }
-      .auth-divider-text {
-        font-size: 11px;
-        color: rgba(255,255,255,0.25);
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-      }
-      .auth-footer {
-        margin-top: 20px;
-        font-size: 11px;
-        color: rgba(255,255,255,0.2);
-        line-height: 1.6;
-        z-index: 1;
-      }
+      .auth-social-avatars span:first-child { margin-left: 0; }
+      .auth-social-text { font-size: 11.5px; color: #6f6d64; font-weight: 500; }
+
       #authError {
-        color: #f87171;
-        font-size: 13px;
-        margin-top: 16px;
-        display: none;
-        background: rgba(248,113,113,0.1);
-        border-radius: 8px;
-        padding: 8px 12px;
+        color: #9b2335; font-size: 12.5px; margin-top: 12px; display: none;
+        background: #fef0f2; border-radius: 8px; padding: 9px 12px;
       }
+
+      /* ── Botón de seguridad colapsable ── */
+      .auth-sec-toggle {
+        width: 100%; display: flex; align-items: center; gap: 10px;
+        margin-top: 18px; padding: 12px 14px;
+        background: #f4f3f0; border: 1px solid #ebe8e2; border-radius: 14px;
+        cursor: pointer; text-align: left;
+        transition: background .15s;
+      }
+      .auth-sec-toggle:active { background: #ece9e3; }
+      .auth-sec-toggle-icon {
+        width: 28px; height: 28px; border-radius: 8px; flex-shrink: 0;
+        background: #edf7ef; display: flex; align-items: center; justify-content: center;
+      }
+      .auth-sec-toggle-text { flex: 1; font-size: 12.5px; font-weight: 600; color: #18170f; }
+      .auth-sec-toggle-chev { transition: transform .25s; color: #9c9a92; flex-shrink: 0; }
+      .auth-sec-toggle-chev.open { transform: rotate(180deg); }
+
+      .auth-trust-drawer {
+        max-height: 0; overflow: hidden;
+        transition: max-height .35s cubic-bezier(.4,0,.2,1);
+      }
+      .auth-trust-drawer.open { max-height: 400px; }
+      .auth-trust {
+        display: flex; flex-direction: column; gap: 12px; text-align: left;
+        padding-top: 14px;
+      }
+      .auth-trust-item { display: flex; align-items: flex-start; gap: 11px; }
+      .auth-trust-icon {
+        width: 30px; height: 30px; border-radius: 9px; flex-shrink: 0;
+        display: flex; align-items: center; justify-content: center;
+      }
+      .auth-trust-text { font-size: 12.5px; color: #6f6d64; line-height: 1.45; padding-top: 4px; }
+      .auth-trust-text strong { color: #18170f; font-weight: 600; }
+
+      .auth-footer {
+        margin-top: 24px; font-size: 11px; color: #b5b2a8; line-height: 1.7; text-align: center;
+        animation: floatIn .5s ease .2s both;
+      }
+      .auth-footer-brand { font-weight: 600; color: #8a887f; }
     </style>
 
     <div class="auth-bg">
       <div class="auth-logo">
-        <div class="auth-logo-icon">
-          <svg viewBox="0 0 24 24" width="32" height="32" fill="white">
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-          </svg>
+        <div class="auth-logo-icon-wrap">
+          <div class="auth-logo-orb"></div>
+          <div class="auth-logo-icon" style="background:transparent;box-shadow:none">
+            <img src="img/logotipo.png" alt="ServTrack" style="width:72px;height:72px;object-fit:contain">
+          </div>
         </div>
         <div class="auth-logo-name">ServTrack</div>
-        <div class="auth-logo-sub">Organiza tu ministerio</div>
+        <div class="auth-logo-sub">Organiza tu ministerio, sin complicaciones</div>
       </div>
-
       <div class="auth-card">
-        <div class="auth-card-title">Bienvenido</div>
-        <div class="auth-card-sub">Inicia sesión para acceder<br>a tu cuenta personal</div>
+        <div class="auth-card-title">Inicia sesión para continuar</div>
+        <div class="auth-card-sub">Accede con tu cuenta de Google para guardar tus revisitas y asignaciones en la nube.</div>
+
+        <div class="auth-social">
+          <div class="auth-social-avatars">
+            <span style="background:#2e6be6">A</span>
+            <span style="background:#1e7e34">M</span>
+            <span style="background:#a0660a">J</span>
+          </div>
+          <span class="auth-social-text">Ya usado por publicadores de la congregación</span>
+        </div>
 
         <div id="g_id_onload"
           data-client_id="${GOOGLE_CLIENT_ID}"
@@ -145,8 +158,8 @@ function showAuthScreen() {
         <div class="g_id_signin"
           data-type="standard"
           data-size="large"
-          data-theme="filled_blue"
-          data-text="sign_in_with"
+          data-theme="outline"
+          data-text="signin_with"
           data-shape="pill"
           data-logo_alignment="left"
           data-width="300">
@@ -154,22 +167,51 @@ function showAuthScreen() {
 
         <div id="authError"></div>
 
-        <div class="auth-divider">
-          <div class="auth-divider-line"></div>
-          <div class="auth-divider-text">seguro y privado</div>
-          <div class="auth-divider-line"></div>
-        </div>
+        <button class="auth-sec-toggle" onclick="toggleAuthTrust(this)">
+          <div class="auth-sec-toggle-icon">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="#1e7e34"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM9 6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9V6z"/></svg>
+          </div>
+          <span class="auth-sec-toggle-text">¿Es seguro? Toca para ver</span>
+          <svg class="auth-sec-toggle-chev" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg>
+        </button>
 
-        <div style="font-size:12px;color:rgba(255,255,255,0.25);line-height:1.6">
-          Tus datos se guardan de forma<br>segura y solo tú puedes verlos
+        <div class="auth-trust-drawer" id="authTrustDrawer">
+          <div class="auth-trust">
+            <div class="auth-trust-item">
+              <div class="auth-trust-icon" style="background:#edf7ef">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="#1e7e34"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM9 6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9V6z"/></svg>
+              </div>
+              <div class="auth-trust-text"><strong>Login oficial de Google.</strong> Nunca vemos ni guardamos tu contraseña — la autenticación la maneja Google directamente.</div>
+            </div>
+            <div class="auth-trust-item">
+              <div class="auth-trust-icon" style="background:#eef3fa">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="#2e6be6"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
+              </div>
+              <div class="auth-trust-text">Solo usamos tu <strong>nombre y correo</strong> para identificarte. No se comparte con nadie más.</div>
+            </div>
+            <div class="auth-trust-item">
+              <div class="auth-trust-icon" style="background:#fff8ee">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="#a0660a"><path d="M12 2l7 4v6c0 5-3.5 8.5-7 10-3.5-1.5-7-5-7-10V6l7-4z"/></svg>
+              </div>
+              <div class="auth-trust-text">Hecha por un publicador de tu propia congregación, para uso interno del ministerio.</div>
+            </div>
+          </div>
         </div>
       </div>
 
       <div class="auth-footer">
-        ServTrack · Todos los derechos reservados
+        <span class="auth-footer-brand">ServTrack</span> · v1.0<br>
+        ¿Dudas? Pregúntame directamente antes de iniciar sesión.
       </div>
     </div>
   `;
+}
+
+function toggleAuthTrust(btn) {
+  const drawer = document.getElementById('authTrustDrawer');
+  const chev = btn.querySelector('.auth-sec-toggle-chev');
+  const open = drawer.classList.toggle('open');
+  chev.classList.toggle('open', open);
 }
 
 async function handleGoogleLogin(response) {

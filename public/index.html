@@ -16,6 +16,26 @@
 </head>
 <body>
 
+<div id="splashLoader" style="position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px;
+  background:
+    radial-gradient(ellipse 500px 400px at 15% -5%, rgba(46,107,230,.10), transparent 60%),
+    radial-gradient(ellipse 400px 350px at 100% 10%, rgba(160,102,10,.08), transparent 60%),
+    linear-gradient(180deg, #faf9f7 0%, #f4f3f0 100%);">
+  <div style="position:relative;width:72px;height:72px;margin-bottom:16px">
+    <div style="position:absolute;inset:-10px;background:radial-gradient(circle, rgba(46,107,230,.18), transparent 70%);border-radius:50%;animation:splashOrb 4s ease-in-out infinite"></div>
+    <img src="img/logotipo.png" alt="ServTrack" style="position:relative;width:72px;height:72px;object-fit:contain">
+  </div>
+  <div style="font-family:'Playfair Display',serif;font-size:22px;color:#18170f;letter-spacing:-.3px">ServTrack</div>
+  <div style="width:32px;height:32px;border:3px solid rgba(26,43,64,.15);border-top-color:#1a2b40;border-radius:50%;margin-top:24px;animation:spin .8s linear infinite"></div>
+</div>
+<style>
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @keyframes splashOrb {
+    0%, 100% { transform: translate(0,0) scale(1); }
+    50%      { transform: translate(10px,-14px) scale(1.05); }
+  }
+</style>
+
 <div class="root" id="root">
 
   <!-- ═══════════════════════ HEADER ════════════════════════ -->

@@ -144,31 +144,62 @@ html, body {
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 
-/* REEMPLAZA .dark-toggle y todo lo relacionado: */
+
 .dark-toggle {
   flex-shrink: 0; background: none; border: none; cursor: pointer; padding: 0;
 }
 .dark-toggle-track {
-  width: 48px; height: 28px;
-  background: rgba(255,255,255,.15);
-  border: 1.5px solid rgba(255,255,255,.25);
+  width: 52px; height: 30px;
+  background: linear-gradient(180deg, #d8dce2, #c8ced6);
   border-radius: 99px; position: relative;
-  transition: background .3s, border-color .3s;
+  box-shadow: inset 0 1.5px 3px rgba(0,0,0,.15), inset 0 -1px 1px rgba(255,255,255,.4);
+  transition: background .35s ease;
 }
 .dark-toggle-thumb {
-  position: absolute; top: 4px; left: 4px;
-  width: 20px; height: 20px; border-radius: 50%;
+  position: absolute; top: 3px; left: 3px;
+  width: 24px; height: 24px; border-radius: 50%;
   background: #fff;
-  transition: left .3s cubic-bezier(.4,0,.2,1);
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 2px 5px rgba(0,0,0,.25), 0 1px 2px rgba(0,0,0,.15);
+  transition: left .35s cubic-bezier(.34,1.56,.64,1), background .35s ease;
 }
+.dark-toggle-thumb::before {
+  content: '';
+  width: 13px; height: 13px;
+  border-radius: 50%;
+  background: #f0a71a;
+  box-shadow:
+    0 -8px 0 -6px #f0a71a, 0 8px 0 -6px #f0a71a,
+    -8px 0 0 -6px #f0a71a, 8px 0 0 -6px #f0a71a,
+    -6px -6px 0 -6px #f0a71a, 6px -6px 0 -6px #f0a71a,
+    -6px 6px 0 -6px #f0a71a, 6px 6px 0 -6px #f0a71a;
+  transition: background .35s ease, box-shadow .35s ease, transform .35s ease;
+}
+
 [data-theme="dark"] .dark-toggle-track {
-  background: rgba(74,158,255,.4);
-  border-color: rgba(74,158,255,.5);
+  background: linear-gradient(180deg, #2b3a52, #1e2a3d);
+  box-shadow: inset 0 1.5px 3px rgba(0,0,0,.4), inset 0 -1px 1px rgba(255,255,255,.04);
 }
 [data-theme="dark"] .dark-toggle-thumb {
-  left: 24px;
-  background: #4a9eff;
+  left: 25px;
+  background: #1c2333;
+  box-shadow: 0 2px 6px rgba(0,0,0,.5), 0 1px 2px rgba(0,0,0,.3);
 }
+[data-theme="dark"] .dark-toggle-thumb::before {
+  background: #4a9eff;
+  box-shadow: none;
+  transform: scale(1.15);
+  border-radius: 50%;
+}
+[data-theme="dark"] .dark-toggle-thumb::after {
+  content: '';
+  position: absolute;
+  width: 6px; height: 6px;
+  background: #1c2333;
+  border-radius: 50%;
+  top: 4px; right: 3px;
+}
+
 /* ================================================================
    DRAWER
 ================================================================ */
@@ -1133,7 +1164,14 @@ html, body {
   animation: springPop .4s cubic-bezier(.34,1.56,.64,1);
 }
 
-.fab { transition: opacity .2s, transform .2s; }
+.fab {
+  transition: opacity .28s ease, transform .28s cubic-bezier(.34,1.56,.64,1), visibility .28s;
+}
+.fab.fab-hidden {
+  opacity: 0;
+  transform: translateX(-50%) scale(.7);
+  pointer-events: none;
+}
 
 .card:active { 
   transform: scale(.984);

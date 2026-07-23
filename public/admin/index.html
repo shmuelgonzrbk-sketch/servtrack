@@ -180,7 +180,7 @@
 
 <script>
 let adminKey = '';
-const ADMIN_URL = window.location.origin;
+const ADMIN_URL = 'https://servtrack-api.onrender.com';
 
 const socket = io('https://servtrack-api.onrender.com');
 socket.on('activos:update', (activos) => {
