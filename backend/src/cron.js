@@ -31,6 +31,8 @@ async function sendPush(usuarioId, title, body) {
 ================================================================ */
 cron.schedule('* * * * *', async () => {
   try {
+    console.log('🔍 Cron corriendo, hora servidor:', new Date().toString());
+
     const pendientes = await pool.query(
       `SELECT id, usuario_id, titulo, cuerpo
        FROM notificaciones_programadas
@@ -38,6 +40,8 @@ cron.schedule('* * * * *', async () => {
        ORDER BY fecha_disparo ASC
        LIMIT 50`
     );
+
+    console.log('📋 Avisos pendientes encontrados:', pendientes.rows.length);
 
     for (const n of pendientes.rows) {
       await sendPush(n.usuario_id, n.titulo, n.cuerpo);
