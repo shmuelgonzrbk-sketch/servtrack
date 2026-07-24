@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../db/pool');
 const auth = require('../middleware/auth');
+const { programarAvisosVisita } = require('../notifHelper');
 
 const KEY = process.env.ENCRYPTION_KEY;
 
@@ -52,16 +53,31 @@ router.get('/', auth, async (req, res) => {
 
 // AGREGAR
 router.post('/', auth, async (req, res) => {
-  const { nombre, direccion, telefono, gps_lat, gps_lng, tipo, estado, notas, proxima_visita, proxima_visita_hora } = req.body;
+  const { nombre, direccion, telefono, gps_lat, gps_lng, tipo, estado, notas, proxima_visita, proxima_visita_hora, pub } = req.body;
   try {
     const dirEncriptada = await encrypt(direccion);
     const notasEncriptadas = await encrypt(notas);
     const result = await pool.query(
-      `INSERT INTO personas (usuario_id, nombre, direccion, telefono, gps_lat, gps_lng, tipo, estado, notas, proxima_visita, proxima_visita_hora)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *`,
-      [req.userId, nombre, dirEncriptada, telefono, gps_lat, gps_lng, tipo || 'Revisita', estado || 'Pendiente', notasEncriptadas, proxima_visita || null, proxima_visita_hora || null]
+      `INSERT INTO personas (usuario_id, nombre, direccion, telefono, gps_lat, gps_lng, tipo, estado, notas, proxima_visita, proxima_visita_hora, pub)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *`,
+      [req.userId, nombre, dirEncriptada, telefono, gps_lat, gps_lng, tipo || 'Revisita', estado || 'Pendiente', notasEncriptadas, proxima_visita || null, proxima_visita_hora || null, pub || null]
     );
     const p = result.rows[0];
+
+    // Programar avisos automáticos (1h antes, 30min antes, o urgente si ya está muy cerca)
+    try {
+      await programarAvisosVisita({
+        usuarioId: req.userId,
+        personaId: p.id,
+        nombre: p.nombre,
+        fecha: proxima_visita,
+        hora: proxima_visita_hora,
+        pub: pub
+      });
+    } catch (e) {
+      console.error('Error programando avisos:', e.message);
+    }
+
     res.status(201).json({
       ...p,
       direccion: direccion,
@@ -71,22 +87,38 @@ router.post('/', auth, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
 // EDITAR
 router.put('/:id', auth, async (req, res) => {
-  const { nombre, direccion, telefono, gps_lat, gps_lng, tipo, estado, notas, proxima_visita, proxima_visita_hora } = req.body;
+  const { nombre, direccion, telefono, gps_lat, gps_lng, tipo, estado, notas, proxima_visita, proxima_visita_hora, pub } = req.body;
   try {
     const dirEncriptada = await encrypt(direccion);
     const notasEncriptadas = await encrypt(notas);
     const result = await pool.query(
       `UPDATE personas SET nombre=$1, direccion=$2, telefono=$3,
        gps_lat=$4, gps_lng=$5, tipo=$6, estado=$7, notas=$8,
-       proxima_visita=$9, proxima_visita_hora=$10,
-       notif_1h_enviada=false, notif_30m_enviada=false
-       WHERE id=$11 AND usuario_id=$12 RETURNING *`,
-      [nombre, dirEncriptada, telefono, gps_lat, gps_lng, tipo, estado, notasEncriptadas, proxima_visita || null, proxima_visita_hora || null, req.params.id, req.userId]
+       proxima_visita=$9, proxima_visita_hora=$10, pub=$11
+       WHERE id=$12 AND usuario_id=$13 RETURNING *`,
+      [nombre, dirEncriptada, telefono, gps_lat, gps_lng, tipo, estado, notasEncriptadas, proxima_visita || null, proxima_visita_hora || null, pub || null, req.params.id, req.userId]
     );
+    const p = result.rows[0];
+
+    // Reprograma avisos (borra los pendientes viejos y crea los nuevos según la fecha/hora actualizada)
+    try {
+      await programarAvisosVisita({
+        usuarioId: req.userId,
+        personaId: p.id,
+        nombre: p.nombre,
+        fecha: proxima_visita,
+        hora: proxima_visita_hora,
+        pub: pub
+      });
+    } catch (e) {
+      console.error('Error reprogramando avisos:', e.message);
+    }
+
     res.json({
-      ...result.rows[0],
+      ...p,
       direccion: direccion,
       notas: notas
     });
