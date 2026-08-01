@@ -79,9 +79,9 @@ router.post('/google', async (req, res) => {
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '30d' });
     res.json({ token, user: { id: user.id, nombre: user.nombre, email: user.email, congregacion: user.congregacion } });
   } catch (err) {
-    res.status(401).json({ error: 'Token de Google inválido' });
+    console.error('Error verificando token de Google:', err.message);
+    res.status(401).json({ error: 'Token de Google inválido', detalle: err.message });
   }
-
   
 });
 
