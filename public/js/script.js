@@ -1741,27 +1741,7 @@ function buildSettings() {
       + '<div class="cfg-row"><div class="cfg-row-icon" style="background:#e8f5e9"><svg viewBox="0 0 24 24" width="18" height="18" fill="#1e7e34"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg></div><div class="cfg-row-info"><div class="cfg-row-label">Sonido</div><div class="cfg-row-sub">Sonido al recibir aviso</div></div><div class="tog' + (c.sonido?' on':'') + '" onclick="toggleSonido(this)"></div></div>'
       + '</div>'
 
-    /* ── PERSONALIZACIÓN ── */
-    + '<div class="cfg-section-title">Personalización</div>'
-    + '<div class="cfg-card" id="colorCard">'
-      + '<div class="cfg-row cfg-row-tap" onclick="togglePalette()"><div id="colorSwatch" style="width:36px;height:36px;border-radius:9px;flex-shrink:0;border:2px solid rgba(0,0,0,.1);background:' + saved + '"></div><div class="cfg-row-info"><div class="cfg-row-label">Color del tema</div><div class="cfg-row-sub" id="colorName">' + getColorName(saved) + '</div></div><svg id="colorChev" viewBox="0 0 24 24" width="18" height="18" fill="currentColor" style="color:var(--tx3);transition:transform .25s;flex-shrink:0"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg></div>'
-      + '<div class="pal-drawer" id="palDrawer">'
-        + buildPaletteHTML()
-        + '<div class="pal-custom"><div class="pal-group-lbl">Elegir color exacto</div>'
-          + '<button class="pal-custom-btn" onclick="openColorPicker()" style="width:100%;text-align:left;border:none;cursor:pointer"><span id="customSwatch" style="width:30px;height:30px;border-radius:50%;background:' + saved + ';border:3px solid rgba(0,0,0,.15);flex-shrink:0;display:inline-block;vertical-align:middle"></span><span style="flex:1;font-size:13px;color:var(--tx2);margin-left:12px">Elegir color exacto</span></button>'
-        + '</div>'
-      + '</div>'
-    + '</div>'
 
-    + '<div class="cfg-card">'
-      + '<div class="cfg-row">'
-        + '<div class="cfg-row-icon" style="background:#1c2333"><svg viewBox="0 0 24 24" width="18" height="18" fill="#4a9eff"><path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/></svg></div>'
-        + '<div class="cfg-row-info"><div class="cfg-row-label">Modo oscuro</div><div class="cfg-row-sub">Cambia la apariencia</div></div>'
-        + '<div class="dark-toggle-track" onclick="toggleDarkMode()" id="darkBtn" style="cursor:pointer">'
-          + '<div class="dark-toggle-thumb" id="darkThumb"></div>'
-        + '</div>'
-      + '</div>'
-    + '</div>'
 
     /* ── SOPORTE ── */
     + '<div class="cfg-section-title">Soporte</div>'
@@ -1780,7 +1760,51 @@ function buildSettings() {
         + '<div class="cfg-row-icon" style="background:#fef0f2"><svg viewBox="0 0 24 24" width="18" height="18" fill="#9b2335"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg></div>'
         + '<div class="cfg-row-info"><div class="cfg-row-label" style="color:#9b2335">Cerrar sesión</div></div>'
       + '</div>'
+    + '</div>'
+
+       /* ── APOYA EL PROYECTO ── */
+    + '<div class="cfg-section-title">Apoya el proyecto</div>'
+    + '<div class="cfg-card">'
+      + '<div class="cfg-row cfg-row-tap" onclick="abrirDonaciones()">'
+        + '<div class="cfg-row-icon" style="background:#fff8ee"><svg viewBox="0 0 24 24" width="18" height="18" fill="#a0660a"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg></div>'
+        + '<div class="cfg-row-info"><div class="cfg-row-label">Apoya este proyecto</div><div class="cfg-row-sub">Donaciones voluntarias</div></div>'
+        + '<svg class="cfg-chev" viewBox="0 0 24 24" width="18" height="18"><path d="M9 18l6-6-6-6v12z"/></svg>'
+      + '</div>'
+    + '</div>'
+
+
+}
+
+function abrirDonaciones() {
+  document.getElementById('det-title').textContent = 'Apoya el proyecto';
+  document.getElementById('detBody').innerHTML =
+    '<div class="donacion-panel">'
+      + '<div class="donacion-subtitulo">Cada aporte ayuda a mantener el servidor y el dominio activos</div>'
+      + '<p class="donacion-texto">Nos alegra mucho saber que <strong>AssendApp</strong> te está siendo de utilidad — esa es la razón por la que seguimos mejorando y manteniendo. Para que todo funcione bien invertimos tiempo y ganas de hacer las cosas cada vez mejor, y mantenerla activa también tiene un <strong>costo cada mes</strong> (el servidor, el guardado seguro de la información y el dominio de internet), que nosotros cubrimos para que tú la uses sin costo alguno. Si en algún momento quieres colaborar, <strong>toda donación será bienvenida</strong>. Aun así, esto es completamente voluntario: no es un requisito para seguir usando la aplicación con normalidad. Gracias por confiar en nosotros y darle uso a esta herramienta.</p>'
+      + '<div class="donacion-card" onclick="toggleDonacionQR()">'
+        + '<div class="donacion-card-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="#a0660a"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg></div>'
+        + '<div class="donacion-card-info"><div class="donacion-card-label">Yape / Plin</div><div class="donacion-card-sub"><strong id="yapeNumero">929742215</strong> · toca para ver el código</div></div>'
+        + '<svg class="donacion-card-chev" id="donacionChev" viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg>'
+      + '</div>'
+      + '<div class="donacion-qr-wrap" id="donacionQrWrap">'
+        + '<div class="donacion-qr-label">Escanéalo desde tu app de Yape o Plin</div>'
+        + '<img class="donacion-qr-img" src="img/qr.png" alt="QR Yape/Plin"/>'
+        + '<div style="font-size:12px;color:var(--navy);margin-top:12px;cursor:pointer;font-weight:600" onclick="event.stopPropagation();copiarYape()">Copiar número: 929742215</div>'
+      + '</div>'
+      + '<div class="donacion-footer-note"><strong>Gracias por usar AssendApp</strong></div>'
     + '</div>';
+  document.getElementById('detBg').classList.add('open');
+}
+
+function toggleDonacionQR() {
+  const wrap = document.getElementById('donacionQrWrap');
+  const chev = document.getElementById('donacionChev');
+  wrap.classList.toggle('open');
+  chev.classList.toggle('open');
+}
+function copiarYape() {
+  const numero = document.getElementById('yapeNumero').textContent;
+  navigator.clipboard.writeText(numero).then(() => toast('Número copiado'));
 }
 
 async function toggleNotif(el)  { cfg.activo=!cfg.activo; el.classList.toggle('on'); await saveCfg(); await schedAll(); toast(cfg.activo?t('notif_on'):'Notificaciones desactivadas'); }

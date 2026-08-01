@@ -165,6 +165,10 @@ function showAuthScreen() {
           data-width="300">
         </div>
 
+        <button onclick="devLogin()" style="width:100%;margin-top:10px;padding:12px;background:#666;color:#fff;border:none;border-radius:8px;font-size:13px;cursor:pointer">
+          🔧 Entrar sin Google (solo dev)
+        </button>
+
         <div id="authError"></div>
 
         <button class="auth-sec-toggle" onclick="toggleAuthTrust(this)">
@@ -234,4 +238,18 @@ async function handleGoogleLogin(response) {
   saveSession(data.token, data.user);
   subscribeToPush(); 
   location.reload();
+}
+
+
+async function devLogin() {
+  try {
+    const res = await fetch('http://localhost:5000/api/auth/dev-login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    const data = await res.json();
+    if (data.error) { alert(data.error); return; }
+    saveSession(data.token, data.user);
+    location.reload();
+  } catch(e) { alert('Error al entrar en modo dev'); }
 }
