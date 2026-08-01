@@ -208,7 +208,7 @@ async function _checkPending() {
 
 
 self.addEventListener('push', function(e) {
-  const data = e.data ? e.data.json() : { title: 'ServTrack', body: 'Nueva notificación' };
+  const data = e.data ? e.data.json() : { title: 'AssendApp', body: 'Nueva notificación' };
   e.waitUntil(
     self.registration.showNotification(data.title, {
       body: data.body,

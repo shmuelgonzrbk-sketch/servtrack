@@ -18,7 +18,7 @@
 'use strict';
 
 /* ── URL DE COMPARTIR ── */
-const SHARE_URL = 'https://ServTrack.netlify.app/';
+const SHARE_URL = 'https://assendapp.com/';
 
 /* ── CAPACITOR PLUGINS ── */
 let Cap = { Share:null, Prefs:null, Notif:null, SBar:null, App:null, Dialog:null };
@@ -42,7 +42,7 @@ let Cap = { Share:null, Prefs:null, Notif:null, SBar:null, App:null, Dialog:null
   if (Cap.Notif) {
     try {
       await Cap.Notif.createChannel({
-        id: 'servtrack', name: 'ServTrack',
+        id: 'servtrack', name: 'AssendApp',
         description: 'Recordatorios de visitas',
         importance: 5, visibility: 1, vibration: true, sound: 'default',
       });
@@ -679,12 +679,12 @@ async function schedCard(card) {
   if (cfg.diasAntes > 0) {
     const at = vMs - cfg.diasAntes * 86400000;
     const lbl = cfg.diasAntes === 1 ? 'mañana' : 'en ' + cfg.diasAntes + ' días';
-    if (at > now) nots.push({ id:notifId1(card.id), title:'ServTrack — Visita '+lbl, body:'Tienes visita con '+card.nombre+' '+lbl+' a las '+card.hora+(card.dir?'\n'+card.dir:''), schedule:{ at:new Date(at), allowWhileIdle:true }, extra:{ cardId:card.id }, channelId:'servtrack', smallIcon:'ic_stat_icon' });
+    if (at > now) nots.push({ id:notifId1(card.id), title:'AssendApp — Visita '+lbl, body:'Tienes visita con '+card.nombre+' '+lbl+' a las '+card.hora+(card.dir?'\n'+card.dir:''), schedule:{ at:new Date(at), allowWhileIdle:true }, extra:{ cardId:card.id }, channelId:'servtrack', smallIcon:'ic_stat_icon' });
   }
   if (cfg.horasAntes > 0) {
     const at = vMs - cfg.horasAntes * 3600000;
     const lbl = cfg.horasAntes === 1 ? '1 hora' : cfg.horasAntes + ' horas';
-    if (at > now) nots.push({ id:notifId2(card.id), title:'ServTrack — En '+lbl, body:'Visita con '+card.nombre+' a las '+card.hora+(card.dir?'\n'+card.dir:''), schedule:{ at:new Date(at), allowWhileIdle:true }, extra:{ cardId:card.id }, channelId:'servtrack', smallIcon:'ic_stat_icon' });
+    if (at > now) nots.push({ id:notifId2(card.id), title:'AssendApp — En '+lbl, body:'Visita con '+card.nombre+' a las '+card.hora+(card.dir?'\n'+card.dir:''), schedule:{ at:new Date(at), allowWhileIdle:true }, extra:{ cardId:card.id }, channelId:'servtrack', smallIcon:'ic_stat_icon' });
   }
   if (Cap.Notif && nots.length) { try { await Cap.Notif.schedule({ notifications:nots }); } catch(e){} }
   else if ('Notification' in window && Notification.permission === 'granted') {
@@ -884,9 +884,9 @@ function makeShareUrl(c) {
 async function shareCard(id) {
   const c = cards.find(x => x.id === id); if (!c) return;
   const url  = makeShareUrl(c);
-  const text = 'Te comparto el contacto de ' + c.nombre + ' desde ServTrack.\nToca el enlace para agregarlo:';
-  if (Cap.Share) { try { await Cap.Share.share({ title:'ServTrack — '+c.nombre, text, url, dialogTitle:t('compartir') }); return; } catch(e){} }
-  if (navigator.share) { try { await navigator.share({ title:'ServTrack — '+c.nombre, text, url }); return; } catch(e){} }
+  const text = 'Te comparto el contacto de ' + c.nombre + ' desde AssendApp.\nToca el enlace para agregarlo:';
+  if (Cap.Share) { try { await Cap.Share.share({ title:'AssendApp — '+c.nombre, text, url, dialogTitle:t('compartir') }); return; } catch(e){} }
+  if (navigator.share) { try { await navigator.share({ title:'AssendApp — '+c.nombre, text, url }); return; } catch(e){} }
   try { await navigator.clipboard.writeText(url); toast(t('enlace_copiado')); } catch(e) { toast('No se pudo compartir'); }
 }
 
@@ -1487,7 +1487,7 @@ async function enviarInforme() {
   txt += 'Cursos Bíblicos: ' + informe.cursos;
 
   if (Cap.Share) { try { await Cap.Share.share({ text: txt }); } catch(e){} }
-  else if (navigator.share) { try { await navigator.share({ title:'Mi Informe - ServTrack', text:txt }); } catch(e){} }
+  else if (navigator.share) { try { await navigator.share({ title:'Mi Informe - AssendApp', text:txt }); } catch(e){} }
   else { try { await navigator.clipboard.writeText(txt); toast(t('informe_copiado')); } catch(e) { alert(txt); } }
 
   const mesInforme = new Date().getMonth() + 1;
@@ -2862,10 +2862,10 @@ async function reportarProblema() {
   document.getElementById('detBg').classList.add('open', 'chat-fullscreen');
   document.getElementById('detBody').innerHTML =
     '<div class="chat-header">'
-      + '<img src="img/logotipo.png" alt="ServTrack" class="chat-header-logo">'
+      + '<img src="img/logotipo.png" alt="AssendApp" class="chat-header-logo">'
       + '<div class="chat-header-info">'
         + '<div class="chat-header-title">Asistente Virtual</div>'
-        + '<div class="chat-header-status"><span class="chat-status-dot"></span>ServTrack Soporte</div>'
+        + '<div class="chat-header-status"><span class="chat-status-dot"></span>AssendApp Soporte</div>'
       + '</div>'
       + '<button class="chat-header-close" onclick="closeDet()">✕</button>'
     + '</div>'

@@ -209,7 +209,7 @@ app.use('/api/experiencias', experienciasRoutes);
 app.use('/api/ajustes', ajustesRoutes);
 app.use('/api/notificaciones', notificacionesRoutes);
 
-app.get('/', (req, res) => res.json({ message: 'ServTrack API ✅' }));
+app.get('/', (req, res) => res.json({ message: 'AssendApp API ✅' }));
 
 require('./cron');
 app.listen(PORT, () => console.log(`Servidor corriendo en puerto ${PORT}`));

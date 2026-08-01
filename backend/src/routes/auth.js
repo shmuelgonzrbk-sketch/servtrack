@@ -85,27 +85,6 @@ router.post('/google', async (req, res) => {
   
 });
 
-// ⚠️ SOLO DESARROLLO — BORRAR ANTES DE PRODUCCIÓN
-router.post('/dev-login', async (req, res) => {
-  if (process.env.NODE_ENV === 'production') {
-    return res.status(403).json({ error: 'No disponible en producción' });
-  }
-  try {
-    const emailDev = 'dev@local.test';
-    let result = await pool.query('SELECT * FROM usuarios WHERE email = $1', [emailDev]);
-    if (result.rows.length === 0) {
-      result = await pool.query(
-        `INSERT INTO usuarios (nombre, email, password_hash, congregacion)
-         VALUES ($1, $2, $3, $4) RETURNING *`,
-        ['Dev Test', emailDev, 'dev-fake-hash', '']
-      );
-    }
-    const user = result.rows[0];
-    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '30d' });
-    res.json({ token, user: { id: user.id, nombre: user.nombre, email: user.email, congregacion: user.congregacion } });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
+
 
 module.exports = router;
