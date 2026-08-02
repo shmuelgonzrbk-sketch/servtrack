@@ -2898,6 +2898,10 @@ async function reportarProblema() {
     + '</div>';
   updateFabVisibility();
   await cargarChat();
+  setTimeout(() => {
+    const input = document.getElementById('chatInput');
+    if (input) input.focus();
+  }, 350);
 }
 
 function autoGrowChat(el) {
