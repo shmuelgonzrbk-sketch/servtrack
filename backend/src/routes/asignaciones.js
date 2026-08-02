@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../db/pool');
 const auth = require('../middleware/auth');
+const { programarAvisosAsignacion } = require('../notifHelper');
 
 // OBTENER TODAS
 router.get('/', auth, async (req, res) => {
@@ -25,7 +26,16 @@ router.post('/', auth, async (req, res) => {
        VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
       [req.userId, seccion, titulo, fecha_reunion, estado || 'Pendiente', notas]
     );
-    res.status(201).json(result.rows[0]);
+    const nueva = result.rows[0];
+    if (fecha_reunion) {
+      await programarAvisosAsignacion({
+        usuarioId: req.userId,
+        asigId: nueva.id,
+        nombreParte: titulo,
+        fecha: fecha_reunion
+      });
+    }
+    res.status(201).json(nueva);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -40,7 +50,16 @@ router.put('/:id', auth, async (req, res) => {
        WHERE id=$6 AND usuario_id=$7 RETURNING *`,
       [seccion, titulo, fecha_reunion, estado, notas, req.params.id, req.userId]
     );
-    res.json(result.rows[0]);
+    const actualizada = result.rows[0];
+    if (actualizada && fecha_reunion) {
+      await programarAvisosAsignacion({
+        usuarioId: req.userId,
+        asigId: actualizada.id,
+        nombreParte: titulo,
+        fecha: fecha_reunion
+      });
+    }
+    res.json(actualizada);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
