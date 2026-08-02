@@ -1152,7 +1152,9 @@ html, body {
   inset: 0 !important;
   max-width: 100% !important;
   max-height: 100vh !important;
+  max-height: 100dvh !important;
   height: 100vh !important;
+  height: 100dvh !important;
   width: 100vw !important;
   border-radius: 0 !important;
   margin: 0 !important;
