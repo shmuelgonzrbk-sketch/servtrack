@@ -32,7 +32,9 @@ router.post('/', auth, async (req, res) => {
         usuarioId: req.userId,
         asigId: nueva.id,
         nombreParte: titulo,
-        fecha: fecha_reunion
+        fecha: fecha_reunion,
+        ayudante: notas,
+        fechaPractica: req.body.fecha_practica || null
       });
     }
     res.status(201).json(nueva);
@@ -56,7 +58,9 @@ router.put('/:id', auth, async (req, res) => {
         usuarioId: req.userId,
         asigId: actualizada.id,
         nombreParte: titulo,
-        fecha: fecha_reunion
+        fecha: fecha_reunion,
+        ayudante: notas,
+        fechaPractica: req.body.fecha_practica || null
       });
     }
     res.json(actualizada);

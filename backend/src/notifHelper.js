@@ -73,37 +73,59 @@ async function programarAvisosVisita({ usuarioId, personaId, nombre, fecha, hora
  * Programa los avisos de una ASIGNACIÓN: día 7, 5, 3, 1 antes de la reunión.
  * Si la fecha ya está muy cerca (menos de 1 día), programa solo un aviso motivador inmediato.
  */
-const MENSAJES_ASIG = {
-  7: { titulo: '📖 Te queda 1 semana', cuerpo: (n) => `Tu parte "${n}" es en 7 días — ¡empieza a prepararte!` },
-  5: { titulo: '📚 Sigue preparándote', cuerpo: (n) => `Quedan 5 días para tu parte "${n}". ¿Cómo va tu preparación?` },
-  3: { titulo: '✍️ Ya casi es tu turno', cuerpo: (n) => `Faltan 3 días para "${n}". Buen momento para repasar y practicar.` },
-  1: { titulo: '💪 ¡Mañana es tu parte!', cuerpo: (n) => `Tu parte "${n}" es mañana. Confía en tu preparación — ¡tú puedes!` },
-};
-
-async function programarAvisosAsignacion({ usuarioId, asigId, nombreParte, fecha }) {
+async function programarAvisosAsignacion({ usuarioId, asigId, nombreParte, fecha, ayudante, fechaPractica }) {
   await limpiarAvisosPendientes('asignaciones', asigId);
   if (!fecha) return;
 
-  const fechaReunion = construirFechaHora(fecha, '08:00'); // se dispara a las 8am de ese día
+  const fechaReunion = construirFechaHora(fecha, '09:00');
   const ahora = new Date();
-  let algunoFuturo = false;
+  const diasHasta = Math.floor((fechaReunion - ahora) / 86400000);
+  const semanas = Math.floor(diasHasta / 7);
 
-  for (const dias of [7, 5, 3, 1]) {
+  const avisos = [];
+  const push = (dias, titulo, cuerpo) => {
     const disparo = new Date(fechaReunion.getTime() - dias * 24 * 60 * 60000);
-    if (disparo > ahora) {
-      algunoFuturo = true;
-      const msg = MENSAJES_ASIG[dias];
-      await pool.query(
-        `INSERT INTO notificaciones_programadas
-         (usuario_id, tipo, referencia_tabla, referencia_id, titulo, cuerpo, fecha_disparo)
-         VALUES ($1,$2,'asignaciones',$3,$4,$5,$6)`,
-        [usuarioId, `asig_dia${dias}`, asigId, msg.titulo, msg.cuerpo(nombreParte), disparo]
-      );
-    }
+    if (disparo > ahora) avisos.push({ tipo: `asig_dia${dias}`, titulo, cuerpo, disparo });
+  };
+
+  if (semanas >= 4) {
+    push(28, '🗓️ Nueva asignación', `¿Ya pensaste en el tema de "${nombreParte}"? Tienes tiempo, ¡empieza a planificar!`);
+    push(21, '📚 Sigue preparándote', `¿Cómo vas con "${nombreParte}"? Esta semana es buen momento para investigar.`);
+    push(14, '✍️ Vas bien', `¿Ya tienes el bosquejo o los puntos principales de "${nombreParte}"?`);
+    push(7,  '💪 ¡Una semana!', `Falta una semana para "${nombreParte}". Es hora de practicar en voz alta.`);
+  } else if (semanas >= 3) {
+    push(21, '📚 Sigue preparándote', `¿Cómo vas con "${nombreParte}"? Esta semana es buen momento para investigar.`);
+    push(14, '✍️ Vas bien', `¿Ya tienes los puntos principales de "${nombreParte}"?`);
+    push(7,  '💪 ¡Una semana!', `Falta una semana para "${nombreParte}". Es hora de practicar en voz alta.`);
+  } else if (semanas >= 2) {
+    push(14, '✍️ Vas bien', `¿Ya tienes los puntos principales de "${nombreParte}"?`);
+    push(7,  '💪 ¡Una semana!', `Falta una semana para "${nombreParte}". Es hora de practicar en voz alta.`);
+  } else if (semanas >= 1) {
+    push(7, '💪 ¡Una semana!', `Falta una semana para "${nombreParte}". Es hora de practicar en voz alta.`);
   }
 
-  // Si la asignación es muy próxima (menos de 1 día) y ningún aviso de la escala cabe, uno motivador ya
-  if (!algunoFuturo && fechaReunion > ahora) {
+  push(3, '📖 Últimos días', `¡Últimos 3 días para "${nombreParte}"! Últimos ensayos — tú puedes.`);
+  push(2, '📖 Ya casi', `Faltan 2 días para "${nombreParte}". Repasa tus puntos principales.`);
+  push(1, '💪 ¡Mañana es tu parte!', `Tu parte "${nombreParte}" es mañana. Confía en tu preparación.`);
+  push(0, '🎉 ¡Hoy es tu día!', `Hoy presentas "${nombreParte}". ¡Mucho éxito!`);
+
+  if (ayudante && fechaPractica) {
+    const practicaFecha = construirFechaHora(fechaPractica, '09:00');
+    const disparo1 = new Date(practicaFecha.getTime() - 24 * 60 * 60000);
+    if (disparo1 > ahora) avisos.push({ tipo: 'asig_practica_previa', titulo: 'Práctica mañana', cuerpo: `¿Ya coordinaron todo con ${ayudante} para mañana?`, disparo: disparo1 });
+    if (practicaFecha > ahora) avisos.push({ tipo: 'asig_practica_hoy', titulo: '¡Hoy practican!', cuerpo: `Hoy es el día de practicar con ${ayudante}. ¡Mucho éxito!`, disparo: practicaFecha });
+  }
+
+  for (const a of avisos) {
+    await pool.query(
+      `INSERT INTO notificaciones_programadas
+       (usuario_id, tipo, referencia_tabla, referencia_id, titulo, cuerpo, fecha_disparo)
+       VALUES ($1,$2,'asignaciones',$3,$4,$5,$6)`,
+      [usuarioId, a.tipo, asigId, a.titulo, a.cuerpo, a.disparo]
+    );
+  }
+
+  if (avisos.length === 0 && fechaReunion > ahora) {
     await pool.query(
       `INSERT INTO notificaciones_programadas
        (usuario_id, tipo, referencia_tabla, referencia_id, titulo, cuerpo, fecha_disparo)

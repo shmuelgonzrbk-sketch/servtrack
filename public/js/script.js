@@ -2552,7 +2552,6 @@ async function saveAsig_() {
     if (result.id) {
       const na = { id: result.id, ...data };
       asignaciones.push(na);
-      await schedAsigNotifs(na);
     }
   }
 
