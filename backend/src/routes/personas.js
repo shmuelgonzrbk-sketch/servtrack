@@ -140,4 +140,51 @@ router.delete('/:id', auth, async (req, res) => {
   }
 });
 
+
+// MARCAR VISITA COMPLETADA (crea registro en historial + limpia proxima visita)
+router.post('/:id/visitas', auth, async (req, res) => {
+  const { publicacion, notas } = req.body;
+  try {
+    const check = await pool.query('SELECT id FROM personas WHERE id=$1 AND usuario_id=$2', [req.params.id, req.userId]);
+    if (check.rows.length === 0) return res.status(404).json({ error: 'Persona no encontrada' });
+
+    const result = await pool.query(
+      `INSERT INTO visitas (persona_id, publicacion, fecha, hora, notas)
+       VALUES ($1, $2, CURRENT_DATE, CURRENT_TIME, $3) RETURNING *`,
+      [req.params.id, publicacion || null, notas || null]
+    );
+
+    await pool.query(
+      'UPDATE personas SET proxima_visita=NULL, proxima_visita_hora=NULL WHERE id=$1',
+      [req.params.id]
+    );
+
+    try {
+      const { limpiarAvisosPendientes } = require('../notifHelper');
+      await limpiarAvisosPendientes('personas', req.params.id);
+    } catch (e) {}
+
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// HISTORIAL DE VISITAS (todas las visitas del usuario, con nombre de persona)
+router.get('/visitas/historial', auth, async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT v.*, p.nombre as persona_nombre
+       FROM visitas v
+       JOIN personas p ON p.id = v.persona_id
+       WHERE p.usuario_id = $1
+       ORDER BY v.fecha DESC, v.hora DESC`,
+      [req.userId]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;
