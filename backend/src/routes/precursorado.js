@@ -47,15 +47,17 @@ router.post('/horas', auth, async (req, res) => {
   try {
     await pool.query(
       `INSERT INTO registros_horas (usuario_id, horas, mes, anio)
-       VALUES ($1, $2, $3, $4)`,
+       VALUES ($1, $2, $3, $4)
+       ON CONFLICT (usuario_id, mes, anio)
+       DO UPDATE SET horas = registros_horas.horas + EXCLUDED.horas`,
       [req.userId, horas, mes, anio]
     );
     const total = await pool.query(
-      `SELECT COALESCE(SUM(horas), 0) as total FROM registros_horas
+      `SELECT COALESCE(horas, 0) as total FROM registros_horas
        WHERE usuario_id=$1 AND mes=$2 AND anio=$3`,
       [req.userId, mes, anio]
     );
-    res.json({ total: parseFloat(total.rows[0].total) });
+    res.json({ total: parseFloat(total.rows[0]?.total ?? 0) });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
