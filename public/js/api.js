@@ -218,3 +218,8 @@ window.addEventListener('load', () => {
   const user = getUser();
   if (user?.id) _socket.emit('user:activo', user.id);
 });
+
+async function apiGetHoras() {
+  const res = await fetch(API_URL + '/precursorado/horas', { headers: headers() });
+  return res.json();
+}

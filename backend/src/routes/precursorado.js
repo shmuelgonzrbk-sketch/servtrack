@@ -63,6 +63,20 @@ router.post('/horas', auth, async (req, res) => {
   }
 });
 
+
+router.get('/horas', auth, async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT mes, anio, horas FROM registros_horas
+       WHERE usuario_id = $1
+       ORDER BY anio DESC, mes DESC`,
+      [req.userId]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 router.delete('/horas', auth, async (req, res) => {
   const mes = new Date().getMonth() + 1;
   const anio = new Date().getFullYear();

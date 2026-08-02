@@ -1310,6 +1310,8 @@ function buildPrec() {
         + '</div>'
         + '<button class="btn-outline" onclick="resetH()" style="margin-top:8px">Nuevo mes →</button>'
       : '')
+    + '<div class="sec-lbl" style="margin-top:24px">Meses anteriores</div>'
+    + '<div id="historialHoras"></div>'
 
     if (!window._precLoaded) {
       setTimeout(() => animateNumber('precCounter', 0, prec.horas), 100);
@@ -1320,6 +1322,44 @@ function buildPrec() {
         if (el) el.textContent = prec.horas;
       }, 50);
     }
+  renderHistorialHoras();
+}
+
+async function renderHistorialHoras() {
+  const contenedor = document.getElementById('historialHoras');
+  if (!contenedor) return;
+  try {
+    const lista = await apiGetHoras();
+    if (!Array.isArray(lista) || lista.length === 0) {
+      contenedor.innerHTML = '<p style="color:var(--tx3);font-size:13px;text-align:center;padding:12px 0">Sin meses anteriores registrados.</p>';
+      return;
+    }
+    const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+    const mesActual = new Date().getMonth() + 1;
+    const anioActual = new Date().getFullYear();
+    const anteriores = lista.filter(r => !(r.mes == mesActual && r.anio == anioActual));
+    if (anteriores.length === 0) {
+      contenedor.innerHTML = '<p style="color:var(--tx3);font-size:13px;text-align:center;padding:12px 0">Sin meses anteriores registrados.</p>';
+      return;
+    }
+    contenedor.innerHTML = anteriores.map(r => {
+      const meta = prec.tipo === 'regular' ? prec.metaReg : prec.tipo === 'especial' ? prec.metaEsp : prec.metaAux;
+      const pct = meta > 0 ? Math.min(100, Math.round(r.horas / meta * 100)) : 0;
+      return '<div class="sc" style="margin-bottom:10px">'
+        + '<div class="sc-row">'
+          + '<div>'
+            + '<div class="sc-label">' + MESES[r.mes - 1] + ' ' + r.anio + '</div>'
+            + '<div class="sc-sub">' + r.horas + 'h' + (meta > 0 ? ' / ' + meta + 'h (' + pct + '%)' : '') + '</div>'
+          + '</div>'
+          + '<div style="width:48px;height:48px;border-radius:50%;background:conic-gradient(var(--accent) ' + pct + '%, var(--surface2) 0);display:flex;align-items:center;justify-content:center;flex-shrink:0">'
+            + '<div style="width:34px;height:34px;border-radius:50%;background:var(--surface);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--tx)">' + pct + '%</div>'
+          + '</div>'
+        + '</div>'
+      + '</div>';
+    }).join('');
+  } catch(e) {
+    contenedor.innerHTML = '';
+  }
 }
 
 async function setMetaActual(v) {
