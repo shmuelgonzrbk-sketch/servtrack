@@ -2902,6 +2902,41 @@ async function reportarProblema() {
     const input = document.getElementById('chatInput');
     if (input) input.focus();
   }, 350);
+  ajustarChatPorTeclado();
+}
+
+function ajustarChatPorTeclado() {
+  const panel = document.querySelector('#detBg.chat-fullscreen .panel');
+  const inputRow = document.getElementById('chatInputRow');
+  if (!panel || !window.visualViewport) return;
+
+  const vv = window.visualViewport;
+
+  function onResize() {
+    const teclaAbierta = vv.height < window.innerHeight * 0.75;
+    if (teclaAbierta) {
+      const offset = window.innerHeight - vv.height - vv.offsetTop;
+      panel.style.height = vv.height + 'px';
+      panel.style.transform = 'translateY(0)';
+      if (inputRow) inputRow.style.paddingBottom = '12px';
+    } else {
+      panel.style.height = '';
+      panel.style.transform = '';
+    }
+    const cont = document.getElementById('chatMensajes');
+    if (cont) cont.scrollTop = cont.scrollHeight;
+  }
+
+  vv.addEventListener('resize', onResize);
+  vv.addEventListener('scroll', onResize);
+
+  const closeBtn = document.querySelector('.chat-header-close');
+  if (closeBtn) {
+    closeBtn.addEventListener('click', () => {
+      vv.removeEventListener('resize', onResize);
+      vv.removeEventListener('scroll', onResize);
+    }, { once: true });
+  }
 }
 
 function autoGrowChat(el) {
