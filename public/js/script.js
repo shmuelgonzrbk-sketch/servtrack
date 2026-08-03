@@ -3373,5 +3373,6 @@ if (!isLoggedIn()) {
   registerSW().then(() => {
     init();
     subscribeToPush();
+    refreshUserPicture();
   });
 }

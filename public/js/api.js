@@ -205,6 +205,23 @@ function getUser() {
   return u ? JSON.parse(u) : null;
 }
 
+// Actualiza silenciosamente la foto del usuario desde el servidor
+async function refreshUserPicture() {
+  const token = localStorage.getItem('st_token');
+  if (!token) return;
+  try {
+    const res = await fetch(API_URL + '/auth/me', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    if (!res.ok) return;
+    const userData = await res.json();
+    const current = getUser();
+    if (current && userData.picture && current.picture !== userData.picture) {
+      saveSession(token, { ...current, picture: userData.picture });
+    }
+  } catch(e) {}
+}
+
 function logout() {
   if (!confirm('¿Estás seguro que quieres cerrar sesión?')) return;
   localStorage.removeItem('st_token');
