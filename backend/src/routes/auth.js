@@ -45,9 +45,9 @@ router.post('/login', async (req, res) => {
     if (!validPassword) {
       return res.status(401).json({ error: 'Email o contraseña incorrectos' });
     }
-    await pool.query('UPDATE usuarios SET ultimo_acceso = NOW() WHERE id = $1', [user.id]);
+    await pool.query('UPDATE usuarios SET ultimo_acceso = NOW(), picture = $2 WHERE id = $1', [user.id, picture || null]);
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '30d' });
-    res.json({ token, user: { id: user.id, nombre: user.nombre, email: user.email, congregacion: user.congregacion } });
+    res.json({ token, user: { id: user.id, nombre: user.nombre, email: user.email, congregacion: user.congregacion, picture: user.picture || null } });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -63,21 +63,21 @@ router.post('/google', async (req, res) => {
       audience: '111121682803-0uqtc6j7n54jdt99rs3r52j00qf6nqh1.apps.googleusercontent.com'
     });
     const payload = ticket.getPayload();
-    const { email, name, sub } = payload;
+    const { email, name, sub, picture } = payload;
     let result = await pool.query(
       'SELECT * FROM usuarios WHERE email = $1', [email]
     );
     if (result.rows.length === 0) {
       result = await pool.query(
-        `INSERT INTO usuarios (nombre, email, password_hash, congregacion)
-         VALUES ($1, $2, $3, $4) RETURNING *`,
-        [name, email, sub, '']
+        `INSERT INTO usuarios (nombre, email, password_hash, congregacion, picture)
+         VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+        [name, email, sub, '', picture || null]
       );
     }
     const user = result.rows[0];
     await pool.query('UPDATE usuarios SET ultimo_acceso = NOW() WHERE id = $1', [user.id]);
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '30d' });
-    res.json({ token, user: { id: user.id, nombre: user.nombre, email: user.email, congregacion: user.congregacion } });
+    res.json({ token, user: { id: user.id, nombre: user.nombre, email: user.email, congregacion: user.congregacion, picture: user.picture || null } });
   } catch (err) {
     console.error('Error verificando token de Google:', err.message);
     res.status(401).json({ error: 'Token de Google inválido', detalle: err.message });
