@@ -75,9 +75,10 @@ router.post('/google', async (req, res) => {
       );
     }
     const user = result.rows[0];
-    await pool.query('UPDATE usuarios SET ultimo_acceso = NOW() WHERE id = $1', [user.id]);
+    const updatedUser = await pool.query('UPDATE usuarios SET ultimo_acceso = NOW(), picture = $2 WHERE id = $1 RETURNING *', [user.id, picture || null]);
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '30d' });
-    res.json({ token, user: { id: user.id, nombre: user.nombre, email: user.email, congregacion: user.congregacion, picture: user.picture || null } });
+    const u = updatedUser.rows[0];
+    res.json({ token, user: { id: u.id, nombre: u.nombre, email: u.email, congregacion: u.congregacion, picture: u.picture || null } });
   } catch (err) {
     console.error('Error verificando token de Google:', err.message);
     res.status(401).json({ error: 'Token de Google inválido', detalle: err.message });
