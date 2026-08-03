@@ -24,15 +24,15 @@ async function enviarNotificacionFCM(fcmToken, titulo, cuerpo, datos = {}) {
     const app = initFirebase();
     const message = {
       token: fcmToken,
-      notification: { title: titulo, body: cuerpo },
-      android: {
-        priority: 'high',
-        notification: {
-          channelId: 'assendapp_channel',
-          sound: 'default'
-        }
+      // Usar solo data para que Chrome no intercepte
+      data: {
+        titulo: titulo,
+        cuerpo: cuerpo,
+        ...Object.fromEntries(Object.entries(datos).map(([k,v]) => [k, String(v)]))
       },
-      data: Object.fromEntries(Object.entries(datos).map(([k,v]) => [k, String(v)]))
+      android: {
+        priority: 'high'
+      }
     };
     const response = await app.messaging().send(message);
     return { success: true, messageId: response };
