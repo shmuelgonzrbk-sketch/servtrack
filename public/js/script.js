@@ -3027,7 +3027,7 @@ function pintarChat() {
   if (!cont) return;
 
   if (!_chatMensajes.length) {
-    cont.innerHTML = '<div style="text-align:center;color:var(--tx3);font-size:13px;padding:24px 12px;line-height:1.6">¿Tienes un problema, sugerencia o pregunta?<br>Elige una opción abajo y cuéntame.</div>';
+    cont.innerHTML = '<div style="text-align:center;color:var(--tx3);font-size:13px;padding:24px 12px;line-height:1.6">👋 ¡Hola! ¿En qué te podemos ayudar?<br>Escribí tu mensaje abajo.</div>';
   } else {
     cont.innerHTML = _chatMensajes.map((m, i) => {
       const esUsuario = m.remitente === 'usuario';
@@ -3045,13 +3045,7 @@ function pintarChat() {
     }).join('');
     cont.scrollTop = cont.scrollHeight;
   }
-
-  // La barra de categorías SIEMPRE se muestra
-    const activo = _chatCategoriaElegida === key;
-    return '<button onclick="elegirCategoria(\'' + key + '\')" style="flex:1;min-width:100px;padding:10px 8px;border-radius:10px;border:1.5px solid ' + c.color + (activo ? '' : '30') + ';background:' + (activo ? c.color : c.bg) + ';color:' + (activo ? '#fff' : c.color) + ';font-size:12px;font-weight:600;cursor:pointer;transition:.15s">' + c.label + '</button>';
-  }).join('');
 }
-
 
 function elegirCategoria(key) {
   _chatCategoriaElegida = key;
@@ -3072,14 +3066,9 @@ async function enviarMensajeChat() {
   const input = document.getElementById('chatInput');
   const texto = input.value.trim();
   if (!texto) return;
-  if (!_chatCategoriaElegida) {
-    toast('Elige una opción arriba antes de escribir');
-    return;
-  }
   input.value = '';
   input.style.height = 'auto';
-  const categoriaUsada = _chatCategoriaElegida;
-  _chatCategoriaElegida = null;
+  const categoriaUsada = 'soporte';
 
   const inputRow = document.getElementById('chatInputRow');
   if (inputRow) { inputRow.style.background = ''; inputRow.style.borderTop = ''; }
