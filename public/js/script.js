@@ -2978,16 +2978,27 @@ function ajustarChatPorTeclado() {
   function onResize() {
     const teclaAbierta = vv.height < window.innerHeight * 0.75;
     if (teclaAbierta) {
-      const offset = window.innerHeight - vv.height - vv.offsetTop;
-      panel.style.height = vv.height + 'px';
-      panel.style.transform = 'translateY(0)';
-      if (inputRow) inputRow.style.paddingBottom = '12px';
-    } else {
+      const keyboardHeight = window.innerHeight - vv.height;
+      panel.style.position = 'fixed';
+      panel.style.top = '0';
+      panel.style.bottom = keyboardHeight + 'px';
+      panel.style.left = '0';
+      panel.style.right = '0';
       panel.style.height = '';
       panel.style.transform = '';
+      if (inputRow) inputRow.style.paddingBottom = '12px';
+    } else {
+      panel.style.position = '';
+      panel.style.top = '';
+      panel.style.bottom = '';
+      panel.style.left = '';
+      panel.style.right = '';
+      panel.style.height = '';
+      panel.style.transform = '';
+      if (inputRow) inputRow.style.paddingBottom = '';
     }
     const cont = document.getElementById('chatMensajes');
-    if (cont) cont.scrollTop = cont.scrollHeight;
+    if (cont) setTimeout(() => { cont.scrollTop = cont.scrollHeight; }, 50);
   }
 
   vv.addEventListener('resize', onResize);
