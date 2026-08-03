@@ -248,6 +248,32 @@ app.post('/control/panel/:key/api/notificar/:userId', adminAuth, async (req, res
 });
 
 // ── API ROUTES ──
+// Registrar FCM token
+app.post('/api/fcm/token', require('./middleware/auth'), async (req, res) => {
+  const { token } = req.body;
+  if (!token) return res.status(400).json({ error: 'Token requerido' });
+  try {
+    await pool.query(
+      'INSERT INTO fcm_tokens (usuario_id, token) VALUES ($1, $2) ON CONFLICT (usuario_id) DO UPDATE SET token = $2, creado_en = NOW()',
+      [req.userId, token]
+    );
+    res.json({ ok: true });
+  } catch(err) { res.status(500).json({ error: err.message }); }
+});
+
+// Enviar notificacion FCM a un usuario
+app.post('/api/fcm/notificar/:userId', require('./middleware/auth'), async (req, res) => {
+  const { titulo, cuerpo } = req.body;
+  const { userId } = req.params;
+  try {
+    const result = await pool.query('SELECT token FROM fcm_tokens WHERE usuario_id = $1', [userId]);
+    if (!result.rows.length) return res.json({ enviado: false, motivo: 'Sin token FCM' });
+    const { enviarNotificacionFCM } = require('./fcm');
+    const resp = await enviarNotificacionFCM(result.rows[0].token, titulo, cuerpo);
+    res.json({ enviado: resp.success });
+  } catch(err) { res.status(500).json({ error: err.message }); }
+});
+
 app.use('/api/reportes', reportesRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/personas', personasRoutes);
