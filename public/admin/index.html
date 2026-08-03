@@ -85,7 +85,7 @@
   <nav class="sidebar-nav">
     <div class="nav-item active" onclick="goSection('dashboard',this)"> Dashboard</div>
     <div class="nav-item" onclick="goSection('usuarios',this)"> Usuarios</div>
-    <div class="nav-item" onclick="goSection('asignaciones',this)"> Asignaciones</div>
+    
     <div class="nav-item" onclick="goSection('notificaciones',this)"> Notificaciones</div>
     <div class="nav-item" id="navReportes" onclick="goSection('reportes',this)"> Reportes <span id="reportesBadge" style="display:none;background:var(--red);color:#fff;font-size:10px;font-weight:700;padding:1px 6px;border-radius:99px;margin-left:4px"></span></div>
   </nav>
@@ -317,6 +317,10 @@ async function loadUsuarios() {
             &nbsp;·&nbsp;
             📱 App: ${u.tiene_app ? '<span style="color:#1e7e34;font-weight:600">Instalada</span>' : '<span style="color:#9c9a92">No instalada</span>'}
           </div>
+          ${u.asignaciones_count > 0 ? `
+          <div style="font-weight:600;font-size:13px;margin-bottom:8px;margin-top:12px">Asignaciones activas (${u.asignaciones_count})</div>
+          ` : ''}
+
           ${u.personas && u.personas.length > 0 ? `
           <div style="font-weight:600;font-size:13px;margin-bottom:8px">Personas (${u.personas.length})</div>
           <div style="display:flex;flex-direction:column;gap:6px">
@@ -333,8 +337,16 @@ async function loadUsuarios() {
             `).join('')}
           </div>
           ` : '<div style="color:var(--tx3);font-size:13px">Sin personas registradas</div>'}
-          <div style="margin-top:12px;display:flex;gap:8px">
-            <button onclick="notificarUsuario(${u.id})" style="padding:6px 14px;border-radius:8px;font-size:12px;border:1px solid var(--border);background:var(--surface);cursor:pointer">📢 Notificar</button>
+          <div style="margin-top:12px">
+            <div id="notif-form-${u.id}" style="display:none;background:var(--surface2);border-radius:10px;padding:14px;margin-bottom:10px">
+              <input id="notif-titulo-${u.id}" placeholder="Título..." style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;margin-bottom:8px;box-sizing:border-box;outline:none">
+              <textarea id="notif-cuerpo-${u.id}" placeholder="Mensaje..." style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;resize:none;height:70px;box-sizing:border-box;outline:none"></textarea>
+              <div style="display:flex;gap:8px;margin-top:8px">
+                <button onclick="enviarNotifUsuario(${u.id})" style="padding:6px 14px;border-radius:8px;font-size:12px;background:var(--navy);color:#fff;border:none;cursor:pointer">Enviar</button>
+                <button onclick="document.getElementById('notif-form-${u.id}').style.display='none'" style="padding:6px 14px;border-radius:8px;font-size:12px;border:1px solid var(--border);background:var(--surface);cursor:pointer">Cancelar</button>
+              </div>
+            </div>
+            <button onclick="document.getElementById('notif-form-${u.id}').style.display='block'" style="padding:6px 14px;border-radius:8px;font-size:12px;border:1px solid var(--border);background:var(--surface);cursor:pointer">📢 Notificar</button>
           </div>
         </div>
       </div>
@@ -406,13 +418,40 @@ async function notificarUsuario(userId) {
   alert(data.enviados ? 'Enviado ✔' : 'No se pudo enviar');
 }
 
+async function enviarNotifUsuario(userId) {
+  const titulo = document.getElementById('notif-titulo-' + userId).value.trim();
+  const cuerpo = document.getElementById('notif-cuerpo-' + userId).value.trim();
+  if (!titulo || !cuerpo) { alert('Completa título y mensaje'); return; }
+
+  const res = await fetch(ADMIN_URL + '/control/panel/' + adminKey + '/api/notificar/' + userId, {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ titulo, cuerpo })
+  });
+  const data = await res.json();
+  document.getElementById('notif-form-' + userId).style.display = 'none';
+  document.getElementById('notif-titulo-' + userId).value = '';
+  document.getElementById('notif-cuerpo-' + userId).value = '';
+  
+  const msg = document.createElement('div');
+  msg.style.cssText = 'padding:8px 12px;background:#edf7ef;color:#1e7e34;border-radius:8px;font-size:12px;font-weight:600;margin-top:8px';
+  msg.textContent = data.enviados ? '✔ Notificación enviada' : '⚠ No se pudo enviar';
+  const card = document.getElementById('ucard-' + userId);
+  const body = document.getElementById('ubody-' + userId);
+  body.appendChild(msg);
+  setTimeout(() => msg.remove(), 3000);
+}
+
 async function cargarDestinatarios() {
   const data = await api('/usuarios');
   const sel = document.getElementById('notifDestinatario');
+  // Limpiar opciones anteriores excepto "Todos"
+  while (sel.options.length > 1) sel.remove(1);
   data.forEach(u => {
     const opt = document.createElement('option');
     opt.value = u.id;
-    opt.textContent = '👤 ' + u.nombre + ' — ' + u.email;
+    const canal = u.tiene_app ? '📱 App' : '🌐 Web';
+    opt.textContent = canal + ' · ' + u.nombre + ' — ' + u.email;
+    opt.dataset.tieneApp = u.tiene_app ? '1' : '0';
     sel.appendChild(opt);
   });
 }
@@ -423,7 +462,10 @@ async function enviarNotif() {
   const cuerpo = document.getElementById('notifCuerpo').value.trim();
   if (!titulo || !cuerpo) { mostrarMensaje('Completa título y mensaje', 'red'); return; }
 
-  const destNombre = dest === 'todos' ? 'todos los usuarios' : document.getElementById('notifDestinatario').selectedOptions[0].textContent;
+  const selOpt = document.getElementById('notifDestinatario').selectedOptions[0];
+  const destNombre = dest === 'todos' ? 'todos los usuarios' : selOpt.textContent;
+  const tieneApp = selOpt.dataset.tieneApp === '1';
+  const canal = dest === 'todos' ? 'App y Web' : (tieneApp ? '📱 App' : '🌐 Web');
 
   const modal = document.createElement('div');
   modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px';
@@ -431,6 +473,7 @@ async function enviarNotif() {
     <div style="background:#fff;border-radius:16px;padding:28px 24px;width:100%;max-width:340px;text-align:center">
       <div style="font-size:17px;font-weight:700;color:#18170f;margin-bottom:8px">¿Enviar notificación?</div>
       <div style="font-size:13px;color:#9c9a92;margin-bottom:6px">Para: <strong>${destNombre}</strong></div>
+      <div style="font-size:13px;color:#9c9a92;margin-bottom:6px">Canal: <strong>${canal}</strong></div>
       <div style="font-size:13px;color:#9c9a92;margin-bottom:6px">Título: <strong>${titulo}</strong></div>
       <div style="font-size:13px;color:#9c9a92;margin-bottom:24px">Mensaje: ${cuerpo}</div>
       <button id="confirmNotif" style="width:100%;padding:13px;background:#1a2b40;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;margin-bottom:8px">Sí, enviar</button>
