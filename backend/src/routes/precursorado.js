@@ -49,7 +49,8 @@ router.post('/horas', auth, async (req, res) => {
       `INSERT INTO registros_horas (usuario_id, horas, mes, anio)
        VALUES ($1, $2, $3, $4)
        ON CONFLICT (usuario_id, mes, anio)
-       DO UPDATE SET horas = registros_horas.horas + EXCLUDED.horas`,
+       DO UPDATE SET horas = registros_horas.horas + EXCLUDED.horas
+       RETURNING horas`,
       [req.userId, horas, mes, anio]
     );
     const total = await pool.query(
