@@ -187,4 +187,17 @@ router.get('/visitas/historial', auth, async (req, res) => {
   }
 });
 
+// ELIMINAR VISITA DEL HISTORIAL
+router.delete('/visitas/:id', auth, async (req, res) => {
+  try {
+    await pool.query(
+      'DELETE FROM visitas WHERE id=$1 AND persona_id IN (SELECT id FROM personas WHERE usuario_id=$2)',
+      [req.params.id, req.userId]
+    );
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;
