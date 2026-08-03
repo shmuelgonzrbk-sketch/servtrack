@@ -16,7 +16,8 @@ router.get('/', auth, async (req, res) => {
 });
 
 router.post('/', auth, async (req, res) => {
-  const { mes, año, cursos_biblicos, horas, revisitas } = req.body;
+  const { mes, anio, año, cursos_biblicos, horas, revisitas } = req.body;
+  const anioFinal = anio || año;
   try {
     const result = await pool.query(
       `INSERT INTO informes (usuario_id, mes, anio, cursos_biblicos, horas, revisitas)
@@ -24,7 +25,7 @@ router.post('/', auth, async (req, res) => {
        ON CONFLICT (usuario_id, mes, anio)
        DO UPDATE SET cursos_biblicos=$4, horas=$5, revisitas=$6
        RETURNING *`,
-      [req.userId, mes, año, cursos_biblicos || 0, horas || 0, revisitas || 0]
+      [req.userId, mes, anioFinal, cursos_biblicos || 0, horas || 0, revisitas || 0]
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {
