@@ -237,14 +237,30 @@ app.delete('/control/panel/:key/api/reportes/msg/:id', adminAuth, async (req, re
 app.post('/control/panel/:key/api/notificar/:userId', adminAuth, async (req, res) => {
   const { titulo, cuerpo } = req.body;
   const { userId } = req.params;
-  const sub = await pool.query('SELECT subscription FROM push_subscriptions WHERE usuario_id = $1', [userId]);
-  if (!sub.rows.length) return res.json({ enviados: 0 });
+  let enviados = 0;
+
+  // 1. FCM primero (app Android)
   try {
-    await webpush.sendNotification(JSON.parse(sub.rows[0].subscription), JSON.stringify({ title: titulo, body: cuerpo }));
-    res.json({ enviados: 1 });
-  } catch(e) {
-    res.json({ enviados: 0, error: e.message });
+    const fcmResult = await pool.query('SELECT token FROM fcm_tokens WHERE usuario_id = $1', [userId]);
+    if (fcmResult.rows.length) {
+      const { enviarNotificacionFCM } = require('./fcm');
+      const resp = await enviarNotificacionFCM(fcmResult.rows[0].token, titulo, cuerpo);
+      if (resp.success) enviados = 1;
+    }
+  } catch(e) { console.error('FCM error:', e.message); }
+
+  // 2. Web push como fallback
+  if (!enviados) {
+    try {
+      const sub = await pool.query('SELECT subscription FROM push_subscriptions WHERE usuario_id = $1', [userId]);
+      if (sub.rows.length) {
+        await webpush.sendNotification(JSON.parse(sub.rows[0].subscription), JSON.stringify({ title: titulo, body: cuerpo }));
+        enviados = 1;
+      }
+    } catch(e) { console.error('WebPush error:', e.message); }
   }
+
+  res.json({ enviados });
 });
 
 // ── API ROUTES ──
