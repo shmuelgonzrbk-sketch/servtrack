@@ -53,6 +53,14 @@ app.use((req, res, next) => {
 
 // ── ADMIN ──
 
+
+app.get('/control/panel/:key/api/usuarios/fotos', adminAuth, async (req, res) => {
+  try {
+    const result = await pool.query('SELECT id, picture FROM usuarios');
+    res.json(result.rows);
+  } catch(err) { res.status(500).json({ error: err.message }); }
+});
+
 app.get('/control/panel/:key/api/usuarios', adminAuth, async (req, res) => { 
   const r = await pool.query(`
     SELECT u.id, u.nombre, u.email,
@@ -123,6 +131,14 @@ app.get('/control/panel/:key/api/reportes', adminAuth, async (req, res) => {
 });
 
 // Conversación completa con un usuario específico
+
+app.get('/control/panel/:key/api/usuarios/fotos', adminAuth, async (req, res) => {
+  try {
+    const result = await pool.query('SELECT id, picture FROM usuarios');
+    res.json(result.rows);
+  } catch(err) { res.status(500).json({ error: err.message }); }
+});
+
 app.get('/control/panel/:key/api/usuarios', adminAuth, async (req, res) => {
   try {
     const usuarios = await pool.query(

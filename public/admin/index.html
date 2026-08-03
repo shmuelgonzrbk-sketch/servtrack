@@ -282,7 +282,7 @@ async function loadUsuarios() {
         <div class="user-card-header" onclick="toggleUser(${u.id})">
           <div style="display:flex;align-items:center;gap:12px">
             ${u.picture
-              ? `<img src="${u.picture}" style="width:42px;height:42px;border-radius:50%;object-fit:cover;flex-shrink:0">`
+? `<img src="${u.picture}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" style="width:42px;height:42px;border-radius:50%;object-fit:cover;flex-shrink:0"><div style="display:none;width:42px;height:42px;border-radius:50%;background:var(--navy);align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:16px;flex-shrink:0">${u.nombre.charAt(0).toUpperCase()}</div>`
               : `<div style="width:42px;height:42px;border-radius:50%;background:var(--navy);display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:16px;flex-shrink:0">${u.nombre.charAt(0).toUpperCase()}</div>`
             }
             <div>
@@ -343,6 +343,20 @@ async function loadUsuarios() {
       </div>
     `).join('');
     socket.emit('get:activos');
+
+    // Cargar fotos por separado
+    try {
+      const fotos = await api('/usuarios/fotos');
+      fotos.forEach(f => {
+        if (!f.picture) return;
+        const card = document.getElementById('ucard-' + f.id);
+        if (!card) return;
+        const avatar = card.querySelector('.user-avatar');
+        if (avatar) {
+          avatar.innerHTML = `<img src="${f.picture}" style="width:42px;height:42px;border-radius:50%;object-fit:cover;flex-shrink:0" onerror="this.parentElement.innerHTML='<div style=\"width:42px;height:42px;border-radius:50%;background:var(--navy);display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:16px\">${avatar.dataset.inicial}</div>'">`;
+        }
+      });
+    } catch(e) {}
   } catch(e) { grid.innerHTML = '<div style="color:var(--tx3);padding:20px">Error cargando usuarios</div>'; }
 }
 
