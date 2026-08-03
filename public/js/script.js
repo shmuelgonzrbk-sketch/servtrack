@@ -1787,7 +1787,9 @@ function buildSettings() {
     '<div class="cfg-section-title">Perfil</div>'
     + '<div class="cfg-card">'
       + '<div class="cfg-row">'
-        + '<div class="cfg-row-icon" style="background:#eef3fa"><svg viewBox="0 0 24 24" width="18" height="18" fill="#2e6be6"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg></div>'
+        + (user && user.picture
+            ? '<img src="' + user.picture + '" style="width:40px;height:40px;border-radius:50%;object-fit:cover;flex-shrink:0">'
+            : '<div style="width:40px;height:40px;border-radius:50%;background:var(--navy);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:700;color:#fff;font-size:16px">' + (user ? user.nombre.charAt(0).toUpperCase() : '?') + '</div>')
         + '<div class="cfg-row-info"><div class="cfg-row-label">' + (user ? user.nombre : 'Usuario') + '</div><div class="cfg-row-sub">' + (user ? user.email : '') + '</div></div>'
       + '</div>'
     + '</div>'
