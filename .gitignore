@@ -1,3 +1,4 @@
 # Local Netlify folder
 .netlify
 .env
+backend/src/firebase-service-account.json
