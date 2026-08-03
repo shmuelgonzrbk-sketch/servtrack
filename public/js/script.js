@@ -2952,7 +2952,7 @@ async function reportarProblema() {
       + '<button class="chat-header-close" onclick="closeDet()">✕</button>'
     + '</div>'
     + '<div id="chatMensajes" class="chat-messages"></div>'
-    + '<div id="chatCategoriaBar" class="chat-cat-bar" style="display:none"></div>'
+
     + '<div class="chat-input-row" id="chatInputRow">'
         + '<textarea id="chatInput" placeholder="Escribe tu mensaje..." class="chat-input" rows="1" oninput="autoGrowChat(this)" onkeydown="if(event.key===\'Enter\' && !event.shiftKey){event.preventDefault();enviarMensajeChat();}"></textarea>'
         + '<button onclick="enviarMensajeChat()" class="chat-send-btn">'
@@ -3024,7 +3024,6 @@ async function cargarChat() {
 
 function pintarChat() {
   const cont = document.getElementById('chatMensajes');
-  const catBar = document.getElementById('chatCategoriaBar');
   if (!cont) return;
 
   if (!_chatMensajes.length) {
@@ -3048,8 +3047,6 @@ function pintarChat() {
   }
 
   // La barra de categorías SIEMPRE se muestra
-  catBar.style.display = 'flex';
-  catBar.innerHTML = Object.entries(CATEGORIAS_REPORTE).map(([key, c]) => {
     const activo = _chatCategoriaElegida === key;
     return '<button onclick="elegirCategoria(\'' + key + '\')" style="flex:1;min-width:100px;padding:10px 8px;border-radius:10px;border:1.5px solid ' + c.color + (activo ? '' : '30') + ';background:' + (activo ? c.color : c.bg) + ';color:' + (activo ? '#fff' : c.color) + ';font-size:12px;font-weight:600;cursor:pointer;transition:.15s">' + c.label + '</button>';
   }).join('');
