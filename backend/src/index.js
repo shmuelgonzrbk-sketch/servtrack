@@ -125,15 +125,34 @@ app.get('/control/panel/:key/api/reportes', adminAuth, async (req, res) => {
 // Conversación completa con un usuario específico
 app.get('/control/panel/:key/api/usuarios', adminAuth, async (req, res) => {
   try {
-    const result = await pool.query(
+    const usuarios = await pool.query(
       `SELECT u.id, u.nombre, u.email, u.congregacion, u.picture, u.fecha_registro, u.ultimo_acceso,
-              COUNT(p.id) as personas
+              COUNT(DISTINCT p.id) as personas_count,
+              COALESCE(SUM(rh.horas), 0) as horas_mes,
+              COUNT(DISTINCT a.id) as asignaciones_count,
+              ps.id IS NOT NULL as tiene_app
        FROM usuarios u
        LEFT JOIN personas p ON p.usuario_id = u.id
-       GROUP BY u.id
+       LEFT JOIN registros_horas rh ON rh.usuario_id = u.id 
+            AND rh.mes = EXTRACT(MONTH FROM NOW()) 
+            AND rh.anio = EXTRACT(YEAR FROM NOW())
+       LEFT JOIN asignaciones a ON a.usuario_id = u.id AND a.estado != 'Completado'
+       LEFT JOIN push_subscriptions ps ON ps.usuario_id = u.id
+       GROUP BY u.id, ps.id
        ORDER BY u.id ASC`
     );
-    res.json(result.rows);
+
+    // Para cada usuario, traer sus personas completas
+    const result = await Promise.all(usuarios.rows.map(async (u) => {
+      const personas = await pool.query(
+        `SELECT id, nombre, direccion, telefono, tipo, estado, notas, proxima_visita, proxima_visita_hora, pub, gps_lat, gps_lng
+         FROM personas WHERE usuario_id = $1 ORDER BY nombre ASC`,
+        [u.id]
+      );
+      return { ...u, personas: personas.rows };
+    }));
+
+    res.json(result);
   } catch(err) { res.status(500).json({ error: err.message }); }
 });
 

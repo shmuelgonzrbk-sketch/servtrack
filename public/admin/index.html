@@ -57,6 +57,10 @@
   .badge-blue { background: #eef3fa; color: #1a2b40; }
   .search-input { padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; font-family: inherit; outline: none; width: 220px; background: var(--bg); }
   .section { display: none; }
+    .user-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+    .user-card-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; cursor: pointer; transition: background .15s; }
+    .user-card-header:hover { background: var(--surface2); }
+    .user-card-body { padding: 16px; border-top: 1px solid var(--border); background: var(--surface); }
   .section.active { display: block; }
   .loading { text-align: center; padding: 40px; color: var(--tx3); font-size: 14px; }
   .empty { text-align: center; padding: 40px; color: var(--tx3); font-size: 13px; }
@@ -81,8 +85,6 @@
   <nav class="sidebar-nav">
     <div class="nav-item active" onclick="goSection('dashboard',this)"> Dashboard</div>
     <div class="nav-item" onclick="goSection('usuarios',this)"> Usuarios</div>
-    <div class="nav-item" onclick="goSection('personas',this)"> Personas</div>
-    <div class="nav-item" onclick="goSection('informes',this)"> Informes</div>
     <div class="nav-item" onclick="goSection('asignaciones',this)"> Asignaciones</div>
     <div class="nav-item" onclick="goSection('notificaciones',this)"> Notificaciones</div>
     <div class="nav-item" id="navReportes" onclick="goSection('reportes',this)"> Reportes <span id="reportesBadge" style="display:none;background:var(--red);color:#fff;font-size:10px;font-weight:700;padding:1px 6px;border-radius:99px;margin-left:4px"></span></div>
@@ -112,16 +114,8 @@
     </div>
 
     <div class="section" id="sec-usuarios">
-      <div class="table-card">
-        <div class="table-header">
-          <span class="table-title">Usuarios</span>
-          <input class="search-input" placeholder="Buscar..." oninput="filterTable(this,'tbl-usuarios')"/>
-        </div>
-        <table id="tbl-usuarios">
-            <thead><tr><th>ID</th><th>Nombre</th><th>Email</th><th>Registro</th></tr></thead>
-            <tbody id="bodyUsuarios"><tr><td colspan="5" class="loading">Cargando...</td></tr></tbody>
-        </table>
-      </div>
+      <div class="table-header"><span class="table-title">Usuarios</span></div>
+      <div id="usuariosGrid" style="display:flex;flex-direction:column;gap:12px;margin-top:16px"></div>
     </div>
 
     <div class="section" id="sec-personas">
@@ -252,7 +246,7 @@ async function loadDashboard() {
     document.getElementById('statInformes').textContent = informes.filter(i => i.mes == mes && i.año == año).length || 0;
     document.getElementById('statAsig').textContent = asig.filter(a => a.estado !== 'Completado').length || 0;
     const tbody = document.getElementById('dashUsuarios');
-    tbody.innerHTML = usuarios.slice(0,5).map(u => `
+    tbody.innerHTML = usuarios.map(u => `
       <tr>
         <td>
           <div style="display:flex;align-items:center;gap:8px">
@@ -273,30 +267,84 @@ async function loadDashboard() {
 }
 
 async function loadUsuarios() {
-  const tbody = document.getElementById('bodyUsuarios');
+  const grid = document.getElementById('usuariosGrid');
   try {
     const data = await api('/usuarios');
-    tbody.innerHTML = data.map(u => {
-      return `<tr>
-          <td>#${u.id}</td>
-          <td>
-            <div style="display:flex;align-items:center;gap:8px">
-              <span data-userid="${u.id}" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#ccc;flex-shrink:0"></span>
-              ${u.picture
-                ? `<img src="${u.picture}" style="width:28px;height:28px;border-radius:50%;object-fit:cover;flex-shrink:0">`
-                : `<div style="width:28px;height:28px;border-radius:50%;background:var(--navy);display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:12px;flex-shrink:0">${u.nombre.charAt(0).toUpperCase()}</div>`
-              }
-              <span>${u.nombre}</span>
+    grid.innerHTML = data.map(u => `
+      <div class="user-card" id="ucard-${u.id}">
+        <div class="user-card-header" onclick="toggleUser(${u.id})">
+          <div style="display:flex;align-items:center;gap:12px">
+            ${u.picture
+              ? `<img src="${u.picture}" style="width:42px;height:42px;border-radius:50%;object-fit:cover;flex-shrink:0">`
+              : `<div style="width:42px;height:42px;border-radius:50%;background:var(--navy);display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:16px;flex-shrink:0">${u.nombre.charAt(0).toUpperCase()}</div>`
+            }
+            <div>
+              <div style="font-weight:600;font-size:14px">${u.nombre}</div>
+              <div style="font-size:12px;color:var(--tx3)">${u.email}</div>
             </div>
-          </td>
-          <td>${u.email}</td>
-          <td>${u.personas || 0}</td>
-          <td>${u.fecha_registro ? new Date(u.fecha_registro).toLocaleDateString('es-PE') : '—'}</td>
-          <td><button onclick="notificarUsuario(${u.id})" style="padding:4px 10px;border-radius:6px;font-size:11px;border:1px solid var(--border);background:var(--surface);cursor:pointer">📢</button></td>
-      </tr>`;
-    }).join('');
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;flex-shrink:0">
+            <span data-userid="${u.id}" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#ccc"></span>
+            ${u.tiene_app ? '<span style="background:#edf7ef;color:#1e7e34;font-size:10px;font-weight:700;padding:2px 8px;border-radius:99px">📱 App</span>' : ''}
+            <span style="color:var(--tx3);font-size:18px">›</span>
+          </div>
+        </div>
+        <div class="user-card-body" id="ubody-${u.id}" style="display:none">
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px">
+            <div style="background:var(--surface2);border-radius:10px;padding:12px;text-align:center">
+              <div style="font-size:22px;font-weight:700;color:var(--navy)">${u.personas_count}</div>
+              <div style="font-size:11px;color:var(--tx3)">Personas</div>
+            </div>
+            <div style="background:var(--surface2);border-radius:10px;padding:12px;text-align:center">
+              <div style="font-size:22px;font-weight:700;color:var(--navy)">${parseFloat(u.horas_mes).toFixed(1)}h</div>
+              <div style="font-size:11px;color:var(--tx3)">Horas este mes</div>
+            </div>
+            <div style="background:var(--surface2);border-radius:10px;padding:12px;text-align:center">
+              <div style="font-size:22px;font-weight:700;color:var(--navy)">${u.asignaciones_count}</div>
+              <div style="font-size:11px;color:var(--tx3)">Asignaciones</div>
+            </div>
+          </div>
+          <div style="font-size:12px;color:var(--tx3);margin-bottom:10px">
+            📅 Registro: ${u.fecha_registro ? new Date(u.fecha_registro).toLocaleDateString('es-PE') : '—'}
+            &nbsp;·&nbsp;
+            🕐 Último acceso: ${u.ultimo_acceso ? new Date(u.ultimo_acceso).toLocaleDateString('es-PE') : '—'}
+            &nbsp;·&nbsp;
+            🏛 ${u.congregacion || 'Sin congregación'}
+            &nbsp;·&nbsp;
+            📱 App: ${u.tiene_app ? '<span style="color:#1e7e34;font-weight:600">Instalada</span>' : '<span style="color:#9c9a92">No instalada</span>'}
+          </div>
+          ${u.personas && u.personas.length > 0 ? `
+          <div style="font-weight:600;font-size:13px;margin-bottom:8px">Personas (${u.personas.length})</div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            ${u.personas.map(p => `
+              <div style="background:var(--surface2);border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px">
+                <div style="width:32px;height:32px;border-radius:50%;background:var(--navy);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:12px;flex-shrink:0">${p.nombre.charAt(0).toUpperCase()}</div>
+                <div style="flex:1;min-width:0">
+                  <div style="font-weight:600;font-size:13px">${p.nombre}</div>
+                  <div style="font-size:11px;color:var(--tx3)">${p.direccion || 'Sin dirección'} ${p.telefono ? '· ' + p.telefono : ''}</div>
+                  <div style="font-size:11px;color:var(--tx3)">${p.tipo} · ${p.estado} ${p.pub ? '· ' + p.pub : ''} ${p.proxima_visita ? '· Visita: ' + p.proxima_visita.split('T')[0] : ''}</div>
+                </div>
+                <span class="badge ${p.estado==='regular'?'badge-green':p.estado==='interesado'||p.estado==='interesada'?'badge-blue':'badge-amber'}">${p.estado}</span>
+              </div>
+            `).join('')}
+          </div>
+          ` : '<div style="color:var(--tx3);font-size:13px">Sin personas registradas</div>'}
+          <div style="margin-top:12px;display:flex;gap:8px">
+            <button onclick="notificarUsuario(${u.id})" style="padding:6px 14px;border-radius:8px;font-size:12px;border:1px solid var(--border);background:var(--surface);cursor:pointer">📢 Notificar</button>
+          </div>
+        </div>
+      </div>
+    `).join('');
     socket.emit('get:activos');
-  } catch(e) { tbody.innerHTML = '<tr><td colspan="5" class="empty">Error</td></tr>'; }
+  } catch(e) { grid.innerHTML = '<div style="color:var(--tx3);padding:20px">Error cargando usuarios</div>'; }
+}
+
+function toggleUser(id) {
+  const body = document.getElementById('ubody-' + id);
+  const card = document.getElementById('ucard-' + id);
+  const isOpen = body.style.display !== 'none';
+  body.style.display = isOpen ? 'none' : 'block';
+  card.querySelector('.user-card-header span:last-child').textContent = isOpen ? '›' : '‹';
 }
 
 async function loadPersonas() {
