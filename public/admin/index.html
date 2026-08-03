@@ -270,6 +270,13 @@ async function loadUsuarios() {
   const grid = document.getElementById('usuariosGrid');
   try {
     const data = await api('/usuarios');
+    // Si personas viene como string (endpoint viejo), convertir a array vacío
+    data.forEach(u => {
+      if (!Array.isArray(u.personas)) u.personas = [];
+      if (!u.horas_mes) u.horas_mes = 0;
+      if (!u.asignaciones_count) u.asignaciones_count = 0;
+      if (u.personas_count === undefined) u.personas_count = u.personas.length || 0;
+    });
     grid.innerHTML = data.map(u => `
       <div class="user-card" id="ucard-${u.id}">
         <div class="user-card-header" onclick="toggleUser(${u.id})">
