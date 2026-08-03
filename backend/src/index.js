@@ -123,6 +123,20 @@ app.get('/control/panel/:key/api/reportes', adminAuth, async (req, res) => {
 });
 
 // Conversación completa con un usuario específico
+app.get('/control/panel/:key/api/usuarios', adminAuth, async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT u.id, u.nombre, u.email, u.congregacion, u.picture, u.fecha_registro, u.ultimo_acceso,
+              COUNT(p.id) as personas
+       FROM usuarios u
+       LEFT JOIN personas p ON p.usuario_id = u.id
+       GROUP BY u.id
+       ORDER BY u.id ASC`
+    );
+    res.json(result.rows);
+  } catch(err) { res.status(500).json({ error: err.message }); }
+});
+
 app.get('/control/panel/:key/api/reportes/:userId', adminAuth, async (req, res) => {
   const r = await pool.query(
     `SELECT id, remitente, mensaje, fecha, editado, categoria FROM reportes

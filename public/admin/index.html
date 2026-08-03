@@ -253,7 +253,20 @@ async function loadDashboard() {
     document.getElementById('statAsig').textContent = asig.filter(a => a.estado !== 'Completado').length || 0;
     const tbody = document.getElementById('dashUsuarios');
     tbody.innerHTML = usuarios.slice(0,5).map(u => `
-      <tr><td>${u.nombre}</td><td>${u.email}</td><td>${u.congregacion||'—'}</td><td>${u.fecha_registro ? new Date(u.fecha_registro).toLocaleDateString('es-PE') : '—'}</td></tr>
+      <tr>
+        <td>
+          <div style="display:flex;align-items:center;gap:8px">
+            ${u.picture
+              ? `<img src="${u.picture}" style="width:26px;height:26px;border-radius:50%;object-fit:cover">`
+              : `<div style="width:26px;height:26px;border-radius:50%;background:var(--navy);display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:11px">${u.nombre.charAt(0).toUpperCase()}</div>`
+            }
+            ${u.nombre}
+          </div>
+        </td>
+        <td>${u.email}</td>
+        <td>${u.congregacion||'—'}</td>
+        <td>${u.fecha_registro ? new Date(u.fecha_registro).toLocaleDateString('es-PE') : '—'}</td>
+      </tr>
     `).join('') || '<tr><td colspan="4" class="empty">Sin usuarios</td></tr>';
     loadReportes();
   } catch(e) { console.error(e); }
@@ -267,8 +280,14 @@ async function loadUsuarios() {
       return `<tr>
           <td>#${u.id}</td>
           <td>
-          <span data-userid="${u.id}" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#ccc;margin-right:6px"></span>
-          ${u.nombre}
+            <div style="display:flex;align-items:center;gap:8px">
+              <span data-userid="${u.id}" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#ccc;flex-shrink:0"></span>
+              ${u.picture
+                ? `<img src="${u.picture}" style="width:28px;height:28px;border-radius:50%;object-fit:cover;flex-shrink:0">`
+                : `<div style="width:28px;height:28px;border-radius:50%;background:var(--navy);display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:12px;flex-shrink:0">${u.nombre.charAt(0).toUpperCase()}</div>`
+              }
+              <span>${u.nombre}</span>
+            </div>
           </td>
           <td>${u.email}</td>
           <td>${u.personas || 0}</td>
