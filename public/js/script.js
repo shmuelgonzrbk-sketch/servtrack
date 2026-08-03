@@ -1123,8 +1123,17 @@ function closeDet() {
 
 async function markVisited(id) {
   const c = cards.find(x => x.id === id); if (!c) return;
-  if (!c.historial) c.historial = [];
-  c.historial.push({ fecha:today(), hora:c.hora||'', nota:t('visita_reg_ok')||'Visita realizada' });
+
+  // 1. Registrar visita real en la BD (tabla visitas)
+  try {
+    await fetch(API_URL + '/personas/' + id + '/visitas', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + localStorage.getItem('st_token') },
+      body: JSON.stringify({ publicacion: c.pub || null, notas: c.notas || null })
+    });
+  } catch(e) { console.error('Error registrando visita:', e); }
+
+  // 2. Limpiar proxima visita en la BD
   await apiUpdatePersona(id, {
     nombre: c.nombre,
     direccion: c.dir,
@@ -1132,10 +1141,22 @@ async function markVisited(id) {
     tipo: c.tipo,
     estado: c.estado,
     gps_lat: c.lat,
-    gps_lng: c.lng
+    gps_lng: c.lng,
+    proxima_visita: null,
+    proxima_visita_hora: null
   });
+
+  // 3. Limpiar localmente también
+  c.proxima_visita = null;
+  c.hora = null;
+  if (!c.historial) c.historial = [];
+  c.historial.push({ fecha: today(), hora: '', nota: t('visita_reg_ok') || 'Visita realizada' });
+
   closeDet(); updateStats(); renderList();
-  toast(t('visita_reg'));
+  toast(t('visita_reg') || '✔ Visita registrada');
+
+  // 4. Redirigir a historial/visitados
+  setTimeout(() => goTo('history'), 600);
 }
 /* ================================================================
    FORMULARIO
