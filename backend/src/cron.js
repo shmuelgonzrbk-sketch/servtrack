@@ -9,7 +9,7 @@ webpush.setVapidDetails(
   process.env.VAPID_PRIVATE_KEY
 );
 
-async function sendPush(usuarioId, title, body) {
+async function sendPush(usuarioId, title, body, cardId = null) {
   let enviado = false;
 
   // 1. Intentar FCM primero (app Android nativa)
@@ -18,7 +18,7 @@ async function sendPush(usuarioId, title, body) {
       'SELECT token FROM fcm_tokens WHERE usuario_id = $1', [usuarioId]
     );
     if (fcmResult.rows.length > 0) {
-      const resp = await enviarNotificacionFCM(fcmResult.rows[0].token, title, body);
+      const resp = await enviarNotificacionFCM(fcmResult.rows[0].token, title, body, cardId ? { cardId: String(cardId) } : {});
       if (resp.success) {
         enviado = true;
         console.log('FCM enviado a usuario', usuarioId);
@@ -37,7 +37,7 @@ async function sendPush(usuarioId, title, body) {
       );
       if (result.rows.length > 0) {
         const subscription = JSON.parse(result.rows[0].subscription);
-        await webpush.sendNotification(subscription, JSON.stringify({ title, body }));
+        await webpush.sendNotification(subscription, JSON.stringify({ title, body, cardId }));
         console.log('Web push enviado a usuario', usuarioId);
       }
     } catch (err) {
@@ -58,7 +58,7 @@ cron.schedule('* * * * *', async () => {
     console.log('🔍 Cron corriendo, hora servidor:', new Date().toString());
 
     const pendientes = await pool.query(
-      `SELECT id, usuario_id, titulo, cuerpo
+      `SELECT id, usuario_id, titulo, cuerpo, referencia_id, referencia_tabla
        FROM notificaciones_programadas
        WHERE enviada = false AND fecha_disparo <= NOW()
        ORDER BY fecha_disparo ASC
@@ -68,7 +68,8 @@ cron.schedule('* * * * *', async () => {
     console.log('📋 Avisos pendientes encontrados:', pendientes.rows.length);
 
     for (const n of pendientes.rows) {
-      await sendPush(n.usuario_id, n.titulo, n.cuerpo);
+      const cardId = n.referencia_tabla === 'personas' ? n.referencia_id : null;
+      await sendPush(n.usuario_id, n.titulo, n.cuerpo, cardId);
       await pool.query('UPDATE notificaciones_programadas SET enviada = true WHERE id = $1', [n.id]);
     }
 
