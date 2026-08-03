@@ -1,14 +1,19 @@
 const admin = require('firebase-admin');
-const path = require('path');
 
 let initialized = false;
 
 function initFirebase() {
   if (!initialized) {
-    const serviceAccount = require('./firebase-service-account.json');
-    admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount)
-    });
+    let credential;
+    if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+      const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+      credential = admin.credential.cert(serviceAccount);
+    } else {
+      // Local development
+      const serviceAccount = require('./firebase-service-account.json');
+      credential = admin.credential.cert(serviceAccount);
+    }
+    admin.initializeApp({ credential });
     initialized = true;
   }
   return admin;
