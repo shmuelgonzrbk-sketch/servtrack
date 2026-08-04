@@ -4,7 +4,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const pool = require('../db/pool');
 const { OAuth2Client } = require('google-auth-library');
-const googleClient = new OAuth2Client('111121682803-0uqtc6j7n54jdt99rs3r52j00qf6nqh1.apps.googleusercontent.com');
+const googleClient = new OAuth2Client('49946061194-4i73ke5meccdt7eu98fd0el62uq24ung.apps.googleusercontent.com');
 
 // REGISTRO
 router.post('/register', async (req, res) => {
@@ -60,7 +60,10 @@ router.post('/google', async (req, res) => {
   try {
     const ticket = await googleClient.verifyIdToken({
       idToken,
-      audience: '111121682803-0uqtc6j7n54jdt99rs3r52j00qf6nqh1.apps.googleusercontent.com'
+      audience: [
+        '49946061194-4i73ke5meccdt7eu98fd0el62uq24ung.apps.googleusercontent.com',
+        '49946061194-94ro9eoj6clpqlm1ivel9l13tcqqrprt.apps.googleusercontent.com'
+      ]
     });
     const payload = ticket.getPayload();
     const { email, name, sub, picture } = payload;
