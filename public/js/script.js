@@ -1871,11 +1871,12 @@ function buildSettings() {
     /* ── PERFIL ── */
     '<div class="cfg-section-title">Perfil</div>'
     + '<div class="cfg-card">'
-      + '<div class="cfg-row">'
+      + '<div class="cfg-row cfg-row-tap" onclick="editarPerfil()">'
         + (user && user.picture
             ? '<img src="' + user.picture + '" style="width:40px;height:40px;border-radius:50%;object-fit:cover;flex-shrink:0">'
             : '<div style="width:40px;height:40px;border-radius:50%;background:var(--navy);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:700;color:#fff;font-size:16px">' + (user ? user.nombre.charAt(0).toUpperCase() : '?') + '</div>')
-        + '<div class="cfg-row-info"><div class="cfg-row-label">' + (user ? user.nombre : 'Usuario') + '</div><div class="cfg-row-sub">' + (user ? user.email : '') + '</div></div>'
+        + '<div class="cfg-row-info"><div class="cfg-row-label">' + (user ? user.nombre : 'Usuario') + '</div><div class="cfg-row-sub">' + (user ? user.email : '') + (user && user.congregacion ? ' · ' + user.congregacion : '') + '</div></div>'
+        + '<svg class="cfg-chev" viewBox="0 0 24 24" width="18" height="18"><path d="M9 18l6-6-6-6v12z"/></svg>'
       + '</div>'
     + '</div>'
 
@@ -1946,13 +1947,8 @@ function buildSettings() {
     + '</div>'
 
        /* ── APOYA EL PROYECTO ── */
-    + '<div class="cfg-section-title">Apoya el proyecto</div>'
-    + '<div class="cfg-card">'
-      + '<div class="cfg-row cfg-row-tap" onclick="abrirDonaciones()">'
-        + '<div class="cfg-row-icon" style="background:#fff8ee"><svg viewBox="0 0 24 24" width="18" height="18" fill="#a0660a"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg></div>'
-        + '<div class="cfg-row-info"><div class="cfg-row-label">Apoya este proyecto</div><div class="cfg-row-sub">Donaciones voluntarias</div></div>'
-        + '<svg class="cfg-chev" viewBox="0 0 24 24" width="18" height="18"><path d="M9 18l6-6-6-6v12z"/></svg>'
-      + '</div>'
+    + '<div style="text-align:center;padding:16px 0 8px;cursor:pointer" onclick="abrirDonaciones()">'
+      + '<span style="font-size:12px;color:var(--tx3);text-decoration:underline">Apoya este proyecto</span>'
     + '</div>'
 
 
@@ -2011,6 +2007,48 @@ function toggleScrollOptions() {
   const open = drawer.style.maxHeight === "0px" || !drawer.style.maxHeight;
   drawer.style.maxHeight = open ? "400px" : "0px";
   if (chev) chev.style.transform = open ? "rotate(180deg)" : "";
+}
+
+function editarPerfil() {
+  const user = getUser();
+  document.getElementById('det-title').textContent = 'Mi perfil';
+  document.getElementById('detBody').innerHTML =
+    '<div style="text-align:center;padding:8px 0 20px">'
+      + (user && user.picture
+        ? '<img src="' + user.picture + '" style="width:64px;height:64px;border-radius:50%;object-fit:cover;border:3px solid var(--navy)">'
+        : '<div style="width:64px;height:64px;border-radius:50%;background:var(--navy);display:flex;align-items:center;justify-content:center;margin:0 auto;font-weight:700;color:#fff;font-size:24px">' + (user ? user.nombre.charAt(0).toUpperCase() : '?') + '</div>')
+      + '<div style="font-size:16px;font-weight:700;color:var(--tx);margin-top:12px">' + (user ? user.nombre : '') + '</div>'
+      + '<div style="font-size:13px;color:var(--tx3);margin-top:4px">' + (user ? user.email : '') + '</div>'
+    + '</div>'
+    + '<div class="fgroup"><label>Congregacion</label>'
+      + '<input id="perfilCongregacion" type="text" placeholder="Ej: Huamachuco Central" value="' + (user && user.congregacion ? user.congregacion : '') + '"/>'
+    + '</div>'
+    + '<button class="btn-save" onclick="guardarPerfil()">Guardar</button>'
+    + '<button class="btn-cancel" onclick="closeDet()">Cerrar</button>';
+  document.getElementById('detBg').classList.add('open');
+  updateFabVisibility();
+}
+
+async function guardarPerfil() {
+  const congregacion = document.getElementById('perfilCongregacion').value.trim();
+  try {
+    const token = getToken();
+    await fetch(API_URL + '/auth/perfil', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ congregacion })
+    });
+    const user = getUser();
+    if (user) {
+      user.congregacion = congregacion;
+      saveSession(token, user);
+    }
+    closeDet();
+    buildSettings();
+    toast('Perfil actualizado');
+  } catch(e) {
+    toast('Error al guardar');
+  }
 }
 
 function abrirAjustesNotificaciones() {
@@ -3528,6 +3566,22 @@ function applyStackEffect() {
    INIT
 ================================================================ */
 
+function updateDrawerUser() {
+  const user = getUser();
+  if (!user) return;
+  const pic = document.getElementById('drawerUserPic');
+  const initial = document.getElementById('drawerUserInitial');
+  const name = document.getElementById('drawerUserName');
+  const email = document.getElementById('drawerUserEmail');
+  if (name) name.textContent = user.nombre || '';
+  if (email) email.textContent = user.email || '';
+  if (pic && user.picture) {
+    pic.innerHTML = '<img src="' + user.picture + '" style="width:36px;height:36px;border-radius:50%;object-fit:cover">';
+  } else if (initial) {
+    initial.textContent = user.nombre ? user.nombre.charAt(0).toUpperCase() : '?';
+  }
+}
+
 async function init() {
   loadTheme();
   await loadCfg();
@@ -3555,6 +3609,7 @@ async function init() {
   renderList();
   schedInformeNotif();
   updateUserPosition();
+  updateDrawerUser();
   
   const splash = document.getElementById('splashLoader');
   if (splash) { splash.style.transition = 'opacity .3s'; splash.style.opacity = '0'; setTimeout(() => splash.remove(), 300); }

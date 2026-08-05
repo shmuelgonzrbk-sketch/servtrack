@@ -109,4 +109,16 @@ router.get('/me', authMiddleware, async (req, res) => {
   }
 });
 
+// Actualizar perfil (congregación)
+router.put('/perfil', require('../middleware/auth'), async (req, res) => {
+  const { congregacion } = req.body;
+  try {
+    const pool = require('../db/pool');
+    await pool.query('UPDATE usuarios SET congregacion = $1 WHERE id = $2', [congregacion, req.userId]);
+    res.json({ ok: true });
+  } catch(err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;

@@ -90,29 +90,17 @@
       </div>
     </div>
 
-    <!-- Solo en web: botón Play Store -->
-    <div class="drawer-playstore" id="drawerPlayStore">
-      <!-- 
-        LINK PLAY STORE: cambia el href por tu URL cuando la tengas:
-        href="https://play.google.com/store/apps/details?id=TU_PACKAGE"
-      -->
-      <button id="playstoreBtn" onclick="clickPlaystore()" class="playstore-btn" style="border:none;cursor:pointer;width:100%">
-        <div class="playstore-btn-icon">
-          <img src="img/playstore.png" width="32" height="32" alt="Play Store"/>
+    <!-- User info en drawer -->
+    <div id="drawerUserInfo" style="padding:12px 20px;border-top:1px solid rgba(255,255,255,0.08)">
+      <div style="display:flex;align-items:center;gap:10px" onclick="goTo('settings')">
+        <div id="drawerUserPic" style="width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden">
+          <span id="drawerUserInitial" style="font-weight:700;color:#fff;font-size:14px"></span>
         </div>
-        <div class="playstore-btn-text">
-          <span class="playstore-btn-sup">Próximamente en</span>
-          <span class="playstore-btn-title">Google Play</span>
+        <div style="flex:1;min-width:0">
+          <div id="drawerUserName" style="font-size:13px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div>
+          <div id="drawerUserEmail" style="font-size:11px;color:rgba(255,255,255,0.5);white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div>
         </div>
-      </button>
-      <!-- 
-        ╔══════════════════════════════════════════════════╗
-        ║  INSTRUCCIONES PLAY STORE                        ║
-        ║  Cambia el href de arriba por tu link:           ║
-        ║  https://play.google.com/store/apps/details?id= ║
-        ║  + tu.package.name                              ║
-        ╚══════════════════════════════════════════════════╝
-      -->
+      </div>
     </div>
     <div class="drawer-version">v1.0.0 · AssendApp</div>
   </nav>
