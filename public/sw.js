@@ -53,12 +53,12 @@ async function _fire(payload) {
     cristiana: '/img/cristiana.png',
   };
 
-  const icon = iconMap[payload.seccion] || '/img/icon-192.png';
+  const icon = iconMap[payload.seccion] || '/img/logoapp.png';
 
   const opts = {
     body:    payload.body,
     icon:    icon,
-    badge:   '/img/icon-192.png',
+    badge:   '/img/logoapp.png',
     tag:     String(payload.id),
     renotify: true,
     requireInteraction: false,
