@@ -395,6 +395,9 @@ async function saveCfg() {
 }
 
 async function loadCfg() {
+  // Cargar scrollMode desde localStorage (no está en el API)
+  const localCfg = await kGet('st_cfg');
+  if (localCfg && localCfg.scrollMode) cfg.scrollMode = localCfg.scrollMode;
   try {
     const data = await apiGetAjustes();
     if (data && data.id) {
@@ -405,8 +408,7 @@ async function loadCfg() {
       cfg.orden = data.orden_lista || 'fecha';
     }
   } catch(err) {
-    const v = await kGet('st_cfg');
-    if(v) cfg = {...cfg, ...v};
+    if(localCfg) cfg = {...cfg, ...localCfg};
   }
 }
 
@@ -2028,10 +2030,11 @@ function abrirAjustesNotificaciones() {
 
 async function setScrollMode(mode) {
   cfg.scrollMode = mode;
-  await saveCfg();
+  await kSet('st_cfg', cfg);
   buildSettings();
-  renderList();
-  toast(mode === 'apilado' ? 'Cards apilados' : 'Scroll normal');
+  if (currentView === 'home') { renderList(); }
+  const labels = {normal:'Scroll normal',apilado:'Cards apilados',cascada:'Efecto cascada',zoom:'Efecto zoom',fade:'Efecto desvanecimiento'};
+  toast(labels[mode] || 'Listo');
 }
 
 async function toggleNotif(el)  { cfg.activo=!cfg.activo; el.classList.toggle('on'); await saveCfg(); await schedAll(); toast(cfg.activo?t('notif_on'):'Notificaciones desactivadas'); }
@@ -3463,14 +3466,22 @@ function applyStackEffect() {
   } else if (cfg.scrollMode === 'cascada') {
     cardEls.forEach((card, i) => {
       card.style.opacity = '0';
-      card.style.transform = 'translateX(60px)';
-      card.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
-      setTimeout(() => {
-        card.style.opacity = '1';
-        card.style.transform = 'translateX(0)';
-      }, i * 80);
+      card.style.transform = 'translateX(80px)';
+      card.style.transition = 'none';
+    });
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        cardEls.forEach((card, i) => {
+          card.style.transition = 'opacity 0.5s cubic-bezier(0.16,1,0.3,1), transform 0.5s cubic-bezier(0.16,1,0.3,1)';
+          setTimeout(() => {
+            card.style.opacity = '1';
+            card.style.transform = 'translateX(0)';
+          }, i * 100);
+        });
+      });
     });
   } else if (cfg.scrollMode === 'zoom') {
+    if (window._zoomHandler) window.removeEventListener('scroll', window._zoomHandler);
     const onScroll = () => {
       const viewCenter = window.innerHeight / 2;
       cardEls.forEach(card => {
@@ -3478,33 +3489,36 @@ function applyStackEffect() {
         const cardCenter = rect.top + rect.height / 2;
         const dist = Math.abs(viewCenter - cardCenter);
         const maxDist = window.innerHeight / 2;
-        const scale = Math.max(0.92, 1 - (dist / maxDist) * 0.08);
-        const opacity = Math.max(0.6, 1 - (dist / maxDist) * 0.4);
+        const scale = Math.max(0.88, 1 - (dist / maxDist) * 0.12);
+        const opacity = Math.max(0.5, 1 - (dist / maxDist) * 0.5);
         card.style.transform = 'scale(' + scale + ')';
-        card.style.opacity = opacity;
-        card.style.transition = 'transform 0.15s ease, opacity 0.15s ease';
+        card.style.opacity = String(opacity);
+        card.style.transition = 'transform 0.2s ease-out, opacity 0.2s ease-out';
+        card.style.transformOrigin = 'center center';
       });
     };
-    list.removeEventListener('scroll', list._zoomHandler);
-    window.removeEventListener('scroll', list._zoomHandler);
-    list._zoomHandler = onScroll;
+    window._zoomHandler = onScroll;
     window.addEventListener('scroll', onScroll, { passive: true });
-    onScroll();
+    setTimeout(onScroll, 50);
   } else if (cfg.scrollMode === 'fade') {
-    const observer = new IntersectionObserver((entries) => {
+    if (window._fadeObserver) window._fadeObserver.disconnect();
+    window._fadeObserver = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
-          entry.target.style.opacity = '1';
-          entry.target.style.transform = 'translateY(0)';
-          observer.unobserve(entry.target);
+          setTimeout(() => {
+            entry.target.style.opacity = '1';
+            entry.target.style.transform = 'translateY(0) scale(1)';
+          }, 50);
+          window._fadeObserver.unobserve(entry.target);
         }
       });
-    }, { threshold: 0.1 });
-    cardEls.forEach(card => {
+    }, { threshold: 0.15 });
+    cardEls.forEach((card, i) => {
       card.style.opacity = '0';
-      card.style.transform = 'translateY(20px)';
-      card.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
-      observer.observe(card);
+      card.style.transform = 'translateY(30px) scale(0.97)';
+      card.style.transition = 'opacity 0.5s ease, transform 0.5s cubic-bezier(0.16,1,0.3,1)';
+      card.style.transitionDelay = (i * 0.05) + 's';
+      window._fadeObserver.observe(card);
     });
   }
 
