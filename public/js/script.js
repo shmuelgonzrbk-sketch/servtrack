@@ -3363,6 +3363,8 @@ async function init() {
   }, 4000);
 }
 
+function refreshUserPicture() {}
+
 // Guardar parametro de compartir antes del login
 const pendingShare = new URLSearchParams(window.location.search).get('c');
 if (pendingShare) localStorage.setItem('pendingShare', pendingShare);
