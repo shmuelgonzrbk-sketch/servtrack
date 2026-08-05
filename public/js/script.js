@@ -3151,7 +3151,7 @@ async function reportarProblema() {
     + '<div id="chatMensajes" class="chat-messages"></div>'
 
     + '<div class="chat-input-row" id="chatInputRow">'
-        + '<textarea id="chatInput" placeholder="Escribe tu mensaje..." class="chat-input" rows="1" oninput="autoGrowChat(this)" onfocus="setTimeout(()=>{this.scrollIntoView({block:&quot;center&quot;});},300)" onkeydown="if(event.key===\'Enter\' && !event.shiftKey){event.preventDefault();enviarMensajeChat();}"></textarea>'
+        + '<textarea id="chatInput" placeholder="Escribe tu mensaje..." class="chat-input" rows="1" oninput="autoGrowChat(this)" onkeydown="if(event.key===\'Enter\' && !event.shiftKey){event.preventDefault();enviarMensajeChat();}"></textarea>'
         + '<button onclick="enviarMensajeChat()" class="chat-send-btn">'
         + '<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>'
       + '</button>'
@@ -3167,48 +3167,31 @@ async function reportarProblema() {
 
 function ajustarChatPorTeclado() {
   const panel = document.querySelector('#detBg.chat-fullscreen .panel');
-  const inputRow = document.getElementById('chatInputRow');
   const mensajes = document.getElementById('chatMensajes');
-  if (!panel) return;
+  if (!panel || !window.visualViewport) return;
+
+  const vv = window.visualViewport;
 
   function ajustar() {
-    if (!window.visualViewport) return;
-    const vv = window.visualViewport;
-    const alturaVisible = vv.height;
-    const offsetTop = vv.offsetTop;
-
-    // Ajustar el panel al viewport visual (sin teclado)
-    panel.style.height = alturaVisible + 'px';
-    panel.style.top = offsetTop + 'px';
-    panel.style.bottom = 'auto';
-
-    // Scroll al último mensaje
+    // Redimensionar panel al viewport visual (excluye teclado)
+    panel.style.height = vv.height + 'px';
+    panel.style.top = vv.offsetTop + 'px';
     if (mensajes) setTimeout(() => { mensajes.scrollTop = mensajes.scrollHeight; }, 50);
   }
 
-  if (window.visualViewport) {
-    window.visualViewport.addEventListener('resize', ajustar);
-    window.visualViewport.addEventListener('scroll', ajustar);
-  }
-
-  // También ajustar al enfocar el input
-  const chatInput = document.getElementById('chatInput');
-  if (chatInput) {
-    chatInput.addEventListener('focus', () => { setTimeout(ajustar, 300); });
-    chatInput.addEventListener('blur', () => {
-      if (panel) { panel.style.height = ''; panel.style.top = ''; panel.style.bottom = ''; }
-    });
-  }
+  vv.addEventListener('resize', ajustar);
+  vv.addEventListener('scroll', ajustar);
+  ajustar();
 
   const closeBtn = document.querySelector('.chat-header-close');
   if (closeBtn) {
-    closeBtn.addEventListener('click', () => {
-      if (window.visualViewport) {
-        window.visualViewport.removeEventListener('resize', ajustar);
-        window.visualViewport.removeEventListener('scroll', ajustar);
-      }
-      if (panel) { panel.style.height = ''; panel.style.top = ''; panel.style.bottom = ''; }
-    }, { once: true });
+    const cleanup = () => {
+      vv.removeEventListener('resize', ajustar);
+      vv.removeEventListener('scroll', ajustar);
+      panel.style.height = '';
+      panel.style.top = '';
+    };
+    closeBtn.addEventListener('click', cleanup, { once: true });
   }
 }
 
