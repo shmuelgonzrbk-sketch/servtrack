@@ -271,7 +271,7 @@ function getSaludo() {
   const saludos = {
     manana: ['Buenos días, ' + nombre, 'Buen día, ' + nombre, 'Hola de nuevo, ' + nombre, 'Que tengas un buen día, ' + nombre + ' :D'],
     tarde: ['Buenas tardes, ' + nombre, 'Hola de nuevo, ' + nombre, 'Como va tu día, ' + nombre + '?', 'Sigue dando lo mejor de tí, ' + nombre + ' :D', 'Gran trabajo hoy, ' + nombre, 'Tu esfuerzo vale la pena, ' + nombre],
-    noche: ['Buenas noches, ' + nombre, 'Hola de nuevo, ' + nombre, 'Buen descanso, ' + nombre, 'Que tal tu día, ' + nombre + '?', 'Hoy fue un buen día', 'Descansa bien, ' + nombre]
+    noche: ['Buenas noches, ' + nombre, 'Hola de nuevo, ' + nombre, 'Que tal tu día, ' + nombre + '?']
   };
   const periodo = h < 12 ? 'manana' : h < 18 ? 'tarde' : 'noche';
   const opciones = saludos[periodo];
@@ -2035,7 +2035,7 @@ function editarPerfil() {
       + '<div style="font-size:13px;color:var(--tx3);margin-top:4px">' + (user ? user.email : '') + '</div>'
     + '</div>'
     + '<div class="fgroup"><label>Congregacion</label>'
-      + '<input id="perfilCongregacion" type="text" placeholder="Ej: Huamachuco Central" style="text-transform:uppercase"  value="' + (user && user.congregacion ? user.congregacion : '') + '"/>'
+      + '<input id="perfilCongregacion" type="text" placeholder="" style="text-transform:uppercase"  value="' + (user && user.congregacion ? user.congregacion : '') + '"/>'
     + '</div>'
     + '<button class="btn-save" onclick="guardarPerfil()">Guardar</button>'
     + '<button class="btn-cancel" onclick="closeDet()">Cerrar</button>';
@@ -3624,7 +3624,7 @@ function mostrarBienvenida() {
     + '</div>'
     + '<div style="padding:0 24px 24px">'
       + '<div style="font-size:14px;font-weight:700;color:var(--tx);margin-bottom:8px">Cuentanos, de que congregacion eres?</div>'
-      + '<input id="bienvenidaCongregacion" type="text" placeholder="Ej: Huamachuco Central" style="text-transform:uppercase;width:100%;padding:14px 16px;border:1.5px solid var(--border);border-radius:14px;font-size:14px;font-family:inherit;background:var(--input-bg);color:var(--tx);outline:none;box-sizing:border-box" />'
+      + '<input id="bienvenidaCongregacion" type="text" placeholder="" style="text-transform:uppercase;width:100%;padding:14px 16px;border:1.5px solid var(--border);border-radius:14px;font-size:14px;font-family:inherit;background:var(--input-bg);color:var(--tx);outline:none;box-sizing:border-box" />'
       + '<button class="btn-save" style="margin-top:16px;border-radius:14px;padding:16px;font-size:15px" onclick="guardarBienvenida()">Comenzar</button>'
     + '</div>';
   document.getElementById('detBg').classList.add('open');
