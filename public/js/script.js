@@ -105,6 +105,7 @@ let cfg = {
   sonido:     true,
   orden:      'fecha',
   idioma:     'es',
+  scrollMode: 'normal',
 };
 
 let swReg = null;
@@ -816,10 +817,11 @@ function openMapPicker() {
     // Si ya tiene coordenadas guardadas úsalas, si no pide ubicación actual
     if (latGuardada && lngGuardada) {
       iniciarMapa(parseFloat(latGuardada), parseFloat(lngGuardada), true);
+      mostrarUbiUsuarioEnMapa();
     } else if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
-        pos => iniciarMapa(pos.coords.latitude, pos.coords.longitude, false),
-        ()  => iniciarMapa(-12.0464, -77.0428, false), // Lima como fallback
+        pos => { iniciarMapa(pos.coords.latitude, pos.coords.longitude, false); mostrarUbiUsuarioEnMapa(); },
+        ()  => iniciarMapa(-12.0464, -77.0428, false),
         { enableHighAccuracy: true, timeout: 8000 }
       );
     } else {
@@ -846,6 +848,21 @@ async function searchMapAddress() {
   } catch(e) {
     toast('Error al buscar la dirección');
   }
+}
+
+function mostrarUbiUsuarioEnMapa() {
+  if (!_leafletMap || !navigator.geolocation) return;
+  navigator.geolocation.getCurrentPosition(pos => {
+    const lat = pos.coords.latitude;
+    const lng = pos.coords.longitude;
+    const userIcon = L.divIcon({
+      className: 'user-location-dot',
+      html: '<div style="width:16px;height:16px;background:#4285f4;border:3px solid #fff;border-radius:50%;box-shadow:0 0 8px rgba(66,133,244,0.5)"></div><div style="width:40px;height:40px;background:rgba(66,133,244,0.15);border-radius:50%;position:absolute;top:-12px;left:-12px"></div>',
+      iconSize: [16, 16],
+      iconAnchor: [8, 8]
+    });
+    L.marker([lat, lng], { icon: userIcon, interactive: false }).addTo(_leafletMap);
+  }, () => {}, { enableHighAccuracy: true, timeout: 5000 });
 }
 
 function confirmMapLocation() {
@@ -1893,6 +1910,26 @@ function buildSettings() {
       + '</div>'
     + '</div>'
 
+    /* ── SCROLL ── */
+    + '<div class="cfg-section-title">Transicion de cards</div>'
+    + '<div class="cfg-card">'
+      + '<div class="cfg-row cfg-row-tap" onclick="setScrollMode(\'apilado\')" style="cursor:pointer">'
+        + '<div class="cfg-row-icon" style="background:#eef3fa"><svg viewBox="0 0 24 24" width="18" height="18" fill="#2e6be6"><path d="M4 18h16v-2H4v2zm0-5h16v-2H4v2zm0-7v2h16V6H4z"/></svg></div>'
+        + '<div class="cfg-row-info"><div class="cfg-row-label">Apilado</div><div class="cfg-row-sub">Los cards se apilan al hacer scroll</div></div>'
+        + '<div style="width:20px;height:20px;border-radius:50%;border:2px solid ' + (cfg.scrollMode === 'apilado' ? 'var(--accent)' : 'var(--border-dk)') + ';background:' + (cfg.scrollMode === 'apilado' ? 'var(--accent)' : 'transparent') + ';display:flex;align-items:center;justify-content:center;flex-shrink:0">'
+          + (cfg.scrollMode === 'apilado' ? '<div style="width:8px;height:8px;border-radius:50%;background:#fff"></div>' : '')
+        + '</div>'
+      + '</div>'
+      + '<div class="cfg-divider"></div>'
+      + '<div class="cfg-row cfg-row-tap" onclick="setScrollMode(\'normal\')" style="cursor:pointer">'
+        + '<div class="cfg-row-icon" style="background:#e8f5e9"><svg viewBox="0 0 24 24" width="18" height="18" fill="#1e7e34"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg></div>'
+        + '<div class="cfg-row-info"><div class="cfg-row-label">Normal</div><div class="cfg-row-sub">Scroll clasico sin apilar</div></div>'
+        + '<div style="width:20px;height:20px;border-radius:50%;border:2px solid ' + (cfg.scrollMode === 'normal' ? 'var(--accent)' : 'var(--border-dk)') + ';background:' + (cfg.scrollMode === 'normal' ? 'var(--accent)' : 'transparent') + ';display:flex;align-items:center;justify-content:center;flex-shrink:0">'
+          + (cfg.scrollMode === 'normal' ? '<div style="width:8px;height:8px;border-radius:50%;background:#fff"></div>' : '')
+        + '</div>'
+      + '</div>'
+    + '</div>'
+
     /* ── SOPORTE ── */
     + '<div class="cfg-section-title">Soporte</div>'
     + '<div class="cfg-card">'
@@ -1955,6 +1992,14 @@ function toggleDonacionQR() {
 function copiarYape() {
   const numero = document.getElementById('yapeNumero').textContent;
   navigator.clipboard.writeText(numero).then(() => toast('Número copiado'));
+}
+
+async function setScrollMode(mode) {
+  cfg.scrollMode = mode;
+  await saveCfg();
+  buildSettings();
+  renderList();
+  toast(mode === 'apilado' ? 'Cards apilados' : 'Scroll normal');
 }
 
 async function toggleNotif(el)  { cfg.activo=!cfg.activo; el.classList.toggle('on'); await saveCfg(); await schedAll(); toast(cfg.activo?t('notif_on'):'Notificaciones desactivadas'); }
@@ -3352,26 +3397,35 @@ function applyStackEffect() {
   if (!list) return;
   const cardEls = list.querySelectorAll('.card');
   if (!cardEls.length) return;
-  const cardHeight = cardEls[0]?.offsetHeight || 120;
-  cardEls.forEach((card, i) => {
-    card.style.position = 'sticky';
-    card.style.top = '8px';
-    card.style.zIndex = i + 11;
-  });
-  const fab = document.getElementById('fabBtn');
-  if (fab) fab.style.zIndex = '999';
-  // Spacer
-  const old = list.querySelector('.stack-spacer');
-  if (old) old.remove();
 
-  if (cardEls.length > 1) {
-    const spacer = document.createElement('div');
-    spacer.className = 'stack-spacer';
-    spacer.style.height = (cardHeight * (cardEls.length - 1)) + 'px';
-    spacer.style.flexShrink = '0';
-    list.appendChild(spacer);
+  // Limpiar spacer viejo
+  const oldSp = list.querySelector('.stack-spacer');
+  if (oldSp) oldSp.remove();
+
+  if (cfg.scrollMode === 'apilado') {
+    const cardHeight = cardEls[0]?.offsetHeight || 120;
+    cardEls.forEach((card, i) => {
+      card.style.position = 'sticky';
+      card.style.top = '8px';
+      card.style.zIndex = i + 11;
+    });
+    if (cardEls.length > 1) {
+      const spacer = document.createElement('div');
+      spacer.className = 'stack-spacer';
+      spacer.style.height = (cardHeight * (cardEls.length - 1)) + 'px';
+      spacer.style.flexShrink = '0';
+      list.appendChild(spacer);
+    }
+  } else {
+    cardEls.forEach(card => {
+      card.style.position = '';
+      card.style.top = '';
+      card.style.zIndex = '';
+    });
   }
 
+  const fab = document.getElementById('fabBtn');
+  if (fab) fab.style.zIndex = '999';
 }
 
 /* ================================================================
@@ -3404,6 +3458,7 @@ async function init() {
   updateStats();
   renderList();
   schedInformeNotif();
+  updateUserPosition();
   
   const splash = document.getElementById('splashLoader');
   if (splash) { splash.style.transition = 'opacity .3s'; splash.style.opacity = '0'; setTimeout(() => splash.remove(), 300); }
