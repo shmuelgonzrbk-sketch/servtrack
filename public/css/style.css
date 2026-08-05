@@ -1453,3 +1453,14 @@ html, body {
 @keyframes spin-sm {
   to { transform: rotate(360deg); }
 }
+
+/* Spinner login */
+.login-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(26,43,64,0.15);
+  border-top-color: var(--navy);
+  border-radius: 50%;
+  animation: spin-sm 0.7s linear infinite;
+  margin: 0 auto;
+}

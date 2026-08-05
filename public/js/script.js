@@ -3594,6 +3594,45 @@ function updateDrawerUser() {
   }
 }
 
+function mostrarBienvenida() {
+  const user = getUser();
+  if (!user) return;
+  const nombre = user.nombre.split(' ')[0];
+  document.getElementById('det-title').textContent = 'Bienvenido';
+  document.getElementById('detBody').innerHTML =
+    '<div style="text-align:center;padding:20px 0">'
+      + (user.picture
+        ? '<img src="' + user.picture + '" style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:3px solid var(--navy);margin-bottom:16px">'
+        : '<div style="width:72px;height:72px;border-radius:50%;background:var(--navy);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-weight:700;color:#fff;font-size:28px">' + nombre.charAt(0).toUpperCase() + '</div>')
+      + '<div style="font-size:22px;font-weight:700;color:var(--tx);margin-bottom:6px">Bienvenido, ' + nombre + '!</div>'
+      + '<div style="font-size:14px;color:var(--tx3);line-height:1.6;margin-bottom:24px">Gracias por unirte a AssendApp. Aqui podras organizar tus revisitas, asignaciones e informes de manera sencilla.</div>'
+    + '</div>'
+    + '<div class="fgroup"><label style="font-size:14px;font-weight:600">De que congregacion eres?</label>'
+      + '<input id="bienvenidaCongregacion" type="text" placeholder="Ej: Huamachuco Central" style="text-transform:uppercase" oninput="this.value=this.value.toUpperCase()"/>'
+    + '</div>'
+    + '<button class="btn-save" onclick="guardarBienvenida()">Comenzar</button>';
+  document.getElementById('detBg').classList.add('open');
+}
+
+async function guardarBienvenida() {
+  const congregacion = document.getElementById('bienvenidaCongregacion').value.trim();
+  if (congregacion) {
+    try {
+      const token = getToken();
+      await fetch(API_URL + '/auth/perfil', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ congregacion })
+      });
+      const user = getUser();
+      if (user) { user.congregacion = congregacion; saveSession(token, user); }
+    } catch(e) {}
+  }
+  localStorage.setItem('st_welcomed', '1');
+  closeDet();
+  updateDrawerUser();
+}
+
 async function init() {
   loadTheme();
   await loadCfg();
@@ -3622,6 +3661,7 @@ async function init() {
   schedInformeNotif();
   updateUserPosition();
   updateDrawerUser();
+  if (!localStorage.getItem('st_welcomed')) { setTimeout(() => mostrarBienvenida(), 800); }
   
   const splash = document.getElementById('splashLoader');
   if (splash) { splash.style.transition = 'opacity .3s'; splash.style.opacity = '0'; setTimeout(() => splash.remove(), 300); }
