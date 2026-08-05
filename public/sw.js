@@ -4,16 +4,40 @@
    Compatible con WebSWAdapter.js
    ================================================================ */
 
-const SW_VERSION = 'v2';
+const SW_VERSION = 'v3';
+const CACHE_NAME = 'assendapp-v3';
+const APP_SHELL = [
+  '/',
+  '/index.html',
+  '/css/style.css',
+  '/js/script.min.js',
+  '/js/api.js',
+  '/js/auth.js',
+  '/js/offline.js',
+  '/js/push.min.js',
+  '/js/Notificationmanager.min.js',
+  '/js/Webswadapter.min.js',
+  '/img/logoapp.png',
+  '/img/logotipo.png',
+  '/img/tesoros.png',
+  '/img/maestros.png',
+  '/img/cristiana.png',
+];
 
 /* ── INSTALL ── */
-self.addEventListener('install', () => {
+self.addEventListener('install', e => {
+  e.waitUntil(
+    caches.open(CACHE_NAME).then(cache => cache.addAll(APP_SHELL))
+  );
   self.skipWaiting();
 });
 
 /* ── ACTIVATE ── */
 self.addEventListener('activate', e => {
   e.waitUntil((async () => {
+    // Limpiar caches viejos
+    const keys = await caches.keys();
+    await Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)));
     await self.clients.claim();
     // Reprogramar todas las notifs pendientes tras reinicio del SW
     const pending = await getAllNotifs();
@@ -206,6 +230,21 @@ async function _checkPending() {
   }
 }
 
+
+/* ── FETCH — Network first, cache fallback ── */
+self.addEventListener('fetch', e => {
+  if (e.request.method !== 'GET') return;
+  if (e.request.url.includes('/api/')) return; // API calls manejados por offline.js
+  e.respondWith(
+    fetch(e.request).then(res => {
+      if (res.ok) {
+        const clone = res.clone();
+        caches.open(CACHE_NAME).then(c => c.put(e.request, clone));
+      }
+      return res;
+    }).catch(() => caches.match(e.request).then(r => r || caches.match('/')))
+  );
+});
 
 self.addEventListener('push', function(e) {
   const data = e.data ? e.data.json() : { title: 'AssendApp', body: 'Nueva notificación' };
