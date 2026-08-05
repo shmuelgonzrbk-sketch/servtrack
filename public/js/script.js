@@ -2035,7 +2035,7 @@ function editarPerfil() {
       + '<div style="font-size:13px;color:var(--tx3);margin-top:4px">' + (user ? user.email : '') + '</div>'
     + '</div>'
     + '<div class="fgroup"><label>Congregacion</label>'
-      + '<input id="perfilCongregacion" type="text" placeholder="Ej: Huamachuco Central" style="text-transform:uppercase" oninput="this.value=this.value.toUpperCase()" value="' + (user && user.congregacion ? user.congregacion : '') + '"/>'
+      + '<input id="perfilCongregacion" type="text" placeholder="Ej: Huamachuco Central" style="text-transform:uppercase"  value="' + (user && user.congregacion ? user.congregacion : '') + '"/>'
     + '</div>'
     + '<button class="btn-save" onclick="guardarPerfil()">Guardar</button>'
     + '<button class="btn-cancel" onclick="closeDet()">Cerrar</button>';
@@ -3598,20 +3598,37 @@ function mostrarBienvenida() {
   const user = getUser();
   if (!user) return;
   const nombre = user.nombre.split(' ')[0];
-  document.getElementById('det-title').textContent = 'Bienvenido';
+  document.getElementById('det-title').textContent = '';
   document.getElementById('detBody').innerHTML =
-    '<div style="text-align:center;padding:20px 0">'
-      + (user.picture
-        ? '<img src="' + user.picture + '" style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:3px solid var(--navy);margin-bottom:16px">'
-        : '<div style="width:72px;height:72px;border-radius:50%;background:var(--navy);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-weight:700;color:#fff;font-size:28px">' + nombre.charAt(0).toUpperCase() + '</div>')
-      + '<div style="font-size:22px;font-weight:700;color:var(--tx);margin-bottom:6px">Bienvenido, ' + nombre + '!</div>'
-      + '<div style="font-size:14px;color:var(--tx3);line-height:1.6;margin-bottom:24px">Gracias por unirte a AssendApp. Aqui podras organizar tus revisitas, asignaciones e informes de manera sencilla.</div>'
+    '<div style="display:flex;flex-direction:column;align-items:center;padding:32px 24px 24px;text-align:center">'
+      + '<img src="img/logoapp.png" style="width:64px;height:64px;margin-bottom:20px;border-radius:16px;box-shadow:0 4px 20px rgba(26,43,64,0.15)">'
+      + '<div style="font-size:24px;font-weight:800;color:var(--navy);margin-bottom:4px">Hola, ' + nombre + '!</div>'
+      + '<div style="font-size:20px;font-weight:600;color:var(--tx);margin-bottom:16px">Bienvenido a AssendApp</div>'
+      + '<div style="font-size:14px;color:var(--tx3);line-height:1.7;max-width:300px">'
+        + 'Nos alegra mucho que estes aqui. AssendApp fue creada pensando en ti, para que puedas llevar un registro ordenado de tus revisitas, controlar tus horas y asignaciones, y enviar tus informes sin complicaciones. Todo en un solo lugar.'
+      + '</div>'
+      + '<div style="display:flex;gap:12px;margin:24px 0;justify-content:center">'
+        + '<div style="text-align:center;padding:14px 12px;background:var(--navy-light,#f0f4f8);border-radius:12px;min-width:80px">'
+          + '<div style="width:28px;height:28px;border-radius:8px;background:var(--navy);margin:0 auto 6px;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" width="16" height="16" fill="#fff"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg></div>'
+          + '<div style="font-size:11px;font-weight:600;color:var(--navy)">Revisitas</div>'
+        + '</div>'
+        + '<div style="text-align:center;padding:14px 12px;background:var(--navy-light,#f0f4f8);border-radius:12px;min-width:80px">'
+          + '<div style="width:28px;height:28px;border-radius:8px;background:var(--navy);margin:0 auto 6px;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" width="16" height="16" fill="#fff"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z"/></svg></div>'
+          + '<div style="font-size:11px;font-weight:600;color:var(--navy)">Horas</div>'
+        + '</div>'
+        + '<div style="text-align:center;padding:14px 12px;background:var(--navy-light,#f0f4f8);border-radius:12px;min-width:80px">'
+          + '<div style="width:28px;height:28px;border-radius:8px;background:var(--navy);margin:0 auto 6px;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" width="16" height="16" fill="#fff"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg></div>'
+          + '<div style="font-size:11px;font-weight:600;color:var(--navy)">Informes</div>'
+        + '</div>'
+      + '</div>'
     + '</div>'
-    + '<div class="fgroup"><label style="font-size:14px;font-weight:600">De que congregacion eres?</label>'
-      + '<input id="bienvenidaCongregacion" type="text" placeholder="Ej: Huamachuco Central" style="text-transform:uppercase" oninput="this.value=this.value.toUpperCase()"/>'
-    + '</div>'
-    + '<button class="btn-save" onclick="guardarBienvenida()">Comenzar</button>';
+    + '<div style="padding:0 24px 24px">'
+      + '<div style="font-size:14px;font-weight:700;color:var(--tx);margin-bottom:8px">Cuentanos, de que congregacion eres?</div>'
+      + '<input id="bienvenidaCongregacion" type="text" placeholder="Ej: Huamachuco Central" style="text-transform:uppercase;width:100%;padding:14px 16px;border:1.5px solid var(--border);border-radius:14px;font-size:14px;font-family:inherit;background:var(--input-bg);color:var(--tx);outline:none;box-sizing:border-box" />'
+      + '<button class="btn-save" style="margin-top:16px;border-radius:14px;padding:16px;font-size:15px" onclick="guardarBienvenida()">Comenzar</button>'
+    + '</div>';
   document.getElementById('detBg').classList.add('open');
+  const fab = document.getElementById('fabBtn'); if (fab) fab.style.display = 'none';
 }
 
 async function guardarBienvenida() {
@@ -3631,6 +3648,7 @@ async function guardarBienvenida() {
   localStorage.setItem('st_welcomed', '1');
   closeDet();
   updateDrawerUser();
+  const fab = document.getElementById('fabBtn'); if (fab) fab.style.display = '';
 }
 
 async function init() {
