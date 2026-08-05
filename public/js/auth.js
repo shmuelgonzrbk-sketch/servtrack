@@ -138,8 +138,8 @@ function showAuthScreen() {
         <div class="auth-logo-sub">Organiza tu ministerio, sin complicaciones</div>
       </div>
       <div class="auth-card">
-        <div class="auth-card-title">Inicia sesión para continuar</div>
-        <div class="auth-card-sub">Accede con tu cuenta de Google para guardar tus revisitas y asignaciones en la nube.</div>
+        <div class="auth-card-title">Bienvenido a AssendApp</div>
+        <div class="auth-card-sub">Organiza tus revisitas, asignaciones e informes en un solo lugar.</div>
 
         <div class="auth-social">
           <div class="auth-social-avatars">
@@ -147,7 +147,7 @@ function showAuthScreen() {
             <span style="background:#1e7e34">M</span>
             <span style="background:#a0660a">J</span>
           </div>
-          <span class="auth-social-text">Ya usado por publicadores de la congregación</span>
+          <span class="auth-social-text">Gratuito y sin limites</span>
         </div>
 
         <div id="g_id_onload"

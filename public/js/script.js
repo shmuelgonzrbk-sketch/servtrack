@@ -904,6 +904,7 @@ function checkUrlImport() {
 let _pendingImport = null;
 function showImportPanel(d) {
   _pendingImport = d;
+  const fab = document.getElementById('fabAdd'); if (fab) fab.style.display = 'none';
   const tipo = d.tipo === 'estudio' ? t('estudio') : t('revisita');
   document.getElementById('det-title').textContent = 'Contacto recibido';
   document.getElementById('detBody').innerHTML =
@@ -937,6 +938,7 @@ async function confirmImport() {
     updateStats(); renderList(); toast('✔ ' + _pendingImport.nombre + ' agregado');
   }
   _pendingImport = null; closeDet();
+  const fab = document.getElementById('fabAdd'); if (fab) fab.style.display = '';
 }
 /* ================================================================
    JSON IMPORT / EXPORT
