@@ -3363,6 +3363,10 @@ async function init() {
   }, 4000);
 }
 
+// Guardar parametro de compartir antes del login
+const pendingShare = new URLSearchParams(window.location.search).get('c');
+if (pendingShare) localStorage.setItem('pendingShare', pendingShare);
+
 if (!isLoggedIn()) {
   document.getElementById('splashLoader')?.remove();
   showAuthScreen();
@@ -3371,6 +3375,17 @@ if (!isLoggedIn()) {
     init();
     subscribeToPush();
     refreshUserPicture();
-    checkUrlImport();
+    // Verificar si hay un share pendiente (de antes del login)
+    const saved = localStorage.getItem('pendingShare');
+    if (saved) {
+      localStorage.removeItem('pendingShare');
+      window.history.replaceState({}, '', window.location.pathname);
+      try {
+        const d = JSON.parse(decodeURIComponent(escape(atob(saved))));
+        if (d.nombre) showImportPanel(d);
+      } catch(e) {}
+    } else {
+      checkUrlImport();
+    }
   });
 }
