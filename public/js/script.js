@@ -1287,32 +1287,42 @@ async function saveCard() {
     proxima_visita_hora: document.getElementById('fHora').value || null,
   };
 
-  if (eid) {
-    await apiUpdatePersona(eid, d);
-  } else {
-    await apiCreatePersona(d);
-  }
+  // Mostrar loading
+  const saveBtn = document.getElementById('saveBtn');
+  const btnText = saveBtn ? saveBtn.textContent : '';
+  if (saveBtn) { saveBtn.disabled = true; saveBtn.innerHTML = '<span class="spinner-sm"></span> Guardando...'; }
 
-  const personasData = await apiGetPersonas();
-  if (Array.isArray(personasData)) {
-    cards = personasData.map(p => ({
-      id: p.id,
-      nombre: p.nombre,
-      dir: p.direccion,
-      lat: p.gps_lat,
-      lng: p.gps_lng,
-      tel: p.telefono,
-      tipo: p.tipo,
-      estado: p.estado,
-      notas: p.notas,
-      fecha: p.proxima_visita ? p.proxima_visita.split('T')[0] : '',
-      hora:  p.proxima_visita_hora ? p.proxima_visita_hora.substring(0,5) : '',
-      historial: []
-    }));
-  }
+  try {
+    if (eid) {
+      await apiUpdatePersona(eid, d);
+    } else {
+      await apiCreatePersona(d);
+    }
 
-  closeForm(); updateStats(); renderList();
-  toast(eid ? t('guardado') : t('agregado'));
+    const personasData = await apiGetPersonas();
+    if (Array.isArray(personasData)) {
+      cards = personasData.map(p => ({
+        id: p.id,
+        nombre: p.nombre,
+        dir: p.direccion,
+        lat: p.gps_lat,
+        lng: p.gps_lng,
+        tel: p.telefono,
+        tipo: p.tipo,
+        estado: p.estado,
+        notas: p.notas,
+        fecha: p.proxima_visita ? p.proxima_visita.split('T')[0] : '',
+        hora:  p.proxima_visita_hora ? p.proxima_visita_hora.substring(0,5) : '',
+        historial: []
+      }));
+    }
+
+    closeForm(); updateStats(); renderList();
+    toast(eid ? t('guardado') : t('agregado'));
+  } catch(e) {
+    toast('Error al guardar. Intenta de nuevo.');
+    if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = btnText; }
+  }
 }
 /* ================================================================
    PRECURSORADO
