@@ -1415,8 +1415,7 @@ function buildPrec() {
         + '</div>'
         + '<button class="btn-outline" onclick="resetH()" style="margin-top:8px">Nuevo mes →</button>'
       : '')
-    + '<div class="sec-lbl" style="margin-top:24px">Meses anteriores</div>'
-    + '<div id="historialHoras"></div>'
+
 
     if (!window._precLoaded) {
       setTimeout(() => animateNumber('precCounter', 0, prec.horas), 100);
@@ -1881,12 +1880,12 @@ function buildSettings() {
     /* ── NOTIFICACIONES ── */
     + '<div class="cfg-section-title">Notificaciones</div>'
     + '<div class="cfg-card">'
-      + '<div class="cfg-row"><div class="cfg-row-icon" style="background:#eef3fa"><svg viewBox="0 0 24 24" width="18" height="18" fill="#2e6be6"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg></div><div class="cfg-row-info"><div class="cfg-row-label">Notificame</div><div class="cfg-row-sub">Recibe avisos de tus visitas</div></div><div class="tog' + (c.activo?' on':'') + '" onclick="toggleNotif(this)"></div></div>'
-      + '<div class="cfg-divider"></div>'
-      + '<div class="cfg-row"><div class="cfg-row-icon" style="background:#f3e5f5"><svg viewBox="0 0 24 24" width="18" height="18" fill="#7b1fa2"><path d="M0 15h2V9H0v6zm3 2h2V7H3v10zm19-8v6h2V9h-2zm-3 8h2V7h-2v10zM16.5 3h-9C6.67 3 6 3.67 6 4.5v15c0 .83.67 1.5 1.5 1.5h9c.83 0 1.5-.67 1.5-1.5v-15c0-.83-.67-1.5-1.5-1.5zM16 19H8V5h8v14z"/></svg></div><div class="cfg-row-info"><div class="cfg-row-label">Vibrar</div><div class="cfg-row-sub">Vibración al recibir aviso</div></div><div class="tog' + (c.vibrar?' on':'') + '" onclick="toggleVibrar(this)"></div></div>'
-      + '<div class="cfg-divider"></div>'
-      + '<div class="cfg-row"><div class="cfg-row-icon" style="background:#e8f5e9"><svg viewBox="0 0 24 24" width="18" height="18" fill="#1e7e34"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg></div><div class="cfg-row-info"><div class="cfg-row-label">Sonido</div><div class="cfg-row-sub">Sonido al recibir aviso</div></div><div class="tog' + (c.sonido?' on':'') + '" onclick="toggleSonido(this)"></div></div>'
+      + '<div class="cfg-row cfg-row-tap" onclick="abrirAjustesNotificaciones()">'
+        + '<div class="cfg-row-icon" style="background:#eef3fa"><svg viewBox="0 0 24 24" width="18" height="18" fill="#2e6be6"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg></div>'
+        + '<div class="cfg-row-info"><div class="cfg-row-label">Notificaciones</div><div class="cfg-row-sub">' + ("Notification" in window && Notification.permission === "granted" ? "Activadas" : "Toca para configurar") + '</div></div>'
+        + '<svg class="cfg-chev" viewBox="0 0 24 24" width="18" height="18"><path d="M9 18l6-6-6-6v12z"/></svg>'
       + '</div>'
+    + '</div>'
 
     /* ── PERSONALIZACIÓN ── */
     + '<div class="cfg-section-title">Personalización</div>'
@@ -1913,20 +1912,17 @@ function buildSettings() {
     /* ── SCROLL ── */
     + '<div class="cfg-section-title">Transicion de cards</div>'
     + '<div class="cfg-card">'
-      + '<div class="cfg-row cfg-row-tap" onclick="setScrollMode(\'apilado\')" style="cursor:pointer">'
-        + '<div class="cfg-row-icon" style="background:#eef3fa"><svg viewBox="0 0 24 24" width="18" height="18" fill="#2e6be6"><path d="M4 18h16v-2H4v2zm0-5h16v-2H4v2zm0-7v2h16V6H4z"/></svg></div>'
-        + '<div class="cfg-row-info"><div class="cfg-row-label">Apilado</div><div class="cfg-row-sub">Los cards se apilan al hacer scroll</div></div>'
-        + '<div style="width:20px;height:20px;border-radius:50%;border:2px solid ' + (cfg.scrollMode === 'apilado' ? 'var(--accent)' : 'var(--border-dk)') + ';background:' + (cfg.scrollMode === 'apilado' ? 'var(--accent)' : 'transparent') + ';display:flex;align-items:center;justify-content:center;flex-shrink:0">'
-          + (cfg.scrollMode === 'apilado' ? '<div style="width:8px;height:8px;border-radius:50%;background:#fff"></div>' : '')
-        + '</div>'
+      + '<div class="cfg-row cfg-row-tap" onclick="toggleScrollOptions()">'
+        + '<div class="cfg-row-icon" style="background:#f3e5f5"><svg viewBox="0 0 24 24" width="18" height="18" fill="#7b1fa2"><path d="M4 18h16v-2H4v2zm0-5h16v-2H4v2zm0-7v2h16V6H4z"/></svg></div>'
+        + '<div class="cfg-row-info"><div class="cfg-row-label">Animacion de scroll</div><div class="cfg-row-sub">' + ({normal:"Normal",apilado:"Apilado",cascada:"Cascada",zoom:"Zoom",fade:"Desvanecimiento"}[cfg.scrollMode] || "Normal") + '</div></div>'
+        + '<svg id="scrollChev" viewBox="0 0 24 24" width="18" height="18" fill="currentColor" style="color:var(--tx3);transition:transform .25s;flex-shrink:0"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg>'
       + '</div>'
-      + '<div class="cfg-divider"></div>'
-      + '<div class="cfg-row cfg-row-tap" onclick="setScrollMode(\'normal\')" style="cursor:pointer">'
-        + '<div class="cfg-row-icon" style="background:#e8f5e9"><svg viewBox="0 0 24 24" width="18" height="18" fill="#1e7e34"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg></div>'
-        + '<div class="cfg-row-info"><div class="cfg-row-label">Normal</div><div class="cfg-row-sub">Scroll clasico sin apilar</div></div>'
-        + '<div style="width:20px;height:20px;border-radius:50%;border:2px solid ' + (cfg.scrollMode === 'normal' ? 'var(--accent)' : 'var(--border-dk)') + ';background:' + (cfg.scrollMode === 'normal' ? 'var(--accent)' : 'transparent') + ';display:flex;align-items:center;justify-content:center;flex-shrink:0">'
-          + (cfg.scrollMode === 'normal' ? '<div style="width:8px;height:8px;border-radius:50%;background:#fff"></div>' : '')
-        + '</div>'
+      + '<div id="scrollOptionsDrawer" style="max-height:0;overflow:hidden;transition:max-height .3s ease">'
+        + scrollModeOption("normal", "Normal", "Scroll clasico, cada card en su lugar")
+        + scrollModeOption("apilado", "Apilado", "Los cards se apilan uno encima de otro al scrollear")
+        + scrollModeOption("cascada", "Cascada", "Cada card entra deslizandose desde la derecha")
+        + scrollModeOption("zoom", "Zoom", "El card del centro se agranda, los demas se achican")
+        + scrollModeOption("fade", "Desvanecimiento", "Los cards aparecen gradualmente al scrollear")
       + '</div>'
     + '</div>'
 
@@ -1992,6 +1988,42 @@ function toggleDonacionQR() {
 function copiarYape() {
   const numero = document.getElementById('yapeNumero').textContent;
   navigator.clipboard.writeText(numero).then(() => toast('Número copiado'));
+}
+
+function scrollModeOption(mode, label, desc) {
+  const sel = cfg.scrollMode === mode;
+  return '<div class="cfg-divider"></div>'
+    + '<div class="cfg-row cfg-row-tap" onclick="setScrollMode(\'' + mode + '\')" style="cursor:pointer;padding:12px 16px">'
+      + '<div style="flex:1">'
+        + '<div style="font-size:14px;font-weight:600;color:var(--tx)">' + label + '</div>'
+        + '<div style="font-size:12px;color:var(--tx3);margin-top:2px">' + desc + '</div>'
+      + '</div>'
+      + '<div style="width:20px;height:20px;border-radius:50%;border:2px solid ' + (sel ? 'var(--accent)' : 'var(--border-dk)') + ';background:' + (sel ? 'var(--accent)' : 'transparent') + ';display:flex;align-items:center;justify-content:center;flex-shrink:0">'
+        + (sel ? '<div style="width:8px;height:8px;border-radius:50%;background:#fff"></div>' : '')
+      + '</div>'
+    + '</div>';
+}
+
+function toggleScrollOptions() {
+  const drawer = document.getElementById("scrollOptionsDrawer");
+  const chev = document.getElementById("scrollChev");
+  if (!drawer) return;
+  const open = drawer.style.maxHeight === "0px" || !drawer.style.maxHeight;
+  drawer.style.maxHeight = open ? "400px" : "0px";
+  if (chev) chev.style.transform = open ? "rotate(180deg)" : "";
+}
+
+function abrirAjustesNotificaciones() {
+  if ("Notification" in window && Notification.permission === "default") {
+    Notification.requestPermission().then(p => {
+      if (p === "granted") { toast("Notificaciones activadas"); buildSettings(); }
+      else { toast("Permiso denegado. Activalas desde ajustes del navegador."); }
+    });
+  } else if ("Notification" in window && Notification.permission === "granted") {
+    toast("Las notificaciones ya estan activadas");
+  } else {
+    toast("Activa las notificaciones desde los ajustes de tu navegador");
+  }
 }
 
 async function setScrollMode(mode) {
@@ -3402,6 +3434,18 @@ function applyStackEffect() {
   const oldSp = list.querySelector('.stack-spacer');
   if (oldSp) oldSp.remove();
 
+  // Limpiar estilos previos
+  cardEls.forEach(card => {
+    card.style.position = '';
+    card.style.top = '';
+    card.style.zIndex = '';
+    card.style.opacity = '';
+    card.style.transform = '';
+    card.style.transition = '';
+    card.style.animation = '';
+    card.classList.remove('card-cascade', 'card-fade-in');
+  });
+
   if (cfg.scrollMode === 'apilado') {
     const cardHeight = cardEls[0]?.offsetHeight || 120;
     cardEls.forEach((card, i) => {
@@ -3416,11 +3460,51 @@ function applyStackEffect() {
       spacer.style.flexShrink = '0';
       list.appendChild(spacer);
     }
-  } else {
+  } else if (cfg.scrollMode === 'cascada') {
+    cardEls.forEach((card, i) => {
+      card.style.opacity = '0';
+      card.style.transform = 'translateX(60px)';
+      card.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+      setTimeout(() => {
+        card.style.opacity = '1';
+        card.style.transform = 'translateX(0)';
+      }, i * 80);
+    });
+  } else if (cfg.scrollMode === 'zoom') {
+    const onScroll = () => {
+      const viewCenter = window.innerHeight / 2;
+      cardEls.forEach(card => {
+        const rect = card.getBoundingClientRect();
+        const cardCenter = rect.top + rect.height / 2;
+        const dist = Math.abs(viewCenter - cardCenter);
+        const maxDist = window.innerHeight / 2;
+        const scale = Math.max(0.92, 1 - (dist / maxDist) * 0.08);
+        const opacity = Math.max(0.6, 1 - (dist / maxDist) * 0.4);
+        card.style.transform = 'scale(' + scale + ')';
+        card.style.opacity = opacity;
+        card.style.transition = 'transform 0.15s ease, opacity 0.15s ease';
+      });
+    };
+    list.removeEventListener('scroll', list._zoomHandler);
+    window.removeEventListener('scroll', list._zoomHandler);
+    list._zoomHandler = onScroll;
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+  } else if (cfg.scrollMode === 'fade') {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.style.opacity = '1';
+          entry.target.style.transform = 'translateY(0)';
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1 });
     cardEls.forEach(card => {
-      card.style.position = '';
-      card.style.top = '';
-      card.style.zIndex = '';
+      card.style.opacity = '0';
+      card.style.transform = 'translateY(20px)';
+      card.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+      observer.observe(card);
     });
   }
 
