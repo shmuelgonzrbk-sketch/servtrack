@@ -905,6 +905,7 @@ let _pendingImport = null;
 function showImportPanel(d) {
   _pendingImport = d;
   const fab = document.getElementById('fabAdd'); if (fab) fab.style.display = 'none';
+  const addBtn = document.querySelector('.fab'); if (addBtn) addBtn.style.display = 'none';
   const tipo = d.tipo === 'estudio' ? t('estudio') : t('revisita');
   document.getElementById('det-title').textContent = 'Contacto recibido';
   document.getElementById('detBody').innerHTML =
@@ -933,12 +934,34 @@ async function confirmImport() {
   const existe = cards.find(c => c.nombre === _pendingImport.nombre && c.dir === _pendingImport.dir);
   if (existe) { toast('Ya está en tu lista'); }
   else {
+    // Guardar en el backend
+    try {
+      const token = localStorage.getItem('st_token');
+      if (token) {
+        const body = {
+          nombre: _pendingImport.nombre,
+          direccion: _pendingImport.dir || '',
+          telefono: _pendingImport.tel || '',
+          tipo: _pendingImport.tipo || 'revisita',
+          estado: _pendingImport.estado || 'pendiente',
+          notas: _pendingImport.notas || '',
+          proxima_visita: _pendingImport.fecha || null,
+          proxima_visita_hora: _pendingImport.hora || null,
+          pub: _pendingImport.pub || null
+        };
+        await fetch(API_BASE + '/api/personas', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+          body: JSON.stringify(body)
+        });
+      }
+    } catch(e) { console.error('Error guardando en BD:', e); }
     const nc = { id:nextId++, historial:[], ..._pendingImport };
     cards.push(nc); await saveCards(); await schedCard(nc);
     updateStats(); renderList(); toast('✔ ' + _pendingImport.nombre + ' agregado');
   }
   _pendingImport = null; closeDet();
-  const fab = document.getElementById('fabAdd'); if (fab) fab.style.display = '';
+  document.querySelectorAll('.fab, #fabAdd').forEach(f => f.style.display = '');
 }
 /* ================================================================
    JSON IMPORT / EXPORT
@@ -2988,7 +3011,13 @@ function ajustarChatPorTeclado() {
       panel.style.right = '0';
       panel.style.height = '';
       panel.style.transform = '';
-      if (inputRow) inputRow.style.paddingBottom = '12px';
+      if (inputRow) {
+        inputRow.style.position = 'fixed';
+        inputRow.style.bottom = keyboardHeight + 'px';
+        inputRow.style.left = '0';
+        inputRow.style.right = '0';
+        inputRow.style.zIndex = '9999';
+      }
     } else {
       panel.style.position = '';
       panel.style.top = '';
@@ -2997,7 +3026,13 @@ function ajustarChatPorTeclado() {
       panel.style.right = '';
       panel.style.height = '';
       panel.style.transform = '';
-      if (inputRow) inputRow.style.paddingBottom = '';
+      if (inputRow) {
+        inputRow.style.position = '';
+        inputRow.style.bottom = '';
+        inputRow.style.left = '';
+        inputRow.style.right = '';
+        inputRow.style.zIndex = '';
+      }
     }
     const cont = document.getElementById('chatMensajes');
     if (cont) setTimeout(() => { cont.scrollTop = cont.scrollHeight; }, 50);
