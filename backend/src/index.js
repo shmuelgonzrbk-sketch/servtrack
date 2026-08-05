@@ -61,19 +61,7 @@ app.get('/control/panel/:key/api/usuarios/fotos', adminAuth, async (req, res) =>
   } catch(err) { res.status(500).json({ error: err.message }); }
 });
 
-app.get('/control/panel/:key/api/usuarios', adminAuth, async (req, res) => { 
-  const r = await pool.query(`
-    SELECT u.id, u.nombre, u.email,
-           COUNT(p.id) as personas,
-           u.fecha_registro,
-           u.ultimo_acceso
-    FROM usuarios u
-    LEFT JOIN personas p ON p.usuario_id = u.id
-    GROUP BY u.id
-    ORDER BY u.id DESC
-  `); 
-  res.json(r.rows); 
-});
+// Endpoint de usuarios movido abajo con datos completos
 
 app.get('/control/panel/st26', (req, res) => {
   res.sendFile(path.join(__dirname, '../../public/admin/index.html'));
@@ -146,15 +134,17 @@ app.get('/control/panel/:key/api/usuarios', adminAuth, async (req, res) => {
               COUNT(DISTINCT p.id) as personas_count,
               COALESCE(SUM(rh.horas), 0) as horas_mes,
               COUNT(DISTINCT a.id) as asignaciones_count,
-              ps.id IS NOT NULL as tiene_app
+              ft.id IS NOT NULL as tiene_app,
+              ps.id IS NOT NULL as tiene_web
        FROM usuarios u
        LEFT JOIN personas p ON p.usuario_id = u.id
        LEFT JOIN registros_horas rh ON rh.usuario_id = u.id 
             AND rh.mes = EXTRACT(MONTH FROM NOW()) 
             AND rh.anio = EXTRACT(YEAR FROM NOW())
        LEFT JOIN asignaciones a ON a.usuario_id = u.id AND a.estado != 'Completado'
+       LEFT JOIN fcm_tokens ft ON ft.usuario_id = u.id
        LEFT JOIN push_subscriptions ps ON ps.usuario_id = u.id
-       GROUP BY u.id, ps.id
+       GROUP BY u.id, ps.id, ft.id
        ORDER BY u.id ASC`
     );
 
