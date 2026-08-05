@@ -2979,7 +2979,7 @@ async function reportarProblema() {
     + '<div id="chatMensajes" class="chat-messages"></div>'
 
     + '<div class="chat-input-row" id="chatInputRow">'
-        + '<textarea id="chatInput" placeholder="Escribe tu mensaje..." class="chat-input" rows="1" oninput="autoGrowChat(this)" onkeydown="if(event.key===\'Enter\' && !event.shiftKey){event.preventDefault();enviarMensajeChat();}"></textarea>'
+        + '<textarea id="chatInput" placeholder="Escribe tu mensaje..." class="chat-input" rows="1" oninput="autoGrowChat(this)" onfocus="setTimeout(()=>{this.scrollIntoView({block:&quot;center&quot;});},300)" onkeydown="if(event.key===\'Enter\' && !event.shiftKey){event.preventDefault();enviarMensajeChat();}"></textarea>'
         + '<button onclick="enviarMensajeChat()" class="chat-send-btn">'
         + '<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>'
       + '</button>'
