@@ -1916,15 +1916,13 @@ function buildSettings() {
     + '<div class="cfg-card">'
       + '<div class="cfg-row cfg-row-tap" onclick="toggleScrollOptions()">'
         + '<div class="cfg-row-icon" style="background:#f3e5f5"><svg viewBox="0 0 24 24" width="18" height="18" fill="#7b1fa2"><path d="M4 18h16v-2H4v2zm0-5h16v-2H4v2zm0-7v2h16V6H4z"/></svg></div>'
-        + '<div class="cfg-row-info"><div class="cfg-row-label">Animacion de scroll</div><div class="cfg-row-sub">' + ({normal:"Normal",apilado:"Apilado",cascada:"Cascada",zoom:"Zoom",fade:"Desvanecimiento"}[cfg.scrollMode] || "Normal") + '</div></div>'
+        + '<div class="cfg-row-info"><div class="cfg-row-label">Animacion de scroll</div><div class="cfg-row-sub">' + ({normal:"Normal",apilado:"Apilado"}[cfg.scrollMode] || "Normal") + '</div></div>'
         + '<svg id="scrollChev" viewBox="0 0 24 24" width="18" height="18" fill="currentColor" style="color:var(--tx3);transition:transform .25s;flex-shrink:0"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg>'
       + '</div>'
       + '<div id="scrollOptionsDrawer" style="max-height:0;overflow:hidden;transition:max-height .3s ease">'
         + scrollModeOption("normal", "Normal", "Scroll clasico, cada card en su lugar")
         + scrollModeOption("apilado", "Apilado", "Los cards se apilan uno encima de otro al scrollear")
-        + scrollModeOption("cascada", "Cascada", "Cada card entra deslizandose desde la derecha")
-        + scrollModeOption("zoom", "Zoom", "El card del centro se agranda, los demas se achican")
-        + scrollModeOption("fade", "Desvanecimiento", "Los cards aparecen gradualmente al scrollear")
+
       + '</div>'
     + '</div>'
 
