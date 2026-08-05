@@ -88,7 +88,7 @@ function adminAuth(req, res, next) {
   res.status(403).json({ error: 'Acceso denegado' });
 }
 
-app.get('/control/panel/:key/api/usuarios',     adminAuth, async (req, res) => { const r = await pool.query('SELECT id,nombre,email,congregacion,fecha_registro FROM usuarios ORDER BY id DESC'); res.json(r.rows); });
+// Endpoint simple de usuarios eliminado — usando el completo abajo
 app.get('/control/panel/:key/api/personas',     adminAuth, async (req, res) => { const r = await pool.query('SELECT id,usuario_id,nombre,tipo,estado FROM personas ORDER BY id DESC'); res.json(r.rows); });
 app.get('/control/panel/:key/api/informes',     adminAuth, async (req, res) => { const r = await pool.query('SELECT * FROM informes ORDER BY id DESC'); res.json(r.rows); });
 app.get('/control/panel/:key/api/asignaciones', adminAuth, async (req, res) => { const r = await pool.query('SELECT * FROM asignaciones ORDER BY id DESC'); res.json(r.rows); });
@@ -293,4 +293,3 @@ app.use('/api/notificaciones', notificacionesRoutes);
 app.get('/', (req, res) => res.json({ message: 'AssendApp API ✅' }));
 
 require('./cron');
-app.listen(PORT, () => console.log(`Servidor corriendo en puerto ${PORT}`));
