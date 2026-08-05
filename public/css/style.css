@@ -1149,17 +1149,15 @@ html, body {
 }
 #detBg.chat-fullscreen .panel {
   position: fixed !important;
-  left: 0; right: 0; top: 0;
-  position: fixed !important;
   inset: 0 !important;
   max-width: 100% !important;
-  max-height: 100vh !important;
-  max-height: 100dvh !important;
-  height: 100vh !important;
-  height: 100dvh !important;
   width: 100vw !important;
+  height: 100% !important;
   border-radius: 0 !important;
   margin: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
 }
 #detBg.chat-fullscreen .panel-bar,
 #detBg.chat-fullscreen .panel-hdr {
@@ -1169,8 +1167,9 @@ html, body {
   padding: 0 !important;
   display: flex !important;
   flex-direction: column !important;
-  height: 100% !important;
+  flex: 1 !important;
   overflow: hidden !important;
+  min-height: 0 !important;
 }
 
 @keyframes chatBubbleIn {
@@ -1253,8 +1252,6 @@ html, body {
   background: var(--surface);
   border-top: 1.5px solid var(--border);
   box-shadow: 0 -4px 16px rgba(0,0,0,.06);
-  position: sticky;
-  bottom: 0;
   z-index: 100;
 }
 .chat-input {

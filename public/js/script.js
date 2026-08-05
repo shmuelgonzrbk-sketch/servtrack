@@ -3148,7 +3148,7 @@ async function reportarProblema() {
       + '</div>'
       + '<button class="chat-header-close" onclick="closeDet()">✕</button>'
     + '</div>'
-    + '<div id="chatMensajes" class="chat-messages" style="padding-bottom:70px"></div>'
+    + '<div id="chatMensajes" class="chat-messages"></div>'
 
     + '<div class="chat-input-row" id="chatInputRow">'
         + '<textarea id="chatInput" placeholder="Escribe tu mensaje..." class="chat-input" rows="1" oninput="autoGrowChat(this)" onfocus="setTimeout(()=>{this.scrollIntoView({block:&quot;center&quot;});},300)" onkeydown="if(event.key===\'Enter\' && !event.shiftKey){event.preventDefault();enviarMensajeChat();}"></textarea>'
@@ -3168,54 +3168,46 @@ async function reportarProblema() {
 function ajustarChatPorTeclado() {
   const panel = document.querySelector('#detBg.chat-fullscreen .panel');
   const inputRow = document.getElementById('chatInputRow');
-  if (!panel || !window.visualViewport) return;
+  const mensajes = document.getElementById('chatMensajes');
+  if (!panel) return;
 
-  const vv = window.visualViewport;
+  function ajustar() {
+    if (!window.visualViewport) return;
+    const vv = window.visualViewport;
+    const alturaVisible = vv.height;
+    const offsetTop = vv.offsetTop;
 
-  function onResize() {
-    const teclaAbierta = vv.height < window.innerHeight * 0.75;
-    const keyboardHeight = window.innerHeight - vv.height;
-    if (teclaAbierta) {
-      if (inputRow) {
-        inputRow.style.position = 'fixed';
-        inputRow.style.bottom = keyboardHeight + 'px';
-        inputRow.style.left = '0';
-        inputRow.style.right = '0';
-        inputRow.style.zIndex = '9999';
-        inputRow.style.background = 'var(--surface)';
-        inputRow.style.borderTop = '1.5px solid var(--border)';
-        inputRow.style.boxShadow = '0 -4px 16px rgba(0,0,0,.06)';
-        inputRow.style.padding = '10px 16px';
-      }
-      const cont = document.getElementById('chatMensajes');
-      if (cont) cont.style.paddingBottom = (inputRow ? inputRow.offsetHeight + 10 : 70) + 'px';
-    } else {
-      if (inputRow) {
-        inputRow.style.position = '';
-        inputRow.style.bottom = '';
-        inputRow.style.left = '';
-        inputRow.style.right = '';
-        inputRow.style.zIndex = '';
-        inputRow.style.background = '';
-        inputRow.style.borderTop = '';
-        inputRow.style.boxShadow = '';
-        inputRow.style.padding = '';
-      }
-      const cont = document.getElementById('chatMensajes');
-      if (cont) cont.style.paddingBottom = '70px';
-    }
-    const cont = document.getElementById('chatMensajes');
-    if (cont) setTimeout(() => { cont.scrollTop = cont.scrollHeight; }, 50);
+    // Ajustar el panel al viewport visual (sin teclado)
+    panel.style.height = alturaVisible + 'px';
+    panel.style.top = offsetTop + 'px';
+    panel.style.bottom = 'auto';
+
+    // Scroll al último mensaje
+    if (mensajes) setTimeout(() => { mensajes.scrollTop = mensajes.scrollHeight; }, 50);
   }
 
-  vv.addEventListener('resize', onResize);
-  vv.addEventListener('scroll', onResize);
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', ajustar);
+    window.visualViewport.addEventListener('scroll', ajustar);
+  }
+
+  // También ajustar al enfocar el input
+  const chatInput = document.getElementById('chatInput');
+  if (chatInput) {
+    chatInput.addEventListener('focus', () => { setTimeout(ajustar, 300); });
+    chatInput.addEventListener('blur', () => {
+      if (panel) { panel.style.height = ''; panel.style.top = ''; panel.style.bottom = ''; }
+    });
+  }
 
   const closeBtn = document.querySelector('.chat-header-close');
   if (closeBtn) {
     closeBtn.addEventListener('click', () => {
-      vv.removeEventListener('resize', onResize);
-      vv.removeEventListener('scroll', onResize);
+      if (window.visualViewport) {
+        window.visualViewport.removeEventListener('resize', ajustar);
+        window.visualViewport.removeEventListener('scroll', ajustar);
+      }
+      if (panel) { panel.style.height = ''; panel.style.top = ''; panel.style.bottom = ''; }
     }, { once: true });
   }
 }
