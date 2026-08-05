@@ -264,9 +264,23 @@ const LANG_META = {
 
 function t(key) { return (LANGS[cfg.idioma] || LANGS.es)[key] || key; }
 
+function getSaludo() {
+  const user = getUser();
+  const nombre = user ? user.nombre.split(' ')[0] : '';
+  const h = new Date().getHours();
+  const saludos = {
+    manana: ['Buenos días, ' + nombre, 'Buen día, ' + nombre, 'Hola de nuevo, ' + nombre, 'Que tengas un buen día, ' + nombre + ' :D'],
+    tarde: ['Buenas tardes, ' + nombre, 'Hola de nuevo, ' + nombre, 'Como va tu día, ' + nombre + '?', 'Sigue dando lo mejor de tí, ' + nombre + ' :D', 'Gran trabajo hoy, ' + nombre, 'Tu esfuerzo vale la pena, ' + nombre],
+    noche: ['Buenas noches, ' + nombre, 'Hola de nuevo, ' + nombre, 'Buen descanso, ' + nombre, 'Que tal tu día, ' + nombre + '?', 'Hoy fue un buen día', 'Descansa bien, ' + nombre]
+  };
+  const periodo = h < 12 ? 'manana' : h < 18 ? 'tarde' : 'noche';
+  const opciones = saludos[periodo];
+  return opciones[Math.floor(Math.random() * opciones.length)];
+}
+
 function getViewTitle(v) {
   return {
-    home: t('app_name'), precursorado: t('precursorado'),
+    home: getSaludo(), precursorado: t('precursorado'),
     informe: t('informe_titulo'),asignaciones: 'Asignaciones', history: t('historial'), settings: t('ajustes'),
   }[v] || 'Mi Ministerio';
 }
@@ -2021,7 +2035,7 @@ function editarPerfil() {
       + '<div style="font-size:13px;color:var(--tx3);margin-top:4px">' + (user ? user.email : '') + '</div>'
     + '</div>'
     + '<div class="fgroup"><label>Congregacion</label>'
-      + '<input id="perfilCongregacion" type="text" placeholder="Ej: Huamachuco Central" value="' + (user && user.congregacion ? user.congregacion : '') + '"/>'
+      + '<input id="perfilCongregacion" type="text" placeholder="Ej: Huamachuco Central" style="text-transform:uppercase" oninput="this.value=this.value.toUpperCase()" value="' + (user && user.congregacion ? user.congregacion : '') + '"/>'
     + '</div>'
     + '<button class="btn-save" onclick="guardarPerfil()">Guardar</button>'
     + '<button class="btn-cancel" onclick="closeDet()">Cerrar</button>';
@@ -3134,7 +3148,7 @@ async function reportarProblema() {
       + '</div>'
       + '<button class="chat-header-close" onclick="closeDet()">✕</button>'
     + '</div>'
-    + '<div id="chatMensajes" class="chat-messages"></div>'
+    + '<div id="chatMensajes" class="chat-messages" style="padding-bottom:70px"></div>'
 
     + '<div class="chat-input-row" id="chatInputRow">'
         + '<textarea id="chatInput" placeholder="Escribe tu mensaje..." class="chat-input" rows="1" oninput="autoGrowChat(this)" onfocus="setTimeout(()=>{this.scrollIntoView({block:&quot;center&quot;});},300)" onkeydown="if(event.key===\'Enter\' && !event.shiftKey){event.preventDefault();enviarMensajeChat();}"></textarea>'
@@ -3160,37 +3174,35 @@ function ajustarChatPorTeclado() {
 
   function onResize() {
     const teclaAbierta = vv.height < window.innerHeight * 0.75;
+    const keyboardHeight = window.innerHeight - vv.height;
     if (teclaAbierta) {
-      const keyboardHeight = window.innerHeight - vv.height;
-      panel.style.position = 'fixed';
-      panel.style.top = '0';
-      panel.style.bottom = keyboardHeight + 'px';
-      panel.style.left = '0';
-      panel.style.right = '0';
-      panel.style.height = '';
-      panel.style.transform = '';
       if (inputRow) {
         inputRow.style.position = 'fixed';
         inputRow.style.bottom = keyboardHeight + 'px';
         inputRow.style.left = '0';
         inputRow.style.right = '0';
         inputRow.style.zIndex = '9999';
+        inputRow.style.background = 'var(--surface)';
+        inputRow.style.borderTop = '1.5px solid var(--border)';
+        inputRow.style.boxShadow = '0 -4px 16px rgba(0,0,0,.06)';
+        inputRow.style.padding = '10px 16px';
       }
+      const cont = document.getElementById('chatMensajes');
+      if (cont) cont.style.paddingBottom = (inputRow ? inputRow.offsetHeight + 10 : 70) + 'px';
     } else {
-      panel.style.position = '';
-      panel.style.top = '';
-      panel.style.bottom = '';
-      panel.style.left = '';
-      panel.style.right = '';
-      panel.style.height = '';
-      panel.style.transform = '';
       if (inputRow) {
         inputRow.style.position = '';
         inputRow.style.bottom = '';
         inputRow.style.left = '';
         inputRow.style.right = '';
         inputRow.style.zIndex = '';
+        inputRow.style.background = '';
+        inputRow.style.borderTop = '';
+        inputRow.style.boxShadow = '';
+        inputRow.style.padding = '';
       }
+      const cont = document.getElementById('chatMensajes');
+      if (cont) cont.style.paddingBottom = '70px';
     }
     const cont = document.getElementById('chatMensajes');
     if (cont) setTimeout(() => { cont.scrollTop = cont.scrollHeight; }, 50);
