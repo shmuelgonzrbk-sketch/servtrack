@@ -3371,5 +3371,6 @@ if (!isLoggedIn()) {
     init();
     subscribeToPush();
     refreshUserPicture();
+    checkUrlImport();
   });
 }
