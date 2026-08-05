@@ -1003,6 +1003,32 @@ function exportJSON() {
 /* ================================================================
    STATS + LISTA HOME
 ================================================================ */
+/* ── GPS PROXIMIDAD ── */
+let _userLat = null, _userLng = null;
+
+function haversine(lat1, lon1, lat2, lon2) {
+  const R = 6371000;
+  const toRad = x => x * Math.PI / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+function formatDist(m) {
+  if (m < 1000) return Math.round(m) + 'm';
+  return (m/1000).toFixed(1) + 'km';
+}
+
+function updateUserPosition() {
+  if (!navigator.geolocation) return;
+  navigator.geolocation.getCurrentPosition(
+    pos => { _userLat = pos.coords.latitude; _userLng = pos.coords.longitude; if (tab === 'hoy') renderList(); },
+    () => {},
+    { enableHighAccuracy: true, timeout: 8000 }
+  );
+}
+
 function updateStats() {
   const mes = mesKey();
   const statR = document.getElementById('statR');
@@ -1017,6 +1043,7 @@ function updateStats() {
 
 function setTab(v) {
   tab = v;
+  if (v === 'hoy') updateUserPosition();
   document.querySelectorAll('.tab').forEach(el => el.classList.remove('on'));
   document.getElementById('tab-' + v)?.classList.add('on');
   renderList();
@@ -1038,6 +1065,11 @@ function renderList() {
     if (tab === 'hoy')      return c.fecha === hoy;
     return true;
   }).sort((a, b) => {
+    if (tab === 'hoy' && _userLat && _userLng) {
+      const distA = (a.lat && a.lng) ? haversine(_userLat, _userLng, parseFloat(a.lat), parseFloat(a.lng)) : 999999;
+      const distB = (b.lat && b.lng) ? haversine(_userLat, _userLng, parseFloat(b.lat), parseFloat(b.lng)) : 999999;
+      return distA - distB;
+    }
     if (cfg.orden === 'nombre') return (a.nombre||'').localeCompare(b.nombre||'');
     if (!a.fecha) return 1; if (!b.fecha) return -1;
     return a.fecha.localeCompare(b.fecha) || (a.hora||'').localeCompare(b.hora||'');
@@ -1071,7 +1103,7 @@ function renderList() {
       + '</div>'
       + '<div class="card-row2">'
         + '<span class="card-pub">' + (c.pub ? c.pub.substring(0,32)+(c.pub.length>32?'…':'') : c.tipo==='estudio'?t('estudio'):t('revisita')) + '</span>'
-        + '<span class="card-when">' + dot + wl.tx + '</span>'
+        + '<span class="card-when">' + dot + wl.tx + (tab === 'hoy' && _userLat && _userLng && c.lat && c.lng ? ' · ' + formatDist(haversine(_userLat, _userLng, parseFloat(c.lat), parseFloat(c.lng))) : '') + '</span>'
       + '</div>'
       + '<div class="card-row3">'
         + '<button class="btn-nav" onclick="event.stopPropagation();openNav(\'' + (c.lat||'') + '\',\'' + (c.lng||'') + '\',\'' + (c.dir||'').replace(/'/g,'') + '\')">'
@@ -3361,6 +3393,7 @@ async function init() {
 
   updateStats();
   renderList();
+  schedInformeNotif();
   
   const splash = document.getElementById('splashLoader');
   if (splash) { splash.style.transition = 'opacity .3s'; splash.style.opacity = '0'; setTimeout(() => splash.remove(), 300); }

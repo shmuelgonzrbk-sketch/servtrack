@@ -58,35 +58,30 @@ async function apiLogin(email, password) {
 
 // ── PERSONAS ──
 async function apiGetPersonas() {
-  const res = await fetch(API_URL + '/personas', { headers: headers() });
-  return res.json();
+  return offlineFetch(API_URL + '/personas', { headers: headers() }, 'personas');
 }
 
 async function apiCreatePersona(data) {
-  const res = await fetch(API_URL + '/personas', {
+  return offlineFetch(API_URL + '/personas', {
     method: 'POST', headers: headers(), body: JSON.stringify(data)
-  });
-  return res.json();
+  }, null);
 }
 
 async function apiUpdatePersona(id, data) {
-  const res = await fetch(API_URL + '/personas/' + id, {
+  return offlineFetch(API_URL + '/personas/' + id, {
     method: 'PUT', headers: headers(), body: JSON.stringify(data)
-  });
-  return res.json();
+  }, null);
 }
 
 async function apiDeletePersona(id) {
-  const res = await fetch(API_URL + '/personas/' + id, {
+  return offlineFetch(API_URL + '/personas/' + id, {
     method: 'DELETE', headers: headers()
-  });
-  return res.json();
+  }, null);
 }
 
 // ── PRECURSORADO ──
 async function apiGetPrec() {
-  const res = await fetch(API_URL + '/precursorado', { headers: headers() });
-  return res.json();
+  return offlineFetch(API_URL + '/precursorado', { headers: headers() }, 'precursorado');
 }
 
 async function apiUpdatePrec(tipo, meta_horas) {
@@ -97,10 +92,9 @@ async function apiUpdatePrec(tipo, meta_horas) {
 }
 
 async function apiAddHoras(horas) {
-  const res = await fetch(API_URL + '/precursorado/horas', {
+  return offlineFetch(API_URL + '/precursorado/horas', {
     method: 'POST', headers: headers(), body: JSON.stringify({ horas })
-  });
-  return res.json();
+  }, null);
 }
 
 async function apiResetHoras() {
@@ -112,8 +106,7 @@ async function apiResetHoras() {
 
 // ── ASIGNACIONES ──
 async function apiGetAsignaciones() {
-  const res = await fetch(API_URL + '/asignaciones', { headers: headers() });
-  return res.json();
+  return offlineFetch(API_URL + '/asignaciones', { headers: headers() }, 'asignaciones');
 }
 
 async function apiCreateAsignacion(data) {
@@ -139,8 +132,7 @@ async function apiDeleteAsignacion(id) {
 
 // ── INFORMES ──
 async function apiGetInformes() {
-  const res = await fetch(API_URL + '/informes', { headers: headers() });
-  return res.json();
+  return offlineFetch(API_URL + '/informes', { headers: headers() }, 'informes');
 }
 
 async function apiSaveInforme(data) {
@@ -179,8 +171,7 @@ async function apiDeleteExperiencia(id) {
 
 // ── AJUSTES ──
 async function apiGetAjustes() {
-  const res = await fetch(API_URL + '/ajustes', { headers: headers() });
-  return res.json();
+  return offlineFetch(API_URL + '/ajustes', { headers: headers() }, 'ajustes');
 }
 
 async function apiUpdateAjustes(data) {
@@ -237,6 +228,5 @@ window.addEventListener('load', () => {
 });
 
 async function apiGetHoras() {
-  const res = await fetch(API_URL + '/precursorado/horas', { headers: headers() });
-  return res.json();
+  return offlineFetch(API_URL + '/precursorado/horas', { headers: headers() }, 'horas');
 }
