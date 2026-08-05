@@ -1147,10 +1147,12 @@ html, body {
   padding: 0 !important;
   background: var(--bg) !important;
 }
-#detBg.chat-fullscreen .panel {
+#detBg.chat-fullscreen .panel,
+#detBg.chat-fullscreen #detPanel {
   position: fixed !important;
   inset: 0 !important;
   max-width: 100% !important;
+  max-height: 100% !important;
   width: 100vw !important;
   height: 100% !important;
   border-radius: 0 !important;
@@ -1158,10 +1160,6 @@ html, body {
   display: flex !important;
   flex-direction: column !important;
   overflow: hidden !important;
-}
-#detBg.chat-fullscreen .panel-bar,
-#detBg.chat-fullscreen .panel-hdr {
-  display: none !important;
 }
 #detBg.chat-fullscreen .panel-bar,
 #detBg.chat-fullscreen .panel-hdr {
