@@ -3138,18 +3138,24 @@ let _chatMensajes = [];
 let _chatCategoriaElegida = null;
 
 async function reportarProblema() {
-  document.getElementById('detBg').classList.add('open', 'chat-fullscreen');
-  document.getElementById('detBody').innerHTML =
-    '<div class="chat-header">'
-      + '<img src="img/logotipo.png" alt="AssendApp" class="chat-header-logo">'
-      + '<div class="chat-header-info">'
-        + '<div class="chat-header-title">Asistente Virtual</div>'
-        + '<div class="chat-header-status"><span class="chat-status-dot"></span>AssendApp Soporte</div>'
+  // Overlay independiente - no usa panel
+  var old = document.getElementById('chatOverlay');
+  if (old) old.remove();
+  var ov = document.createElement('div');
+  ov.id = 'chatOverlay';
+  ov.style.cssText = 'position:fixed;top:0;left:0;right:0;height:100dvh;height:100vh;z-index:9999;display:flex;flex-direction:column;background:var(--bg)';
+  ov.innerHTML =
+    '<div style="flex-shrink:0;display:flex;align-items:center;gap:12px;padding:14px 16px;background:var(--navy);color:#fff;box-shadow:0 2px 12px rgba(0,0,0,.12)">'
+      + '<img src="img/logotipo.png" style="width:40px;height:40px;border-radius:12px;background:#fff;object-fit:contain;padding:4px;flex-shrink:0">'
+      + '<div style="flex:1;min-width:0">'
+        + '<div style="font-size:15px;font-weight:700">Asistente Virtual</div>'
+        + '<div style="font-size:11px;color:rgba(255,255,255,.6);display:flex;align-items:center;gap:5px;margin-top:2px"><span style="width:6px;height:6px;border-radius:50%;background:#4caf70;display:inline-block"></span>AssendApp Soporte</div>'
       + '</div>'
-      + '<button class="chat-header-close" onclick="closeDet()">\u2715</button>'
+      + '<button onclick="cerrarChat()" style="width:32px;height:32px;border-radius:50%;border:none;background:rgba(255,255,255,.12);color:#fff;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center">\u2715</button>'
     + '</div>'
-    + '<div style="flex-shrink:0;padding:10px 12px;background:var(--bg);border-bottom:1px solid var(--border)">'
-      + '<div style="background:var(--surface);border:1.5px solid var(--border);border-radius:20px;box-shadow:0 2px 12px rgba(0,0,0,.06);overflow:hidden">'
+    + '<div id="chatMensajes" style="flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:12px;padding:18px 14px;background:var(--bg)"></div>'
+    + '<div style="flex-shrink:0;padding:10px 12px;padding-bottom:max(12px,env(safe-area-inset-bottom,12px));background:var(--bg)">'
+      + '<div style="background:var(--surface);border:1.5px solid var(--border);border-radius:20px;box-shadow:0 2px 16px rgba(0,0,0,.08);overflow:hidden">'
         + '<textarea id="chatInput" placeholder="Escribe tu mensaje..." rows="1" oninput="autoGrowChat(this)" onkeydown="if(event.key===\'Enter\' && !event.shiftKey){event.preventDefault();enviarMensajeChat();}" style="width:100%;padding:12px 16px 6px;border:none;font-size:14px;font-family:inherit;background:transparent;color:var(--tx);outline:none;resize:none;min-height:24px;max-height:80px;line-height:1.5;display:block;box-sizing:border-box"></textarea>'
         + '<div style="display:flex;align-items:center;justify-content:flex-end;padding:2px 8px 8px">'
           + '<button onclick="enviarMensajeChat()" style="width:34px;height:34px;border-radius:50%;border:none;background:var(--navy);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(26,43,64,.25)">'
@@ -3157,11 +3163,25 @@ async function reportarProblema() {
           + '</button>'
         + '</div>'
       + '</div>'
-    + '</div>'
-    + '<div id="chatMensajes" class="chat-messages"></div>';
+    + '</div>';
+  document.body.appendChild(ov);
+  // Ajustar con visualViewport
+  if (window.visualViewport) {
+    var vv = window.visualViewport;
+    var ajustar = function() { ov.style.height = vv.height + 'px'; ov.style.top = vv.offsetTop + 'px'; var m = document.getElementById('chatMensajes'); if (m) setTimeout(function(){ m.scrollTop = m.scrollHeight; }, 50); };
+    vv.addEventListener('resize', ajustar);
+    vv.addEventListener('scroll', ajustar);
+    ov._cleanup = function() { vv.removeEventListener('resize', ajustar); vv.removeEventListener('scroll', ajustar); };
+  }
   updateFabVisibility();
   await cargarChat();
   setTimeout(function() { var inp = document.getElementById('chatInput'); if (inp) inp.focus(); }, 350);
+}
+
+function cerrarChat() {
+  var ov = document.getElementById('chatOverlay');
+  if (ov) { if (ov._cleanup) ov._cleanup(); ov.remove(); }
+  updateFabVisibility();
 }
 
 function ajustarChatPorTeclado() {
