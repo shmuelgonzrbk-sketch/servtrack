@@ -3651,10 +3651,11 @@ async function init() {
 
   updateStats();
   renderList();
-  schedInformeNotif();
+  // schedInformeNotif(); // Deshabilitado temporalmente
   updateUserPosition();
   updateDrawerUser();
-  if (!localStorage.getItem('st_welcomed')) { setTimeout(() => mostrarBienvenida(), 800); }
+  const user = getUser();
+  if (!localStorage.getItem('st_welcomed') && user && !user.congregacion) { setTimeout(() => mostrarBienvenida(), 800); }
   
   const splash = document.getElementById('splashLoader');
   if (splash) { splash.style.transition = 'opacity .3s'; splash.style.opacity = '0'; setTimeout(() => splash.remove(), 300); }
