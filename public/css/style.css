@@ -1150,16 +1150,18 @@ html, body {
 #detBg.chat-fullscreen .panel,
 #detBg.chat-fullscreen #detPanel {
   position: fixed !important;
-  inset: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
   max-width: 100% !important;
   max-height: 100% !important;
   width: 100vw !important;
-  height: 100% !important;
   border-radius: 0 !important;
   margin: 0 !important;
   display: flex !important;
   flex-direction: column !important;
   overflow: hidden !important;
+  top: 0;
+  height: 100dvh;
 }
 #detBg.chat-fullscreen .panel-bar,
 #detBg.chat-fullscreen .panel-hdr {
