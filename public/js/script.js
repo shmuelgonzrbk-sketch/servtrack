@@ -3146,32 +3146,22 @@ async function reportarProblema() {
         + '<div class="chat-header-title">Asistente Virtual</div>'
         + '<div class="chat-header-status"><span class="chat-status-dot"></span>AssendApp Soporte</div>'
       + '</div>'
-      + '<button class="chat-header-close" onclick="closeDet()">✕</button>'
+      + '<button class="chat-header-close" onclick="closeDet()">\u2715</button>'
     + '</div>'
-    + '<div id="chatMensajes" class="chat-messages"></div>'
-
-    + '<div class="chat-input-row" id="chatInputRow">'
-  + '<textarea id="chatInput" placeholder="Escribe un mensaje..." class="chat-input" rows="1" oninput="autoGrowChat(this)" onkeydown="if(event.key===\'Enter\' && !event.shiftKey){event.preventDefault();enviarMensajeChat();}"></textarea>'
-  + '<div class="chat-input-actions">'
-    + '<button class="chat-action-btn" title="Adjuntar">'
-      + '<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>'
-    + '</button>'
-    + '<div class="chat-input-spacer"></div>'
-    + '<button class="chat-action-btn" title="Mensaje de voz">'
-      + '<svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5-3c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>'
-    + '</button>'
-    + '<button onclick="enviarMensajeChat()" class="chat-send-btn">'
-      + '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M4 12l1.41 1.41L11 7.83V20h2V7.83l5.59 5.58L20 12l-8-8-8 8z"/></svg>'
-    + '</button>'
-  + '</div>'
-+ '</div>';
+    + '<div style="flex-shrink:0;padding:10px 12px;background:var(--bg);border-bottom:1px solid var(--border)">'
+      + '<div style="background:var(--surface);border:1.5px solid var(--border);border-radius:20px;box-shadow:0 2px 12px rgba(0,0,0,.06);overflow:hidden">'
+        + '<textarea id="chatInput" placeholder="Escribe tu mensaje..." rows="1" oninput="autoGrowChat(this)" onkeydown="if(event.key===\'Enter\' && !event.shiftKey){event.preventDefault();enviarMensajeChat();}" style="width:100%;padding:12px 16px 6px;border:none;font-size:14px;font-family:inherit;background:transparent;color:var(--tx);outline:none;resize:none;min-height:24px;max-height:80px;line-height:1.5;display:block;box-sizing:border-box"></textarea>'
+        + '<div style="display:flex;align-items:center;justify-content:flex-end;padding:2px 8px 8px">'
+          + '<button onclick="enviarMensajeChat()" style="width:34px;height:34px;border-radius:50%;border:none;background:var(--navy);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(26,43,64,.25)">'
+            + '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M4 12l1.41 1.41L11 7.83V20h2V7.83l5.59 5.58L20 12l-8-8-8 8z"/></svg>'
+          + '</button>'
+        + '</div>'
+      + '</div>'
+    + '</div>'
+    + '<div id="chatMensajes" class="chat-messages"></div>';
   updateFabVisibility();
   await cargarChat();
-  setTimeout(() => {
-    const input = document.getElementById('chatInput');
-    if (input) input.focus();
-  }, 350);
-  ajustarChatPorTeclado();
+  setTimeout(function() { var inp = document.getElementById('chatInput'); if (inp) inp.focus(); }, 350);
 }
 
 function ajustarChatPorTeclado() {
