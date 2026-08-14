@@ -53,6 +53,14 @@ router.post('/horas', auth, async (req, res) => {
        RETURNING horas`,
       [req.userId, horas, mes, anio]
     );
+
+    // Registro diario (nuevo) — una fila por cada vez que se registran horas, con hora exacta
+    await pool.query(
+      `INSERT INTO registros_horas_dia (usuario_id, horas, registrado_en)
+       VALUES ($1, $2, NOW())`,
+      [req.userId, horas]
+    );
+
     const total = await pool.query(
       `SELECT COALESCE(horas, 0) as total FROM registros_horas
        WHERE usuario_id=$1 AND mes=$2 AND anio=$3`,
@@ -64,6 +72,24 @@ router.post('/horas', auth, async (req, res) => {
   }
 });
 
+
+router.get('/horas/diario', auth, async (req, res) => {
+  const mes = parseInt(req.query.mes) || (new Date().getMonth() + 1);
+  const anio = parseInt(req.query.anio) || new Date().getFullYear();
+  try {
+    const result = await pool.query(
+      `SELECT DATE(registrado_en) as fecha, SUM(horas) as horas
+       FROM registros_horas_dia
+       WHERE usuario_id = $1 AND EXTRACT(MONTH FROM registrado_en) = $2 AND EXTRACT(YEAR FROM registrado_en) = $3
+       GROUP BY DATE(registrado_en)
+       ORDER BY fecha ASC`,
+      [req.userId, mes, anio]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 router.get('/horas', auth, async (req, res) => {
   try {
@@ -84,6 +110,10 @@ router.delete('/horas', auth, async (req, res) => {
   try {
     await pool.query(
       'DELETE FROM registros_horas WHERE usuario_id=$1 AND mes=$2 AND anio=$3',
+      [req.userId, mes, anio]
+    );
+    await pool.query(
+      `DELETE FROM registros_horas_dia WHERE usuario_id=$1 AND EXTRACT(MONTH FROM registrado_en)=$2 AND EXTRACT(YEAR FROM registrado_en)=$3`,
       [req.userId, mes, anio]
     );
     res.json({ message: 'Horas reiniciadas' });

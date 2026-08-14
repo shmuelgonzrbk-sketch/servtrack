@@ -1,0 +1,1232 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AssendApp — Organiza tu ministerio</title>
+  <meta name="description" content="Organiza tus revisitas, asignaciones e informes en un solo lugar. Disponible en web y Android. Gratuito y sin limites.">
+  <meta property="og:title" content="AssendApp — Organiza tu ministerio">
+  <meta property="og:description" content="Organiza tus revisitas, asignaciones e informes en un solo lugar.">
+  <meta property="og:url" content="https://assendapp.com/info">
+  <meta property="og:image" content="https://assendapp.com/img/logoapp.png">
+  <link rel="icon" href="/img/logotipo.png">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Inter', -apple-system, system-ui, sans-serif; color: #1a1a2e; background: #fff; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+    img { max-width: 100%; height: auto; display: block; }
+    .container { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+
+    /* ═══ NAV ═══ */
+    .nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 999;
+      background: rgba(255,255,255,.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(0,0,0,.06);
+      padding: 0 24px;
+      transition: box-shadow .3s;
+    }
+    .nav.scrolled { box-shadow: 0 2px 20px rgba(0,0,0,.08); }
+    .nav-inner {
+      max-width: 1080px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between;
+      height: 56px;
+    }
+    .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .nav-logo img { width: 32px; height: 32px; border-radius: 8px; }
+    .nav-logo span { font-size: 16px; font-weight: 800; color: #1a2b40; letter-spacing: -.3px; }
+    .nav-links { display: flex; align-items: center; gap: 24px; }
+    .nav-links a { font-size: 13px; font-weight: 600; color: #5c5a52; text-decoration: none; transition: color .15s; }
+    .nav-links a:hover { color: #1a2b40; }
+    .nav-cta {
+      padding: 10px 24px; background: #1a2b40; color: #ffffff !important; border-radius: 10px;
+      font-size: 13px; font-weight: 700; text-decoration: none;
+      transition: transform .15s, box-shadow .15s;
+      box-shadow: 0 2px 8px rgba(26,43,64,.3);
+    }
+    .nav-cta:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(26,43,64,.4); }
+    
+    /* Dropdown */
+    .nav-dropdown { position: relative; }
+    .nav-drop-trigger {
+      font-size: 13px; font-weight: 600; color: #5c5a52; text-decoration: none;
+      display: flex; align-items: center; gap: 4px; cursor: pointer;
+      transition: color .15s; padding: 4px 0;
+    }
+    .nav-drop-trigger:hover { color: #1a2b40; }
+    .nav-drop-trigger svg { transition: transform .2s; }
+    .nav-dropdown:hover .nav-drop-trigger svg { transform: rotate(180deg); }
+    .nav-drop-menu {
+      position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
+      background: #fff; border: 1px solid rgba(0,0,0,.08);
+      border-radius: 12px; padding: 6px;
+      min-width: 190px;
+      box-shadow: 0 8px 32px rgba(0,0,0,.1), 0 2px 8px rgba(0,0,0,.04);
+      opacity: 0; visibility: hidden;
+      transform: translateX(-50%) translateY(8px);
+      transition: opacity .2s, visibility .2s, transform .2s;
+      z-index: 1000;
+    }
+    .nav-dropdown:hover .nav-drop-menu {
+      opacity: 1; visibility: visible;
+      transform: translateX(-50%) translateY(4px);
+    }
+    .nav-drop-menu a {
+      display: block; padding: 10px 14px; font-size: 13px; font-weight: 500;
+      color: #5c5a52; text-decoration: none; border-radius: 8px;
+      transition: background .12s, color .12s;
+    }
+    .nav-drop-menu a:hover { background: #f4f3f0; color: #1a2b40; }
+
+    /* ═══ HERO ═══ */
+    .hero {
+      padding: 120px 24px 80px;
+      background: linear-gradient(160deg, #f8f9ff 0%, #eef3fa 40%, #e8eff7 100%);
+      overflow: hidden;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+    .hero-inner {
+      max-width: 1080px; margin: 0 auto;
+      display: flex; align-items: center; gap: 48px;
+      will-change: opacity, transform;
+    }
+    .hero-text { flex: 1; }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 14px; background: #e8f5e9; color: #1e7e34;
+      border-radius: 99px; font-size: 11px; font-weight: 700;
+      margin-bottom: 20px;
+    }
+    .hero h1 {
+      font-size: 52px; font-weight: 900; color: #1a2b40;
+      line-height: 1.1; letter-spacing: -1px; margin-bottom: 16px;
+    }
+    .hero h1 span { color: #2e6be6; }
+    .hero-desc {
+      font-size: 18px; color: #5c5a52; line-height: 1.7;
+      max-width: 460px; margin-bottom: 32px;
+    }
+    .hero-buttons { display: flex; gap: 12px; flex-wrap: wrap; }
+    .btn-main {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 14px 28px; background: #1a2b40; color: #fff;
+      border-radius: 14px; font-size: 15px; font-weight: 700;
+      text-decoration: none; box-shadow: 0 4px 16px rgba(26,43,64,.2);
+      transition: transform .15s, box-shadow .15s;
+    }
+    .btn-main:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(26,43,64,.3); }
+    .btn-outline {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 14px 28px; background: #fff; color: #1a2b40;
+      border: 1.5px solid #d4d2cd; border-radius: 14px;
+      font-size: 15px; font-weight: 600; text-decoration: none;
+      transition: border-color .15s, background .15s;
+    }
+    .btn-outline:hover { border-color: #1a2b40; background: #f8f7f5; }
+
+    /* Phone mockup */
+    .hero-phone {
+      flex-shrink: 0; width: 340px; position: relative;
+    }
+    .phone-frame {
+      background: #1a1a2e;
+      border-radius: 36px;
+      padding: 12px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.18), 0 4px 16px rgba(0,0,0,.1);
+      position: relative;
+    }
+    .phone-notch {
+      width: 100px; height: 24px;
+      background: #1a1a2e;
+      border-radius: 0 0 16px 16px;
+      position: absolute; top: 0; left: 50%;
+      transform: translateX(-50%);
+      z-index: 2;
+    }
+    .phone-screen {
+      border-radius: 24px;
+      overflow: hidden;
+      background: #f4f3f0;
+    }
+    .phone-screen img {
+      width: 100%;
+      display: block;
+    }
+
+    /* ═══ STATS BAR ═══ */
+    .stats-bar {
+      background: #1a2b40;
+      padding: 28px 24px;
+      position: relative;
+      z-index: 2;
+    }
+    .stats-inner {
+      max-width: 1080px; margin: 0 auto;
+      display: flex; justify-content: center; gap: 48px; flex-wrap: wrap;
+    }
+    .stat { text-align: center; }
+    .stat-num { font-size: 28px; font-weight: 900; color: #fff; }
+    .stat-label { font-size: 11px; color: rgba(255,255,255,.5); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; margin-top: 4px; }
+
+    /* ═══ SECTION BASE ═══ */
+    .section { padding: 72px 24px; position: relative; z-index: 2; background: #fff; }
+    .section-gray { background: #f8f7f5; }
+    .section-header { text-align: center; margin-bottom: 48px; }
+    .section-tag {
+      display: inline-block; padding: 6px 14px;
+      background: #eef3fa; color: #2e6be6;
+      border-radius: 99px; font-size: 11px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .5px; margin-bottom: 12px;
+    }
+    .section-title { font-size: 32px; font-weight: 900; color: #1a2b40; letter-spacing: -.5px; margin-bottom: 8px; }
+    .section-sub { font-size: 15px; color: #9c9a92; max-width: 500px; margin: 0 auto; line-height: 1.6; }
+
+    /* ═══ PROBLEMA / SOLUCION ═══ */
+    .problem-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+      max-width: 800px; margin: 0 auto;
+    }
+    .problem-card {
+      padding: 32px 28px; border-radius: 20px;
+      border: 1.5px solid #e8e6e1;
+      transition: transform .15s, box-shadow .15s;
+    }
+    .problem-card:hover { transform: translateY(-4px); box-shadow: 0 8px 32px rgba(0,0,0,.06); }
+    .problem-card.before { background: #fef0f2; border-color: #f2bcc2; }
+    .problem-card.after { background: #edf7ef; border-color: #b2dfba; }
+    .problem-header {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 20px; padding-bottom: 16px;
+      border-bottom: 1px solid rgba(0,0,0,.06);
+    }
+    .problem-header span { font-size: 18px; font-weight: 800; }
+    .problem-card.before .problem-header span { color: #9b2335; }
+    .problem-card.after .problem-header span { color: #1e7e34; }
+    .problem-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 0; font-size: 14px; color: #5c5a52;
+    }
+    .problem-item svg { flex-shrink: 0; }
+    .problem-item.ok span { color: #1a2b40; font-weight: 500; }
+    .problem-footer {
+      text-align: center; margin-top: 32px;
+      font-size: 18px; font-weight: 800; color: #1a2b40;
+      letter-spacing: -.3px;
+      padding: 20px 28px;
+      background: linear-gradient(135deg, #eef3fa, #f3e5f5);
+      border-radius: 16px;
+      max-width: 500px; margin-left: auto; margin-right: auto;
+    }
+
+    /* ═══ FEATURES TABS ═══ */
+    .tabs { display: flex; justify-content: center; gap: 0; margin-bottom: 40px; background: #f0eeeb; border-radius: 14px; padding: 4px; max-width: 300px; margin-left: auto; margin-right: auto; }
+    .tab-btn { flex: 1; padding: 12px 24px; border: none; background: transparent; font-size: 14px; font-weight: 700; color: #9c9a92; cursor: pointer; border-radius: 11px; transition: all .25s; font-family: inherit; }
+    .tab-btn.active { background: #fff; color: #1a2b40; box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* Feature row — texto izquierda, imagen derecha */
+    .feature-row {
+      display: flex; align-items: center; gap: 40px;
+      margin-bottom: 48px;
+    }
+    .feature-row.reverse { flex-direction: row-reverse; }
+    .feature-row-text { flex: 1; }
+    .feature-row-tag {
+      display: inline-block; padding: 4px 12px;
+      border-radius: 8px; font-size: 10px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .5px; margin-bottom: 10px;
+    }
+    .feature-row-title { font-size: 22px; font-weight: 800; color: #1a2b40; margin-bottom: 8px; letter-spacing: -.3px; }
+    .feature-row-desc { font-size: 14px; color: #5c5a52; line-height: 1.7; }
+    .feature-row-img {
+      flex-shrink: 0; width: 380px;
+      position: relative;
+      padding: 3px;
+      background: linear-gradient(135deg, #2e6be6, #7b1fa2, #27ae60, #a0660a);
+      border-radius: 24px;
+      background-size: 200% 200%;
+      animation: featureGradient 4s ease infinite;
+    }
+    .feature-row-img::before {
+      content: '';
+      position: absolute; inset: -4px;
+      border-radius: 28px;
+      background: linear-gradient(135deg, rgba(46,107,230,.2), rgba(123,31,162,.15), rgba(39,174,96,.15));
+      filter: blur(12px);
+      z-index: -1;
+      opacity: .5;
+    }
+    .feature-row-img img {
+      width: 100%;
+      height: auto;
+      object-fit: contain;
+      border-radius: 21px;
+      display: block;
+      background: #fff;
+    }
+    @keyframes featureGradient {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+    }
+
+    /* Feature grid — funciones especiales */
+    .feature-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
+      max-width: 700px; margin: 0 auto;
+    }
+    .feature-mini {
+      display: flex; gap: 12px; padding: 18px;
+      background: #fff; border: 1px solid #e8e6e1;
+      border-radius: 16px; transition: border-color .15s;
+    }
+    .feature-mini:hover { border-color: #2e6be6; }
+    .feature-mini-icon {
+      width: 40px; height: 40px; border-radius: 11px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .feature-mini-icon svg { width: 20px; height: 20px; }
+    .feature-mini-title { font-size: 13px; font-weight: 700; color: #1a2b40; margin-bottom: 3px; }
+    .feature-mini-desc { font-size: 11px; color: #9c9a92; line-height: 1.5; }
+
+    /* ═══ STEPS ═══ */
+    .steps-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+      max-width: 800px; margin: 0 auto;
+    }
+    .step-card {
+      background: #fff; border: 1px solid #e8e6e1; border-radius: 20px;
+      overflow: hidden; transition: transform .15s, box-shadow .15s;
+    }
+    .step-card:hover { transform: translateY(-4px); box-shadow: 0 8px 32px rgba(0,0,0,.08); }
+    .step-card-img { width: 100%; height: 180px; object-fit: cover; background: #f0eeeb; }
+    .step-card-body { padding: 20px; }
+    .step-num {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: #1a2b40; color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 800; margin-bottom: 10px;
+    }
+    .step-card-title { font-size: 15px; font-weight: 700; color: #1a2b40; margin-bottom: 6px; }
+    .step-card-desc { font-size: 12px; color: #5c5a52; line-height: 1.6; }
+
+    /* ═══ TUTORIALS ═══ */
+    .tuto-list { max-width: 700px; margin: 0 auto; }
+    .tuto-item {
+      background: #fff; border: 1px solid #e8e6e1; border-radius: 16px;
+      margin-bottom: 12px; overflow: hidden;
+    }
+    .tuto-header {
+      display: flex; align-items: center; gap: 12px;
+      padding: 18px 20px; cursor: pointer; transition: background .12s;
+    }
+    .tuto-header:hover { background: #f8f7f5; }
+    .tuto-header:active { background: #f0eeeb; }
+    .tuto-icon {
+      width: 36px; height: 36px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .tuto-icon svg { width: 18px; height: 18px; }
+    .tuto-title { flex: 1; font-size: 14px; font-weight: 700; color: #1a2b40; }
+    .tuto-chev { flex-shrink: 0; fill: #9c9a92; transition: transform .25s; }
+    .tuto-header.open .tuto-chev { transform: rotate(180deg); }
+    .tuto-body {
+      max-height: 0; overflow: hidden;
+      transition: max-height .35s cubic-bezier(.4,0,.2,1);
+    }
+    .tuto-body.open { max-height: 500px; }
+    .tuto-body-inner { padding: 0 20px 20px; }
+    .tuto-steps { font-size: 13px; color: #5c5a52; line-height: 1.8; }
+    .tuto-steps span { display: block; padding: 3px 0; }
+    .tuto-img { width: 100%; border-radius: 12px; border: 1px solid #e8e6e1; margin-top: 14px; }
+
+    /* ═══ REVIEWS ═══ */
+    .reviews-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+      max-width: 800px; margin: 0 auto;
+    }
+    .review-card {
+      background: #fff; border: 1px solid #e8e6e1; border-radius: 18px;
+      padding: 24px; transition: transform .15s, box-shadow .15s;
+    }
+    .review-card:hover { transform: translateY(-4px); box-shadow: 0 8px 32px rgba(0,0,0,.06); }
+    .review-stars { color: #f0a71a; font-size: 14px; letter-spacing: 2px; margin-bottom: 12px; }
+    .review-text { font-size: 14px; color: #5c5a52; line-height: 1.7; margin-bottom: 18px; font-style: italic; }
+    .review-author { display: flex; align-items: center; gap: 10px; }
+    .review-avatar {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: #1a2b40; color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700; flex-shrink: 0;
+    }
+    .review-name { font-size: 13px; font-weight: 700; color: #1a2b40; }
+    .review-role { font-size: 11px; color: #9c9a92; }
+    @media (max-width: 480px) {
+      .reviews-grid { grid-template-columns: 1fr; }
+    }
+
+    /* ═══ FAQ ═══ */
+    .faq-list { max-width: 700px; margin: 0 auto; }
+    .faq-item { border-bottom: 1px solid #e8e6e1; }
+    .faq-q {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 20px 0; cursor: pointer;
+      font-size: 15px; font-weight: 600; color: #1a2b40;
+    }
+    .faq-q svg { flex-shrink: 0; fill: #9c9a92; transition: transform .25s; }
+    .faq-q.open svg { transform: rotate(180deg); }
+    .faq-a {
+      max-height: 0; overflow: hidden;
+      transition: max-height .3s cubic-bezier(.4,0,.2,1);
+    }
+    .faq-a.open { max-height: 200px; }
+    .faq-a-inner { padding: 0 0 20px; font-size: 13px; color: #5c5a52; line-height: 1.7; }
+
+    /* ═══ CTA DOWNLOAD ═══ */
+    .cta {
+      padding: 64px 24px;
+      position: relative;
+      z-index: 2;
+      background: linear-gradient(135deg, #1a2b40 0%, #243a56 50%, #2e6be6 100%);
+      text-align: center;
+      position: relative; overflow: hidden;
+    }
+    .cta::before { content: ''; position: absolute; top: -80px; right: -80px; width: 260px; height: 260px; border-radius: 50%; background: rgba(255,255,255,.04); }
+    .cta::after { content: ''; position: absolute; bottom: -60px; left: -40px; width: 200px; height: 200px; border-radius: 50%; background: rgba(255,255,255,.03); }
+    .cta h2 { font-size: 28px; font-weight: 900; color: #fff; margin-bottom: 8px; position: relative; z-index: 1; }
+    .cta p { font-size: 15px; color: rgba(255,255,255,.6); margin-bottom: 32px; position: relative; z-index: 1; }
+    .cta-buttons {
+      display: flex; gap: 14px; justify-content: center; flex-wrap: wrap;
+      position: relative; z-index: 1;
+    }
+    .cta-btn {
+      display: inline-flex; align-items: center; gap: 12px;
+      padding: 16px 28px; background: rgba(255,255,255,.1);
+      color: #fff; border: 1.5px solid rgba(255,255,255,.2);
+      border-radius: 16px; text-decoration: none;
+      transition: all .15s;
+    }
+    .cta-btn:hover { background: rgba(255,255,255,.18); transform: translateY(-2px); }
+    .cta-btn-text { text-align: left; }
+    .cta-btn-sup { font-size: 10px; color: rgba(255,255,255,.5); display: block; }
+    .cta-btn-title { font-size: 16px; font-weight: 700; }
+
+    /* ═══ FOOTER ═══ */
+    .footer {
+      padding: 36px 24px;
+      position: relative;
+      z-index: 2; text-align: center;
+      background: #0f1117; font-size: 12px; color: rgba(255,255,255,.35);
+    }
+    .footer-logo { width: 36px; height: 36px; border-radius: 10px; margin: 0 auto 12px; opacity: .7; }
+    .footer a { color: rgba(255,255,255,.5); text-decoration: none; }
+
+    /* ═══ RESPONSIVE ═══ */
+    @media (max-width: 768px) {
+      .hero-inner { flex-direction: column; text-align: center; }
+      .hero h1 { font-size: 34px; }
+      .hero-desc { margin: 0 auto 28px; }
+      .hero-buttons { justify-content: center; }
+      .hero-phone { width: 220px; margin: 0 auto; }
+      .nav-links a:not(.nav-cta) { display: none; }
+      .nav-dropdown { display: none; }
+      .problem-grid { grid-template-columns: 1fr; }
+      .feature-row { flex-direction: column !important; text-align: center; }
+      .feature-row-img { width: 100%; max-width: 340px; margin: 0 auto; }
+      .feature-grid { grid-template-columns: 1fr; }
+      .steps-grid { grid-template-columns: 1fr; }
+      .stats-inner { gap: 24px; }
+      .section-title { font-size: 24px; }
+    }
+
+    /* ═══ FOOTER HORIZONTAL ═══ */
+    .footer-main {
+      max-width: 1080px;
+      margin: 0 auto;
+      display: flex !important;
+      justify-content: space-between !important;
+      align-items: flex-start !important;
+      flex-direction: row !important;
+      gap: 48px;
+      padding-bottom: 40px;
+    }
+    .footer-brand {
+      flex-shrink: 0;
+      max-width: 300px;
+    }
+    .footer-brand-logo {
+      display: flex; align-items: center; gap: 10px; margin-bottom: 16px;
+    }
+    .footer-brand-logo img { width: 36px; height: 36px; border-radius: 10px; }
+    .footer-brand-logo span { font-size: 18px; font-weight: 800; color: #fff; letter-spacing: -.3px; }
+    .footer-brand-desc {
+      font-size: 13px; color: rgba(255,255,255,.35); line-height: 1.7; max-width: 280px; margin-bottom: 20px;
+    }
+    .footer-social { display: flex; gap: 8px; }
+    .footer-social-btn {
+      width: 34px; height: 34px; border-radius: 8px;
+      background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.08);
+      display: flex; align-items: center; justify-content: center;
+      color: rgba(255,255,255,.4); text-decoration: none;
+      transition: background .15s, color .15s;
+    }
+    .footer-social-btn:hover { background: rgba(255,255,255,.12); color: rgba(255,255,255,.8); }
+    .footer-links-grid {
+      display: flex !important;
+      flex-direction: row !important;
+      gap: 0;
+      flex: 1;
+      justify-content: center;
+    }
+    .footer-col {
+      display: flex;
+      flex-direction: column;
+      min-width: 130px;
+      padding: 0 32px;
+      border-right: 1px solid rgba(255,255,255,.08);
+    }
+    .footer-col:last-child {
+      border-right: none;
+    }
+    .footer-col:first-child {
+      padding-left: 0;
+    }
+    .footer-col-title {
+      font-size: 11px; font-weight: 700; color: rgba(255,255,255,.6);
+      text-transform: uppercase; letter-spacing: .8px; margin-bottom: 14px;
+    }
+    .footer-link {
+      display: block; font-size: 13px; color: rgba(255,255,255,.35);
+      text-decoration: none; padding: 6px 0; transition: color .15s;
+    }
+    .footer-link:hover { color: rgba(255,255,255,.85); }
+    .footer-bottom {
+      max-width: 1080px; margin: 0 auto;
+      display: flex !important;
+      flex-direction: row !important;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 0;
+      border-top: 1px solid rgba(255,255,255,.06);
+    }
+    .footer-bottom-left {
+      display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+    }
+    .footer-bottom-link {
+      font-size: 12px; color: rgba(255,255,255,.3); text-decoration: none;
+      transition: color .15s;
+    }
+    .footer-bottom-link:hover { color: rgba(255,255,255,.7); }
+    .footer-bottom-dot { color: rgba(255,255,255,.15); font-size: 10px; }
+    .footer-copyright { font-size: 12px; color: rgba(255,255,255,.25); }
+    .footer-bottom-right { flex-shrink: 0; }
+    .footer-lang-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 14px; background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.1); border-radius: 8px;
+      color: rgba(255,255,255,.5); font-size: 12px; font-weight: 600;
+      font-family: inherit; cursor: pointer; transition: all .15s;
+    }
+    .footer-lang-btn:hover { background: rgba(255,255,255,.1); color: rgba(255,255,255,.8); }
+    @media (max-width: 768px) {
+      .footer-main { flex-direction: column !important; gap: 32px; }
+      .footer-brand { max-width: 100%; }
+      .footer-links-grid { gap: 32px; }
+      .footer-bottom { flex-direction: column !important; gap: 14px; text-align: center; }
+    }
+
+    /* ═══ ABOUT / QUE ES ═══ */
+    .about-row {
+      display: flex; align-items: center; gap: 56px;
+    }
+    .about-text { flex: 1; }
+    .about-title {
+      font-size: 30px; font-weight: 900; color: #1a2b40;
+      line-height: 1.2; letter-spacing: -.5px; margin: 12px 0 20px;
+    }
+    .about-desc {
+      font-size: 15px; color: #6b6961; line-height: 1.8; margin-bottom: 16px;
+    }
+    .about-checks {
+      display: flex; flex-direction: column; gap: 14px; margin-top: 28px;
+    }
+    .about-check {
+      display: flex; align-items: center; gap: 14px;
+    }
+    .about-check-icon {
+      width: 42px; height: 42px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .about-check-title { font-size: 14px; font-weight: 700; color: #1a2b40; }
+    .about-check-sub { font-size: 12px; color: #9c9a92; margin-top: 2px; }
+    .about-img { flex-shrink: 0; width: 380px; }
+    .about-img-frame {
+      position: relative;
+      border-radius: 28px; padding: 24px;
+      background: linear-gradient(145deg, #eef3fa, #f3e8f5, #e8f5e9);
+      background-size: 200% 200%;
+      animation: aboutGradient 6s ease infinite;
+      box-shadow: 0 16px 56px rgba(26,43,64,.1), 0 4px 16px rgba(46,107,230,.06);
+    }
+    .about-img-frame::before {
+      content: '';
+      position: absolute; inset: -2px;
+      border-radius: 30px;
+      background: linear-gradient(135deg, rgba(46,107,230,.15), rgba(123,31,162,.1), rgba(39,174,96,.1));
+      z-index: -1;
+      filter: blur(8px);
+      opacity: .6;
+    }
+    .about-carousel {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      border-radius: 18px;
+      overflow: hidden;
+    }
+    .about-slide {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      object-fit: cover;
+      border-radius: 18px;
+      opacity: 0;
+      transform: scale(1.05);
+      transition: opacity .8s ease, transform .8s ease;
+    }
+    .about-slide.active {
+      opacity: 1;
+      transform: scale(1);
+    }
+    .about-dots {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 16px;
+    }
+    .about-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: rgba(26,43,64,.15);
+      cursor: pointer;
+      transition: all .25s;
+    }
+    .about-dot.active {
+      background: #2e6be6;
+      width: 24px;
+      border-radius: 4px;
+    }
+    .about-dot:hover { background: rgba(26,43,64,.3); }
+    .about-dot.active:hover { background: #2e6be6; }
+    @keyframes aboutGradient {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+    }
+    @media (max-width: 768px) {
+      .about-row { flex-direction: column; text-align: center; }
+      .about-img { width: 300px; margin: 0 auto; }
+      .about-checks { align-items: center; }
+      .about-check { text-align: left; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ═══ NAV ═══ -->
+  <nav class="nav" id="nav">
+    <div class="nav-inner">
+      <a href="/info" class="nav-logo">
+        <img src="/img/logotipo.png" alt="AssendApp">
+        <span>AssendApp</span>
+      </a>
+      <div class="nav-links">
+        <div class="nav-dropdown">
+          <a href="#funciones" class="nav-drop-trigger">Funciones <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg></a>
+          <div class="nav-drop-menu">
+            <a href="#funciones" onclick="switchTab('web',document.querySelector('.tab-btn'))">Web</a>
+            <a href="#funciones" onclick="switchTab('app',document.querySelectorAll('.tab-btn')[1])">App Android</a>
+          </div>
+        </div>
+        <div class="nav-dropdown">
+          <a href="#guias" class="nav-drop-trigger">Guias <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg></a>
+          <div class="nav-drop-menu">
+            <a href="#guias">Activar notificaciones</a>
+            <a href="#guias">Compartir revisitas</a>
+            <a href="#guias">Guardar ubicacion GPS</a>
+            <a href="#guias">Registrar horas</a>
+          </div>
+        </div>
+        <div class="nav-dropdown">
+          <a href="#faq" class="nav-drop-trigger">Ayuda <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg></a>
+          <div class="nav-drop-menu">
+            <a href="#faq">Preguntas frecuentes</a>
+            <a href="mailto:shmuelgonzrbk@gmail.com">Reportar problema</a>
+            <a href="mailto:shmuelgonzrbk@gmail.com">Contacto</a>
+          </div>
+        </div>
+        <a href="https://assendapp.com" class="nav-cta">Pruebalo gratis</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ═══ HERO ═══ -->
+  <section class="hero">
+    <div class="hero-inner">
+      <div class="hero-text">
+        <div class="hero-badge">Gratuito y sin limites</div>
+        <h1>Organiza tu<br><span>ministerio</span> de<br>forma simple</h1>
+        <p class="hero-desc">Registra revisitas, lleva el control de tus horas, gestiona asignaciones y envia informes mensuales. Todo en un solo lugar.</p>
+        <div class="hero-buttons">
+          <a href="https://assendapp.com" class="btn-main">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+            Abrir web app
+          </a>
+          <a href="#descargar" class="btn-outline">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M17 1.01L7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14z"/></svg>
+            Descargar app
+          </a>
+        </div>
+      </div>
+      <div class="hero-phone">
+        <div class="phone-frame">
+          <div class="phone-notch"></div>
+          <div class="phone-screen">
+            <img src="/img/hero-phone.png" alt="AssendApp pantalla">
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ STATS ═══ -->
+  <section class="stats-bar">
+    <div class="stats-inner">
+      <div class="stat"><div class="stat-num">100%</div><div class="stat-label">Gratuito</div></div>
+      <div class="stat"><div class="stat-num">0</div><div class="stat-label">Anuncios</div></div>
+      <div class="stat"><div class="stat-num">24/7</div><div class="stat-label">Disponible</div></div>
+      <div class="stat"><div class="stat-num">2</div><div class="stat-label">Plataformas</div></div>
+    </div>
+  </section>
+
+  <!-- ═══ QUE ES ═══ -->
+  <section class="section" id="que-es">
+    <div class="container">
+      <div class="about-row">
+        <div class="about-text">
+          <div class="section-tag">Que es AssendApp?</div>
+          <h2 class="about-title">La forma más simple de organizar tu ministerio</h2>
+          <p class="about-desc">AssendApp es una herramienta digital gratuita creada para publicadores del Reino. Te permite registrar revisitas y estudios, llevar un control exacto de tus horas, gestionar asignaciones de la reunión y generar informes mensuales listos para compartir por WhatsApp.</p>
+          <p class="about-desc">Todo guardado en la nube, sincronizado entre tus dispositivos y disponible incluso sin conexión a internet. Olvídate de libretas, papelitos y cálculos de último momento.</p>
+          <div class="about-checks">
+            <div class="about-check">
+              <div class="about-check-icon" style="background:#edf7ef"><svg viewBox="0 0 24 24" width="18" height="18" fill="#27ae60"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></div>
+              <div><div class="about-check-title">Sin papel</div><div class="about-check-sub">Todo digital, nada se pierde</div></div>
+            </div>
+            <div class="about-check">
+              <div class="about-check-icon" style="background:#eef3fa"><svg viewBox="0 0 24 24" width="18" height="18" fill="#2e6be6"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg></div>
+              <div><div class="about-check-title">Automático</div><div class="about-check-sub">Recordatorios e informes sin esfuerzo</div></div>
+            </div>
+            <div class="about-check">
+              <div class="about-check-icon" style="background:#f3e5f5"><svg viewBox="0 0 24 24" width="18" height="18" fill="#7b1fa2"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg></div>
+              <div><div class="about-check-title">Siempre contigo</div><div class="about-check-sub">Funciona offline y en cualquier dispositivo</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="about-img">
+          <div class="about-img-frame">
+            <div class="about-carousel">
+              <img src="/img/about-app.png" alt="Funciones" class="about-slide active">
+              <img src="/img/about-organize.png" alt="Organización" class="about-slide">
+              <img src="/img/about-map.png" alt="Mapa GPS" class="about-slide">
+              <img src="/img/about-cloud.png" alt="Sincronización" class="about-slide">
+            </div>
+            <div class="about-dots">
+              <span class="about-dot active" onclick="goSlide(0)"></span>
+              <span class="about-dot" onclick="goSlide(1)"></span>
+              <span class="about-dot" onclick="goSlide(2)"></span>
+              <span class="about-dot" onclick="goSlide(3)"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ FUNCIONES ═══ -->
+  <section class="section section-gray" id="funciones">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-tag">Funciones</div>
+        <h2 class="section-title">Todo lo que necesitas</h2>
+        <p class="section-sub">Disponible en web y app Android</p>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('web',this)">Web</button>
+        <button class="tab-btn" onclick="switchTab('app',this)">App Android</button>
+      </div>
+
+      <!-- TAB WEB -->
+      <div class="tab-content active" id="tab-web">
+        <div class="feature-row">
+          <div class="feature-row-text">
+            <div class="feature-row-tag" style="background:#eef3fa;color:#2e6be6">Contactos</div>
+            <div class="feature-row-title">Tus revisitas organizadas</div>
+            <div class="feature-row-desc">Registra cada persona con nombre, direccion, telefono, publicacion entregada y notas. Filtra por tipo, busca por nombre y ve quien necesita visita hoy.</div>
+          </div>
+          <div class="feature-row-img"><img src="/img/about-app.png" alt="Inicio"></div>
+        </div>
+
+        <div class="feature-row reverse">
+          <div class="feature-row-text">
+            <div class="feature-row-tag" style="background:#f3e5f5;color:#7b1fa2">Horas</div>
+            <div class="feature-row-title">Control de horas inteligente</div>
+            <div class="feature-row-desc">Registra tus horas con un toque. Barra de progreso mensual, meta personalizable y soporte para precursores auxiliares, regulares y especiales.</div>
+          </div>
+          <div class="feature-row-img"><img src="/img/web-precursorado.png" alt="Precursorado"></div>
+        </div>
+
+        <div class="feature-row">
+          <div class="feature-row-text">
+            <div class="feature-row-tag" style="background:#e8f5e9;color:#1e7e34">Asignaciones</div>
+            <div class="feature-row-title">Tus partes al dia</div>
+            <div class="feature-row-desc">Organiza por seccion: Tesoros de la Biblia, Seamos Mejores Maestros y Nuestra Vida Cristiana. Avisos progresivos para prepararte con tiempo.</div>
+          </div>
+          <div class="feature-row-img"><img src="/img/web-asignaciones.png" alt="Asignaciones"></div>
+        </div>
+
+        <div class="feature-row reverse">
+          <div class="feature-row-text">
+            <div class="feature-row-tag" style="background:#fff8ee;color:#a0660a">Informes</div>
+            <div class="feature-row-title">Informe con un toque</div>
+            <div class="feature-row-desc">Genera tu resumen mensual y compartelo por WhatsApp. Incluye horas, cursos biblicos y participacion. Historial completo de todos tus meses.</div>
+          </div>
+          <div class="feature-row-img"><img src="/img/web-informe.png" alt="Informe"></div>
+        </div>
+      </div>
+
+      <!-- TAB APP -->
+      <div class="tab-content" id="tab-app">
+        <div class="feature-row">
+          <div class="feature-row-text">
+            <div class="feature-row-tag" style="background:#e8f5e9;color:#1e7e34">Nativa</div>
+            <div class="feature-row-title">Experiencia Android nativa</div>
+            <div class="feature-row-desc">Construida con Kotlin y Jetpack Compose. Animaciones a 60fps, inicio instantaneo y consumo minimo de bateria. Colores dinamicos y modo oscuro.</div>
+          </div>
+          <div class="feature-row-img"><img src="/img/app-inicio.png" alt="App inicio"></div>
+        </div>
+
+        <div class="feature-row reverse">
+          <div class="feature-row-text">
+            <div class="feature-row-tag" style="background:#eef3fa;color:#2e6be6">Notificaciones</div>
+            <div class="feature-row-title">Nunca olvides una visita</div>
+            <div class="feature-row-desc">Notificaciones nativas con AlarmManager. Funcionan con la app cerrada, incluso despues de reiniciar el telefono. Sin depender de internet.</div>
+          </div>
+          <div class="feature-row-img"><img src="/img/app-notificaciones.png" alt="Notificaciones"></div>
+        </div>
+
+        <div class="feature-row">
+          <div class="feature-row-text">
+            <div class="feature-row-tag" style="background:#e3f2fd;color:#1565c0">Mapas</div>
+            <div class="feature-row-title">Mapas integrados</div>
+            <div class="feature-row-desc">Ve la ubicacion de cada persona directamente en la tarjeta. Toca para abrir Google Maps y obtener indicaciones para llegar caminando.</div>
+          </div>
+          <div class="feature-row-img"><img src="/img/app-mapa.png" alt="Mapas"></div>
+        </div>
+
+        <div class="feature-row reverse">
+          <div class="feature-row-text">
+            <div class="feature-row-tag" style="background:#f3e5f5;color:#7b1fa2">Offline</div>
+            <div class="feature-row-title">Sin internet? No hay problema</div>
+            <div class="feature-row-desc">Agrega personas, registra horas y marca visitas sin conexion. Todo se sincroniza automaticamente cuando vuelvas a tener senal.</div>
+          </div>
+          <div class="feature-row-img"><img src="/img/app-offline.png" alt="Offline"></div>
+        </div>
+      </div>
+
+      <!-- Funciones especiales -->
+      <h3 style="text-align:center;font-size:20px;font-weight:800;color:#1a2b40;margin:48px 0 24px">Funciones en ambas plataformas</h3>
+      <div class="feature-grid">
+        <div class="feature-mini">
+          <div class="feature-mini-icon" style="background:#e8f5e9"><svg viewBox="0 0 24 24" fill="#1e7e34"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></div>
+          <div><div class="feature-mini-title">Sin internet</div><div class="feature-mini-desc">Funciona offline. Se sincroniza al reconectarse.</div></div>
+        </div>
+        <div class="feature-mini">
+          <div class="feature-mini-icon" style="background:#e3f2fd"><svg viewBox="0 0 24 24" fill="#1565c0"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg></div>
+          <div><div class="feature-mini-title">GPS inteligente</div><div class="feature-mini-desc">Ordena revisitas por cercania a tu ubicacion.</div></div>
+        </div>
+        <div class="feature-mini">
+          <div class="feature-mini-icon" style="background:#fce4ec"><svg viewBox="0 0 24 24" fill="#c62828"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92c0-1.61-1.31-2.92-2.92-2.92z"/></svg></div>
+          <div><div class="feature-mini-title">Compartir contactos</div><div class="feature-mini-desc">Envia revisitas por WhatsApp con un link.</div></div>
+        </div>
+        <div class="feature-mini">
+          <div class="feature-mini-icon" style="background:#f3e5f5"><svg viewBox="0 0 24 24" fill="#7b1fa2"><path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/></svg></div>
+          <div><div class="feature-mini-title">Modo oscuro</div><div class="feature-mini-desc">Tema oscuro + 30 colores personalizables.</div></div>
+        </div>
+        <div class="feature-mini">
+          <div class="feature-mini-icon" style="background:#fff8ee"><svg viewBox="0 0 24 24" fill="#a0660a"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg></div>
+          <div><div class="feature-mini-title">Chat de soporte</div><div class="feature-mini-desc">Reporta problemas directo desde la app.</div></div>
+        </div>
+        <div class="feature-mini">
+          <div class="feature-mini-icon" style="background:#eef3fa"><svg viewBox="0 0 24 24" fill="#2e6be6"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg></div>
+          <div><div class="feature-mini-title">Seguro</div><div class="feature-mini-desc">Google OAuth + datos cifrados en la nube.</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ COMO FUNCIONA ═══ -->
+  <section class="section" id="como-funciona">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-tag">Primeros pasos</div>
+        <h2 class="section-title">Como empezar</h2>
+        <p class="section-sub">En 4 pasos ya estas listo</p>
+      </div>
+      <div class="steps-grid">
+        <div class="step-card">
+          <img src="/img/paso-login.png" alt="Login" class="step-card-img">
+          <div class="step-card-body">
+            <div class="step-num">1</div>
+            <div class="step-card-title">Inicia sesion con Google</div>
+            <div class="step-card-desc">Un solo toque. Sin crear cuentas ni recordar contrasenas. Tu informacion segura con Google.</div>
+          </div>
+        </div>
+        <div class="step-card">
+          <img src="/img/paso-agregar.png" alt="Agregar" class="step-card-img">
+          <div class="step-card-body">
+            <div class="step-num">2</div>
+            <div class="step-card-title">Agrega tus revisitas</div>
+            <div class="step-card-desc">Nombre, direccion, telefono, publicacion y notas. Ubica la casa en el mapa para encontrarla facilmente.</div>
+          </div>
+        </div>
+        <div class="step-card">
+          <img src="/img/paso-programar.png" alt="Programar" class="step-card-img">
+          <div class="step-card-body">
+            <div class="step-num">3</div>
+            <div class="step-card-title">Programa tus visitas</div>
+            <div class="step-card-desc">Elige fecha y hora. Recibiras recordatorios automaticos para que nunca olvides a nadie.</div>
+          </div>
+        </div>
+        <div class="step-card">
+          <img src="/img/paso-informe.png" alt="Informe" class="step-card-img">
+          <div class="step-card-body">
+            <div class="step-num">4</div>
+            <div class="step-card-title">Envia tu informe</div>
+            <div class="step-card-desc">Al final del mes, genera tu informe y compartelo por WhatsApp con un solo toque.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ RESEÑAS ═══ -->
+  <section class="section" id="resenas">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-tag">Testimonios</div>
+        <h2 class="section-title">Lo que dicen nuestros usuarios</h2>
+        <p class="section-sub">Publicadores reales que usan AssendApp cada dia</p>
+      </div>
+      <div class="reviews-grid">
+        <div class="review-card">
+          <div class="review-stars">★★★★★</div>
+          <p class="review-text">Antes anotaba todo en papelitos que siempre perdia. Ahora tengo todo organizado en un solo lugar y puedo acceder desde cualquier dispositivo.</p>
+          <div class="review-author">
+            <div class="review-avatar">JG</div>
+            <div>
+              <div class="review-name">Jampier G.</div>
+              <div class="review-role">Publicador</div>
+            </div>
+          </div>
+        </div>
+        <div class="review-card">
+          <div class="review-stars">★★★★★</div>
+          <p class="review-text">Me encanta que me recuerde las visitas automaticamente. Ya no se me olvida ninguna revisita y puedo llevar mejor mi territorio.</p>
+          <div class="review-author">
+            <div class="review-avatar">ST</div>
+            <div>
+              <div class="review-name">Santos T.</div>
+              <div class="review-role">Precursor auxiliar</div>
+            </div>
+          </div>
+        </div>
+        <div class="review-card">
+          <div class="review-stars">★★★★★</div>
+          <p class="review-text">El informe mensual lo envio en 2 segundos por WhatsApp. Antes me tomaba media hora calculando todo a mano. Esta app es increible.</p>
+          <div class="review-author">
+            <div class="review-avatar">GY</div>
+            <div>
+              <div class="review-name">Gabriela Y.</div>
+              <div class="review-role">Publicadora</div>
+            </div>
+          </div>
+        </div>
+        <div class="review-card">
+          <div class="review-stars">★★★★★</div>
+          <p class="review-text">Lo mejor es que funciona sin internet. En mi territorio la senal es mala y puedo seguir registrando todo sin problema.</p>
+          <div class="review-author">
+            <div class="review-avatar">AB</div>
+            <div>
+              <div class="review-name">Aaron B.</div>
+              <div class="review-role">Publicador</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ GUIAS ═══ -->
+  <section class="section section-gray" id="guias">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-tag">Tutoriales</div>
+        <h2 class="section-title">Guias rapidas</h2>
+        <p class="section-sub">Aprende a usar cada funcion en segundos</p>
+      </div>
+      <div class="tuto-list">
+
+        <div class="tuto-item">
+          <div class="tuto-header" onclick="toggleTuto(this)">
+            <div class="tuto-icon" style="background:#eef3fa"><svg viewBox="0 0 24 24" fill="#2e6be6"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg></div>
+            <div class="tuto-title">Como activar notificaciones</div>
+            <svg class="tuto-chev" viewBox="0 0 24 24" width="20" height="20"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg>
+          </div>
+          <div class="tuto-body">
+            <div class="tuto-body-inner">
+              <div class="tuto-steps">
+                <span>1. Abre <strong>Ajustes</strong> desde el menu lateral</span>
+                <span>2. Toca <strong>Notificaciones</strong></span>
+                <span>3. El navegador pedira permiso — toca <strong>Permitir</strong></span>
+                <span>4. Listo! Recibiras avisos de tus visitas</span>
+              </div>
+              <img src="/img/tuto-notificaciones.png" alt="Notificaciones" class="tuto-img">
+            </div>
+          </div>
+        </div>
+
+        <div class="tuto-item">
+          <div class="tuto-header" onclick="toggleTuto(this)">
+            <div class="tuto-icon" style="background:#fce4ec"><svg viewBox="0 0 24 24" fill="#c62828"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92c0-1.61-1.31-2.92-2.92-2.92z"/></svg></div>
+            <div class="tuto-title">Como compartir una revisita</div>
+            <svg class="tuto-chev" viewBox="0 0 24 24" width="20" height="20"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg>
+          </div>
+          <div class="tuto-body">
+            <div class="tuto-body-inner">
+              <div class="tuto-steps">
+                <span>1. En inicio, <strong>manten presionado</strong> el card de la persona</span>
+                <span>2. Se abre el menu de compartir de tu telefono</span>
+                <span>3. Elige <strong>WhatsApp</strong> y envia el link</span>
+                <span>4. La otra persona abre el link y el contacto se agrega</span>
+              </div>
+              <img src="/img/tuto-compartir.png" alt="Compartir" class="tuto-img">
+            </div>
+          </div>
+        </div>
+
+        <div class="tuto-item">
+          <div class="tuto-header" onclick="toggleTuto(this)">
+            <div class="tuto-icon" style="background:#e3f2fd"><svg viewBox="0 0 24 24" fill="#1565c0"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg></div>
+            <div class="tuto-title">Como guardar ubicacion GPS</div>
+            <svg class="tuto-chev" viewBox="0 0 24 24" width="20" height="20"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg>
+          </div>
+          <div class="tuto-body">
+            <div class="tuto-body-inner">
+              <div class="tuto-steps">
+                <span>1. Al agregar o editar persona, toca <strong>Buscar en mapa</strong></span>
+                <span>2. Busca la direccion o toca el mapa para marcar</span>
+                <span>3. Toca <strong>Confirmar ubicacion</strong></span>
+                <span>4. Ahora puedes ver la casa y obtener indicaciones</span>
+              </div>
+              <img src="/img/tuto-gps.png" alt="GPS" class="tuto-img">
+            </div>
+          </div>
+        </div>
+
+        <div class="tuto-item">
+          <div class="tuto-header" onclick="toggleTuto(this)">
+            <div class="tuto-icon" style="background:#f3e5f5"><svg viewBox="0 0 24 24" fill="#7b1fa2"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z"/></svg></div>
+            <div class="tuto-title">Como registrar horas de servicio</div>
+            <svg class="tuto-chev" viewBox="0 0 24 24" width="20" height="20"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg>
+          </div>
+          <div class="tuto-body">
+            <div class="tuto-body-inner">
+              <div class="tuto-steps">
+                <span>1. Ve a <strong>Precursorado</strong> desde el menu lateral</span>
+                <span>2. Selecciona tu tipo: Publicador, Auxiliar, Regular o Especial</span>
+                <span>3. Toca <strong>+30 min</strong>, <strong>+1 hora</strong> o <strong>+2 horas</strong></span>
+                <span>4. Tu progreso se actualiza al instante</span>
+              </div>
+              <img src="/img/tuto-horas.png" alt="Horas" class="tuto-img">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ FAQ ═══ -->
+  <section class="section" id="faq">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-tag">FAQ</div>
+        <h2 class="section-title">Preguntas frecuentes</h2>
+        <p class="section-sub">Lo que mas nos preguntan</p>
+      </div>
+      <div class="faq-list">
+        <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Es realmente gratis?<svg viewBox="0 0 24 24" width="20" height="20"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg></div><div class="faq-a"><div class="faq-a-inner">Si, completamente. Sin anuncios, sin compras dentro de la app y sin limites en la cantidad de contactos que puedes registrar. AssendApp se mantiene gracias a donaciones voluntarias.</div></div></div>
+        <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Mis datos estan seguros?<svg viewBox="0 0 24 24" width="20" height="20"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg></div><div class="faq-a"><div class="faq-a-inner">Si. Usamos autenticacion de Google (OAuth 2.0) y tus datos se almacenan en servidores con conexion cifrada SSL. Solo tu puedes acceder a tu informacion con tu cuenta de Google.</div></div></div>
+        <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Funciona sin internet?<svg viewBox="0 0 24 24" width="20" height="20"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg></div><div class="faq-a"><div class="faq-a-inner">Si. Puedes registrar contactos, horas y visitas sin conexion. Cuando vuelvas a tener senal, todo se sincroniza automaticamente sin que tengas que hacer nada.</div></div></div>
+        <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">En que dispositivos funciona?<svg viewBox="0 0 24 24" width="20" height="20"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg></div><div class="faq-a"><div class="faq-a-inner">La web funciona en Chrome, Safari, Firefox y Edge en celulares, tablets y computadoras. La app Android requiere Android 7.0 o superior.</div></div></div>
+        <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Puedo usarla en PC y celular?<svg viewBox="0 0 24 24" width="20" height="20"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg></div><div class="faq-a"><div class="faq-a-inner">Si. Tus datos estan en la nube. Accede desde cualquier dispositivo con tu cuenta de Google y todo se mantiene sincronizado.</div></div></div>
+        <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Que pasa si pierdo mi celular?<svg viewBox="0 0 24 24" width="20" height="20"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg></div><div class="faq-a"><div class="faq-a-inner">No pasa nada. Tus datos estan en la nube. Inicia sesion desde otro dispositivo y toda tu informacion estara ahi.</div></div></div>
+        <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Hay version para iPhone?<svg viewBox="0 0 24 24" width="20" height="20"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg></div><div class="faq-a"><div class="faq-a-inner">Por ahora no hay app nativa para iOS, pero puedes usar la version web desde Safari. Funciona igual de bien y puedes agregarla como acceso directo en tu pantalla de inicio.</div></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ CTA DOWNLOAD ═══ -->
+  <section class="cta" id="descargar">
+    <h2>Empieza a organizar tu ministerio</h2>
+    <p>Disponible en web y Android. Tus datos siempre sincronizados.</p>
+    <div class="cta-buttons">
+      <a href="https://assendapp.com" class="cta-btn">
+        <svg viewBox="0 0 24 24" width="28" height="28" fill="#fff"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+        <div class="cta-btn-text">
+          <span class="cta-btn-sup">Abrir en</span>
+          <span class="cta-btn-title">Navegador Web</span>
+        </div>
+      </a>
+      <a href="#" class="cta-btn">
+        <img src="/img/playstore.png" width="28" height="28" alt="Play Store" style="filter:brightness(10)">
+        <div class="cta-btn-text">
+          <span class="cta-btn-sup">Disponible en</span>
+          <span class="cta-btn-title">Google Play</span>
+        </div>
+      </a>
+    </div>
+  </section>
+
+  <!-- ═══ FOOTER ═══ -->
+  <footer class="footer">
+    <div class="footer-main">
+      <div class="footer-brand">
+        <div class="footer-brand-logo">
+          <img src="/img/logoapp.png" alt="AssendApp">
+          <span>AssendApp</span>
+        </div>
+        <p class="footer-brand-desc">Unete a los publicadores que organizan su ministerio de forma simple con AssendApp.</p>
+        <div class="footer-social">
+          <a href="#" class="footer-social-btn" title="Instagram">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M7.8 2h8.4C19.4 2 22 4.6 22 7.8v8.4a5.8 5.8 0 0 1-5.8 5.8H7.8C4.6 22 2 19.4 2 16.2V7.8A5.8 5.8 0 0 1 7.8 2m-.2 2A3.6 3.6 0 0 0 4 7.6v8.8C4 18.39 5.61 20 7.6 20h8.8a3.6 3.6 0 0 0 3.6-3.6V7.6C20 5.61 18.39 4 16.4 4H7.6m9.65 1.5a1.25 1.25 0 0 1 1.25 1.25A1.25 1.25 0 0 1 17.25 8 1.25 1.25 0 0 1 16 6.75a1.25 1.25 0 0 1 1.25-1.25M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3z"/></svg>
+          </a>
+          <a href="https://wa.me/51929742215" class="footer-social-btn" title="WhatsApp">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
+          </a>
+          <a href="mailto:shmuelgonzrbk@gmail.com" class="footer-social-btn" title="Email">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+          </a>
+        </div>
+      </div>
+      <div class="footer-links-grid">
+        <div class="footer-col">
+          <div class="footer-col-title">Producto</div>
+          <a href="https://assendapp.com" class="footer-link">Abrir web app</a>
+          <a href="#descargar" class="footer-link">Descargar Android</a>
+          <a href="#funciones" class="footer-link">Funciones</a>
+          <a href="#como-funciona" class="footer-link">Como funciona</a>
+        </div>
+        <div class="footer-col">
+          <div class="footer-col-title">Soporte</div>
+          <a href="#faq" class="footer-link">Preguntas frecuentes</a>
+          <a href="#guias" class="footer-link">Guias de uso</a>
+          <a href="mailto:shmuelgonzrbk@gmail.com" class="footer-link">Reportar problema</a>
+        </div>
+        <div class="footer-col">
+          <div class="footer-col-title">Proyecto</div>
+          <a href="#" class="footer-link">Acerca de AssendApp</a>
+          <a href="mailto:shmuelgonzrbk@gmail.com" class="footer-link">Contacto</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="footer-bottom-left">
+        <a href="/info/privacidad.html" class="footer-bottom-link">Privacidad</a>
+        <span class="footer-bottom-dot">&middot;</span>
+        <a href="/info/terminos.html" class="footer-bottom-link">Terminos</a>
+        <span class="footer-bottom-dot">&middot;</span>
+        <span class="footer-copyright">&copy; 2026 AssendApp</span>
+      </div>
+      <div class="footer-bottom-right">
+        <button class="footer-lang-btn" onclick="void(0)">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+          Español
+        </button>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Nav scroll effect
+    window.addEventListener('scroll', function() {
+      document.getElementById('nav').classList.toggle('scrolled', window.scrollY > 20);
+    });
+
+    // Tabs
+    function switchTab(tab, btn) {
+      document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+      document.querySelectorAll('.tab-content').forEach(function(c) { c.classList.remove('active'); });
+      document.getElementById('tab-' + tab).classList.add('active');
+      btn.classList.add('active');
+    }
+
+    // FAQ
+    function toggleFaq(el) {
+      el.classList.toggle('open');
+      var a = el.nextElementSibling;
+      a.classList.toggle('open');
+    }
+
+    // Tutorials
+    function toggleTuto(el) {
+      el.classList.toggle('open');
+      var body = el.nextElementSibling;
+      body.classList.toggle('open');
+    }
+
+    // About carousel
+    var _slideIdx = 0;
+    var _slides = document.querySelectorAll('.about-slide');
+    var _dots = document.querySelectorAll('.about-dot');
+    
+    function goSlide(idx) {
+      _slides.forEach(function(s) { s.classList.remove('active'); });
+      _dots.forEach(function(d) { d.classList.remove('active'); });
+      _slideIdx = idx;
+      _slides[idx].classList.add('active');
+      _dots[idx].classList.add('active');
+    }
+    
+    setInterval(function() {
+      _slideIdx = (_slideIdx + 1) % _slides.length;
+      goSlide(_slideIdx);
+    }, 3500);
+
+    // Hero fade on scroll
+    var heroInner = document.querySelector('.hero-inner');
+    window.addEventListener('scroll', function() {
+      var scrollY = window.scrollY;
+      var heroHeight = document.querySelector('.hero').offsetHeight;
+      var progress = Math.min(scrollY / (heroHeight * 0.6), 1);
+      heroInner.style.opacity = 1 - progress;
+      heroInner.style.transform = 'translateY(' + (scrollY * 0.3) + 'px) scale(' + (1 - progress * 0.05) + ')';
+    }, { passive: true });
+  </script>
+</body>
+</html>
