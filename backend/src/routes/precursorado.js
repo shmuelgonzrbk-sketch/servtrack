@@ -41,9 +41,19 @@ router.put('/', auth, async (req, res) => {
 });
 
 router.post('/horas', auth, async (req, res) => {
-  const { horas } = req.body;
-  const mes = new Date().getMonth() + 1;
-  const anio = new Date().getFullYear();
+  const { horas, fecha } = req.body;
+  let mes, anio, fechaRegistro;
+  if (fecha) {
+    const partes = fecha.split('-');
+    anio = parseInt(partes[0]);
+    mes = parseInt(partes[1]);
+    fechaRegistro = fecha + 'T12:00:00';
+  } else {
+    const now = new Date();
+    mes = now.getMonth() + 1;
+    anio = now.getFullYear();
+    fechaRegistro = null;
+  }
   try {
     await pool.query(
       `INSERT INTO registros_horas (usuario_id, horas, mes, anio)
@@ -54,12 +64,20 @@ router.post('/horas', auth, async (req, res) => {
       [req.userId, horas, mes, anio]
     );
 
-    // Registro diario (nuevo) — una fila por cada vez que se registran horas, con hora exacta
-    await pool.query(
-      `INSERT INTO registros_horas_dia (usuario_id, horas, registrado_en)
-       VALUES ($1, $2, NOW())`,
-      [req.userId, horas]
-    );
+    // Registro diario — con fecha específica si se envió, o la hora exacta de ahora
+    if (fechaRegistro) {
+      await pool.query(
+        `INSERT INTO registros_horas_dia (usuario_id, horas, registrado_en)
+         VALUES ($1, $2, $3::timestamp)`,
+        [req.userId, horas, fechaRegistro]
+      );
+    } else {
+      await pool.query(
+        `INSERT INTO registros_horas_dia (usuario_id, horas, registrado_en)
+         VALUES ($1, $2, NOW())`,
+        [req.userId, horas]
+      );
+    }
 
     const total = await pool.query(
       `SELECT COALESCE(horas, 0) as total FROM registros_horas
@@ -117,6 +135,60 @@ router.delete('/horas', auth, async (req, res) => {
       [req.userId, mes, anio]
     );
     res.json({ message: 'Horas reiniciadas' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── HORARIO SEMANAL ──
+router.get('/horario', auth, async (req, res) => {
+  try {
+    const filas = await pool.query(
+      'SELECT dia, turno, horas FROM horario_semanal WHERE usuario_id = $1',
+      [req.userId]
+    );
+    const metaRow = await pool.query(
+      'SELECT meta_semanal_horario FROM precursorado WHERE usuario_id = $1',
+      [req.userId]
+    );
+    const dias = {};
+    filas.rows.forEach(function(f) {
+      if (!dias[f.dia]) dias[f.dia] = {};
+      dias[f.dia][f.turno] = parseFloat(f.horas) || 0;
+    });
+    res.json({
+      dias: dias,
+      meta: metaRow.rows[0] ? parseFloat(metaRow.rows[0].meta_semanal_horario) || 0 : 0
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.put('/horario', auth, async (req, res) => {
+  const { dias, meta } = req.body;
+  try {
+    if (dias && typeof dias === 'object') {
+      for (const dia of Object.keys(dias)) {
+        for (const turno of Object.keys(dias[dia])) {
+          const horas = parseFloat(dias[dia][turno]) || 0;
+          await pool.query(
+            `INSERT INTO horario_semanal (usuario_id, dia, turno, horas)
+             VALUES ($1, $2, $3, $4)
+             ON CONFLICT (usuario_id, dia, turno)
+             DO UPDATE SET horas = EXCLUDED.horas`,
+            [req.userId, dia, turno, horas]
+          );
+        }
+      }
+    }
+    if (typeof meta === 'number') {
+      await pool.query(
+        'UPDATE precursorado SET meta_semanal_horario = $1 WHERE usuario_id = $2',
+        [meta, req.userId]
+      );
+    }
+    res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
