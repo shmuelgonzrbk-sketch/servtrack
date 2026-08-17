@@ -27,37 +27,54 @@ async function programarAvisosVisita({ usuarioId, personaId, nombre, fecha, hora
   const ahora = new Date();
   const temaTxt = pub && pub.trim() ? ` · Tema: ${pub.trim()}` : '';
 
-  let minutosAntesPref = 60;
+  let listaMinutos = [60];
   try {
-    const ajustesRes = await pool.query('SELECT minutos_antes FROM ajustes WHERE usuario_id = $1', [usuarioId]);
-    if (ajustesRes.rows[0] && ajustesRes.rows[0].minutos_antes > 0) {
-      minutosAntesPref = ajustesRes.rows[0].minutos_antes;
-    }
+    const ajustesRes = await pool.query('SELECT recordatorios_minutos FROM ajustes WHERE usuario_id = $1', [usuarioId]);
+    const raw = ajustesRes.rows[0] && ajustesRes.rows[0].recordatorios_minutos;
+    if (Array.isArray(raw) && raw.length > 0) listaMinutos = raw.filter(m => m > 0);
   } catch (e) {}
+  if (listaMinutos.length === 0) listaMinutos = [60];
 
   function formatearMinutos(m) {
     if (m < 60) return `${m} minutos`;
-    if (m % 60 === 0) return m === 60 ? '1 hora' : `${m/60} horas`;
-    return `${Math.floor(m/60)}h ${m%60}min`;
+    if (m < 1440) return (m % 60 === 0) ? (m === 60 ? '1 hora' : `${m/60} horas`) : `${Math.floor(m/60)}h ${m%60}min`;
+    const dias = Math.round(m / 1440);
+    return dias === 1 ? '1 día' : `${dias} días`;
   }
-  const etiquetaTiempo = formatearMinutos(minutosAntesPref);
 
-  const msgsAviso = [
-    `En ${etiquetaTiempo} tienes visita con ${nombre} a las ${hora}. Prepara tu tema.${temaTxt}`,
-    `Recuerda: visita con ${nombre} a las ${hora}. Revisa tus notas.${temaTxt}`,
-    `Falta ${etiquetaTiempo} para tu visita con ${nombre}. No olvides llegar a tiempo.${temaTxt}`,
-    `${nombre} te espera a las ${hora}. Tienes ${etiquetaTiempo} para prepararte.${temaTxt}`,
-  ];
+  function mensajesPara(m, etiqueta) {
+    if (m >= 1440 && m < 2880) {
+      return [
+        `Mañana tienes visita con ${nombre} a las ${hora}. Prepara tu tema.${temaTxt}`,
+        `Recuerda: mañana visitas a ${nombre} a las ${hora}.${temaTxt}`,
+        `Visita con ${nombre} mañana a las ${hora}. Revisa tus notas.${temaTxt}`,
+      ];
+    }
+    if (m >= 1440) {
+      const dias = Math.round(m / 1440);
+      return [
+        `En ${dias} días tendrás visita con ${nombre} a las ${hora}.${temaTxt}`,
+        `Recuerda: en ${dias} días visitas a ${nombre}.${temaTxt}`,
+      ];
+    }
+    return [
+      `En ${etiqueta} tienes visita con ${nombre} a las ${hora}. Prepara tu tema.${temaTxt}`,
+      `Recuerda: visita con ${nombre} a las ${hora}. Revisa tus notas.${temaTxt}`,
+      `Falta ${etiqueta} para tu visita con ${nombre}. No olvides llegar a tiempo.${temaTxt}`,
+      `${nombre} te espera a las ${hora}. Tienes ${etiqueta} para prepararte.${temaTxt}`,
+    ];
+  }
+
+  const avisos = listaMinutos.map(function(m) {
+    const etiqueta = formatearMinutos(m);
+    return { tipo: 'visita_aviso_' + m, minutosAntes: m, titulo: `${nombre} — Visita a las ${hora}`, cuerpo: alAzar(mensajesPara(m, etiqueta)) };
+  });
 
   const msgsUrgente = [
     `Tu visita con ${nombre} es en pocos minutos. Sal ahora.${temaTxt}`,
     `${nombre} te espera pronto. No demores en salir.${temaTxt}`,
     `La visita con ${nombre} a las ${hora} ya casi empieza.${temaTxt}`,
     `Es hora de visitar a ${nombre}. La visita es a las ${hora}.${temaTxt}`,
-  ];
-
-  const avisos = [
-    { tipo: 'visita_aviso', minutosAntes: minutosAntesPref, titulo: `${nombre} — Visita a las ${hora}`, cuerpo: alAzar(msgsAviso) },
   ];
 
   let algunoFuturo = false;
