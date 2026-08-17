@@ -143,15 +143,15 @@ router.delete('/:id', auth, async (req, res) => {
 
 // MARCAR VISITA COMPLETADA (crea registro en historial + limpia proxima visita)
 router.post('/:id/visitas', auth, async (req, res) => {
-  const { publicacion, notas } = req.body;
+  const { publicacion, notas, resultado } = req.body;
   try {
     const check = await pool.query('SELECT id FROM personas WHERE id=$1 AND usuario_id=$2', [req.params.id, req.userId]);
     if (check.rows.length === 0) return res.status(404).json({ error: 'Persona no encontrada' });
 
     const result = await pool.query(
-      `INSERT INTO visitas (persona_id, publicacion, fecha, hora, notas)
-       VALUES ($1, $2, CURRENT_DATE, CURRENT_TIME, $3) RETURNING *`,
-      [req.params.id, publicacion || null, notas || null]
+      `INSERT INTO visitas (persona_id, publicacion, fecha, hora, notas, resultado)
+       VALUES ($1, $2, CURRENT_DATE, CURRENT_TIME, $3, $4) RETURNING *`,
+      [req.params.id, publicacion || null, notas || null, resultado || 'visitado']
     );
 
     await pool.query(
