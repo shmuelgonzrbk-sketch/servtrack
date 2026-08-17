@@ -17,13 +17,13 @@ router.get('/', auth, async (req, res) => {
 });
 
 router.post('/', auth, async (req, res) => {
-  const { titulo, descripcion, fecha, tipo_notificacion } = req.body;
+  const { titulo, descripcion, fecha, tipo_notificacion, icono } = req.body;
   if (!titulo || !fecha) return res.status(400).json({ error: 'Título y fecha son obligatorios' });
   try {
     const result = await pool.query(
-      `INSERT INTO recordatorios_personales (usuario_id, titulo, descripcion, fecha, tipo_notificacion)
-       VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-      [req.userId, titulo, descripcion || null, fecha, tipo_notificacion || 'una_vez']
+      `INSERT INTO recordatorios_personales (usuario_id, titulo, descripcion, fecha, tipo_notificacion, icono)
+       VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+      [req.userId, titulo, descripcion || null, fecha, tipo_notificacion || 'una_vez', icono || 'pin']
     );
     const nuevo = result.rows[0];
     try {
