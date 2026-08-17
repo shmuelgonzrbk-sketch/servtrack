@@ -102,41 +102,42 @@ async function programarAvisosVisita({ usuarioId, personaId, nombre, fecha, hora
   }
 }
 
+function formatearMinutosGenerico(m) {
+  if (m < 60) return `${m} minutos`;
+  if (m < 1440) return (m % 60 === 0) ? (m === 60 ? '1 hora' : `${m/60} horas`) : `${Math.floor(m/60)}h ${m%60}min`;
+  if (m < 10080) {
+    const dias = Math.round(m / 1440);
+    return dias === 1 ? '1 dia' : `${dias} dias`;
+  }
+  const semanas = Math.round(m / 10080);
+  return semanas === 1 ? '1 semana' : `${semanas} semanas`;
+}
+
 async function programarAvisosAsignacion({ usuarioId, asigId, nombreParte, fecha, ayudante, fechaPractica }) {
   await limpiarAvisosPendientes('asignaciones', asigId);
   if (!fecha) return;
 
   const fechaReunion = construirFechaHora(fecha, '09:00');
   const ahora = new Date();
-  const diasHasta = Math.floor((fechaReunion - ahora) / 86400000);
-  const semanas = Math.floor(diasHasta / 7);
 
-  const avisos = [];
-  const push = (dias, titulo, cuerpo) => {
-    const disparo = new Date(fechaReunion.getTime() - dias * 24 * 60 * 60000);
-    if (disparo > ahora) avisos.push({ tipo: `asig_dia${dias}`, titulo, cuerpo, disparo });
-  };
+  let listaMinutos = [1440];
+  try {
+    const asigRes = await pool.query('SELECT recordatorios_minutos FROM asignaciones WHERE id = $1', [asigId]);
+    const raw = asigRes.rows[0] && asigRes.rows[0].recordatorios_minutos;
+    if (Array.isArray(raw) && raw.length > 0) listaMinutos = raw.filter(m => m > 0);
+  } catch (e) {}
+  if (listaMinutos.length === 0) listaMinutos = [1440];
 
-  if (semanas >= 4) {
-    push(28, 'Nueva asignacion asignada', `Ya pensaste en el tema de "${nombreParte}"? Tienes tiempo, empieza a planificar.`);
-    push(21, 'Sigue preparandote', `Como vas con "${nombreParte}"? Esta semana es buen momento para investigar.`);
-    push(14, 'Vas bien, sigue asi', `Ya tienes el bosquejo o los puntos principales de "${nombreParte}"?`);
-    push(7,  'Una semana para tu parte', `Falta una semana para "${nombreParte}". Es hora de practicar en voz alta.`);
-  } else if (semanas >= 3) {
-    push(21, 'Sigue preparandote', `Como vas con "${nombreParte}"? Esta semana es buen momento para investigar.`);
-    push(14, 'Vas bien, sigue asi', `Ya tienes los puntos principales de "${nombreParte}"?`);
-    push(7,  'Una semana para tu parte', `Falta una semana para "${nombreParte}". Es hora de practicar en voz alta.`);
-  } else if (semanas >= 2) {
-    push(14, 'Vas bien, sigue asi', `Ya tienes los puntos principales de "${nombreParte}"?`);
-    push(7,  'Una semana para tu parte', `Falta una semana para "${nombreParte}". Es hora de practicar en voz alta.`);
-  } else if (semanas >= 1) {
-    push(7, 'Una semana para tu parte', `Falta una semana para "${nombreParte}". Es hora de practicar en voz alta.`);
-  }
-
-  push(3, 'Ultimos dias para tu parte', `Ultimos 3 dias para "${nombreParte}". Ultimos ensayos, tu puedes.`);
-  push(2, 'Ya casi es tu parte', `Faltan 2 dias para "${nombreParte}". Repasa tus puntos principales.`);
-  push(1, 'Manana es tu parte', `Tu parte "${nombreParte}" es manana. Confia en tu preparacion.`);
-  push(0, 'Hoy presentas tu parte', `Hoy presentas "${nombreParte}". Mucho exito!`);
+  const avisos = listaMinutos.map(function(m) {
+    const disparo = new Date(fechaReunion.getTime() - m * 60000);
+    const etiqueta = formatearMinutosGenerico(m);
+    let cuerpo;
+    if (m === 0) cuerpo = `Hoy presentas "${nombreParte}". \u00a1Mucho \u00e9xito!`;
+    else if (m < 1440) cuerpo = `En ${etiqueta} tienes tu parte "${nombreParte}". Pr\u00e9parate.`;
+    else if (m < 2880) cuerpo = `Ma\u00f1ana tienes tu parte "${nombreParte}". Conf\u00eda en tu preparaci\u00f3n.`;
+    else cuerpo = `En ${etiqueta} tienes tu parte "${nombreParte}". Es buen momento para repasar.`;
+    return { tipo: `asig_aviso_${m}`, titulo: `Asignaci\u00f3n \u2014 ${nombreParte}`, cuerpo, disparo };
+  }).filter(function(a){ return a.disparo > ahora; });
 
   if (ayudante && fechaPractica) {
     const practicaFecha = construirFechaHora(fechaPractica, '09:00');
@@ -153,28 +154,32 @@ async function programarAvisosAsignacion({ usuarioId, asigId, nombreParte, fecha
       [usuarioId, a.tipo, asigId, a.titulo, a.cuerpo, a.disparo]
     );
   }
-
-  if (avisos.length === 0 && fechaReunion > ahora) {
-    await pool.query(
-      `INSERT INTO notificaciones_programadas
-       (usuario_id, tipo, referencia_tabla, referencia_id, titulo, cuerpo, fecha_disparo)
-       VALUES ($1,'asig_urgente','asignaciones',$2,$3,$4,$5)`,
-      [usuarioId, asigId, 'Tu parte es muy pronto', `Tu parte "${nombreParte}" esta muy cerca. Confia en tu preparacion!`, ahora]
-    );
-  }
 }
 
 async function programarAvisoRecordatorio({ usuarioId, recordatorioId, titulo, descripcion, fecha }) {
-  const disparo = construirFechaHora(fecha, '09:00');
+  const fechaBase = construirFechaHora(fecha, '09:00');
   const ahora = new Date();
-  if (disparo <= ahora) return;
-  const cuerpo = descripcion && descripcion.trim() ? descripcion.trim() : 'Tienes un recordatorio pendiente hoy.';
-  await pool.query(
-    `INSERT INTO notificaciones_programadas
-     (usuario_id, tipo, referencia_tabla, referencia_id, titulo, cuerpo, fecha_disparo)
-     VALUES ($1,'recordatorio_personal','recordatorios_personales',$2,$3,$4,$5)`,
-    [usuarioId, recordatorioId, titulo, cuerpo, disparo]
-  );
+
+  let listaMinutos = [1440];
+  try {
+    const recRes = await pool.query('SELECT recordatorios_minutos FROM recordatorios_personales WHERE id = $1', [recordatorioId]);
+    const raw = recRes.rows[0] && recRes.rows[0].recordatorios_minutos;
+    if (Array.isArray(raw) && raw.length > 0) listaMinutos = raw.filter(m => m > 0);
+  } catch (e) {}
+  if (listaMinutos.length === 0) listaMinutos = [1440];
+
+  const cuerpoBase = descripcion && descripcion.trim() ? descripcion.trim() : 'Tienes un recordatorio pendiente.';
+
+  for (const m of listaMinutos) {
+    const disparo = new Date(fechaBase.getTime() - m * 60000);
+    if (disparo <= ahora) continue;
+    await pool.query(
+      `INSERT INTO notificaciones_programadas
+       (usuario_id, tipo, referencia_tabla, referencia_id, titulo, cuerpo, fecha_disparo)
+       VALUES ($1,$2,'recordatorios_personales',$3,$4,$5,$6)`,
+      [usuarioId, `recordatorio_${m}`, recordatorioId, titulo, cuerpoBase, disparo]
+    );
+  }
 }
 
 module.exports = {
