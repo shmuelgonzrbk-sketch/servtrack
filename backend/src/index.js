@@ -14,6 +14,7 @@ const ajustesRoutes = require('./routes/ajustes');
 const notificacionesRoutes = require('./routes/notificaciones');
 const webpush = require('web-push');
 const reportesRoutes = require('./routes/reportes');
+const recordatoriosRoutes = require('./routes/recordatorios');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -289,6 +290,7 @@ app.use('/api/informes', informesRoutes);
 app.use('/api/experiencias', experienciasRoutes);
 app.use('/api/ajustes', ajustesRoutes);
 app.use('/api/notificaciones', notificacionesRoutes);
+app.use('/api/recordatorios', recordatoriosRoutes);
 
 app.get('/', (req, res) => res.json({ message: 'AssendApp API ✅' }));
 

@@ -55,7 +55,7 @@ async function sendPush(usuarioId, title, body, cardId = null) {
 ================================================================ */
 cron.schedule('* * * * *', async () => {
   try {
-    console.log('🔍 Cron corriendo, hora servidor:', new Date().toString());
+    console.log('Cron corriendo, hora servidor:', new Date().toString());
 
     const pendientes = await pool.query(
       `SELECT id, usuario_id, titulo, cuerpo, referencia_id, referencia_tabla
@@ -65,23 +65,102 @@ cron.schedule('* * * * *', async () => {
        LIMIT 50`
     );
 
-    console.log('📋 Avisos pendientes encontrados:', pendientes.rows.length);
+    console.log('Avisos pendientes encontrados:', pendientes.rows.length);
 
     for (const n of pendientes.rows) {
       const cardId = n.referencia_tabla === 'personas' ? n.referencia_id : null;
       await sendPush(n.usuario_id, n.titulo, n.cuerpo, cardId);
       await pool.query('UPDATE notificaciones_programadas SET enviada = true WHERE id = $1', [n.id]);
+
+      // Recordatorios personales de tipo 'semanal': reprogramar el siguiente aviso automáticamente
+      if (n.referencia_tabla === 'recordatorios_personales') {
+        try {
+          const rec = await pool.query(
+            'SELECT tipo_notificacion, titulo, cuerpo FROM recordatorios_personales WHERE id = $1',
+            [n.referencia_id]
+          );
+          if (rec.rows[0] && rec.rows[0].tipo_notificacion === 'semanal') {
+            const siguienteDisparo = new Date(Date.now() + 7 * 24 * 60 * 60000);
+            await pool.query(
+              `INSERT INTO notificaciones_programadas
+               (usuario_id, tipo, referencia_tabla, referencia_id, titulo, cuerpo, fecha_disparo)
+               VALUES ($1,'recordatorio_personal','recordatorios_personales',$2,$3,$4,$5)`,
+              [n.usuario_id, n.referencia_id, rec.rows[0].titulo, rec.rows[0].cuerpo, siguienteDisparo]
+            );
+          }
+        } catch (e) { console.error('Error reprogramando recordatorio semanal:', e.message); }
+      }
     }
 
     if (pendientes.rows.length > 0) {
-      console.log(`🔔 ${pendientes.rows.length} notificación(es) enviada(s)`);
+      console.log(`${pendientes.rows.length} notificación(es) enviada(s)`);
     }
   } catch (err) {
     console.error('Error en cron de notificaciones programadas:', err.message);
   }
 });
 
-console.log('✅ Cron jobs iniciados');
+console.log('Cron jobs iniciados');
+
+/* ================================================================
+   AUTO-REPROGRAMACION — cada hora revisa visitas vencidas
+   Si la fecha/hora ya pasó y el usuario no editó ni completó,
+   mueve la visita al mismo día de la siguiente semana.
+   Máximo 4 reprogramaciones (4 semanas).
+================================================================ */
+cron.schedule('0 * * * *', async () => {
+  try {
+    const ahora = new Date();
+    
+    // Buscar personas con visita vencida que no fueron editadas recientemente
+    const vencidas = await pool.query(
+      `SELECT p.id, p.usuario_id, p.nombre, p.proxima_visita, p.proxima_visita_hora,
+              p.pub, COALESCE(p.auto_reprogramada, 0) as auto_reprogramada
+       FROM personas p
+       WHERE p.proxima_visita IS NOT NULL
+         AND p.proxima_visita_hora IS NOT NULL
+         AND COALESCE(p.auto_reprogramada, 0) < 4
+         AND (p.proxima_visita + COALESCE(p.proxima_visita_hora, '00:00')::time) < NOW()
+       ORDER BY p.proxima_visita ASC
+       LIMIT 50`
+    );
+
+    if (vencidas.rows.length > 0) {
+      console.log('Auto-reprogramacion: ' + vencidas.rows.length + ' visitas vencidas encontradas');
+    }
+
+    for (const p of vencidas.rows) {
+      // Calcular siguiente semana (mismo día, misma hora, +7 días)
+      const fechaVieja = new Date(p.proxima_visita);
+      const nuevaFecha = new Date(fechaVieja.getTime() + 7 * 24 * 60 * 60 * 1000);
+      const nuevaFechaStr = nuevaFecha.toISOString().split('T')[0];
+      
+      // Actualizar la fecha en la BD
+      await pool.query(
+        `UPDATE personas 
+         SET proxima_visita = $1, 
+             auto_reprogramada = COALESCE(auto_reprogramada, 0) + 1
+         WHERE id = $2`,
+        [nuevaFechaStr, p.id]
+      );
+
+      // Reprogramar notificaciones
+      const { programarAvisosVisita } = require('./notifHelper');
+      await programarAvisosVisita({
+        usuarioId: p.usuario_id,
+        personaId: p.id,
+        nombre: p.nombre,
+        fecha: nuevaFechaStr,
+        hora: p.proxima_visita_hora ? p.proxima_visita_hora.substring(0, 5) : null,
+        pub: p.pub
+      });
+
+      console.log('Reprogramada: ' + p.nombre + ' -> ' + nuevaFechaStr + ' (semana ' + (p.auto_reprogramada + 1) + '/4)');
+    }
+  } catch (err) {
+    console.error('Error en auto-reprogramacion:', err.message);
+  }
+});
 
 /* ================================================================
    Recordatorio de fin de mes para precursores — se queda como estaba,
@@ -93,7 +172,7 @@ cron.schedule('0 20 * * *', async () => {
 
   if (hoy.getDate() !== ultimoDia - 1) return;
 
-  console.log('📅 Recordatorio fin de mes...');
+  console.log('Recordatorio fin de mes...');
   try {
     const usuarios = await pool.query(
         `SELECT pc.usuario_id, COALESCE(SUM(r.horas), 0) as total,
@@ -110,11 +189,11 @@ cron.schedule('0 20 * * *', async () => {
       const falta = u.meta_horas - u.total;
       const msg = falta > 0
         ? `Te faltan ${falta}h para completar tu meta de ${u.meta_horas}h este mes.`
-        : `¡Meta cumplida! Completaste ${u.total}h este mes. 🎉`;
+        : `¡Meta cumplida! Completaste ${u.total}h este mes.`;
 
       await sendPush(
         u.usuario_id,
-        ' Mañana termina el mes',
+        'Manana termina el mes',
         msg
       );
     }

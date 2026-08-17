@@ -1,20 +1,14 @@
 const pool = require('./db/pool');
 
-/**
- * Construye un Date a partir de una fecha "YYYY-MM-DD" y hora "HH:MM",
- * interpretados en hora LOCAL del servidor (que debe tener TZ=America/Lima).
- * Evita el bug de .toISOString() que siempre normaliza a UTC.
- */
 function construirFechaHora(fechaStr, horaStr) {
+  // Siempre interpretar como hora Peru (UTC-5), sin importar timezone del servidor
   const [y, m, d] = fechaStr.split('-').map(Number);
   const [h, min] = (horaStr || '00:00').split(':').map(Number);
-  return new Date(y, m - 1, d, h, min, 0, 0);
+  // Crear fecha en UTC y sumarle 5 horas (Peru = UTC-5)
+  const utcMs = Date.UTC(y, m - 1, d, h + 5, min, 0, 0);
+  return new Date(utcMs);
 }
 
-/**
- * Borra los avisos pendientes (no enviados) de una referencia específica.
- * Se usa antes de reprogramar, para no duplicar si el usuario edita la fecha/hora.
- */
 async function limpiarAvisosPendientes(tabla, referenciaId) {
   await pool.query(
     `DELETE FROM notificaciones_programadas
@@ -23,23 +17,40 @@ async function limpiarAvisosPendientes(tabla, referenciaId) {
   );
 }
 
-/**
- * Programa los avisos de una VISITA (persona): 1h antes, 30min antes,
- * y si ya no hay tiempo para esos dos, un aviso "urgente" inmediato.
- */
+function alAzar(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
 async function programarAvisosVisita({ usuarioId, personaId, nombre, fecha, hora, pub }) {
   await limpiarAvisosPendientes('personas', personaId);
   if (!fecha || !hora) return;
 
   const horaVisita = construirFechaHora(fecha, hora);
   const ahora = new Date();
+  const temaTxt = pub && pub.trim() ? ` · Tema: ${pub.trim()}` : '';
 
-  const temaTxt = pub && pub.trim() ? `. 📌 TEMA PENDIENTE: ${pub.trim().toUpperCase()}` : '';
-  const cuerpoBase = `Tienes visita con ${nombre} a las ${hora}${temaTxt}`;
+  const msgs1h = [
+    `En 1 hora tienes visita con ${nombre} a las ${hora}. Prepara tu tema.${temaTxt}`,
+    `Recuerda: visita con ${nombre} a las ${hora}. Revisa tus notas.${temaTxt}`,
+    `Falta 1 hora para tu visita con ${nombre}. No olvides llegar a tiempo.${temaTxt}`,
+    `${nombre} te espera a las ${hora}. Tienes 1 hora para prepararte.${temaTxt}`,
+  ];
+
+  const msgs30m = [
+    `En 30 minutos tienes visita con ${nombre}. Ya casi es hora.${temaTxt}`,
+    `Faltan 30 min para tu visita con ${nombre} a las ${hora}. Sal con tiempo.${temaTxt}`,
+    `Tu visita con ${nombre} es en 30 minutos. Revisa la direccion.${temaTxt}`,
+    `Casi es hora de visitar a ${nombre}. Faltan 30 minutos.${temaTxt}`,
+  ];
+
+  const msgsUrgente = [
+    `Tu visita con ${nombre} es en pocos minutos. Sal ahora.${temaTxt}`,
+    `${nombre} te espera pronto. No demores en salir.${temaTxt}`,
+    `La visita con ${nombre} a las ${hora} ya casi empieza.${temaTxt}`,
+    `Es hora de visitar a ${nombre}. La visita es a las ${hora}.${temaTxt}`,
+  ];
 
   const avisos = [
-    { tipo: 'visita_1h',  minutosAntes: 60, titulo: '⏰ Visita en 1 hora' },
-    { tipo: 'visita_30m', minutosAntes: 30, titulo: '⏰ Visita en 30 minutos' },
+    { tipo: 'visita_1h',  minutosAntes: 60, titulo: `${nombre} — Visita a las ${hora}`, cuerpo: alAzar(msgs1h) },
+    { tipo: 'visita_30m', minutosAntes: 30, titulo: `${nombre} — En 30 minutos`, cuerpo: alAzar(msgs30m) },
   ];
 
   let algunoFuturo = false;
@@ -52,27 +63,21 @@ async function programarAvisosVisita({ usuarioId, personaId, nombre, fecha, hora
         `INSERT INTO notificaciones_programadas
          (usuario_id, tipo, referencia_tabla, referencia_id, titulo, cuerpo, fecha_disparo)
          VALUES ($1,$2,'personas',$3,$4,$5,$6)`,
-        [usuarioId, aviso.tipo, personaId, aviso.titulo, cuerpoBase, disparo]
+        [usuarioId, aviso.tipo, personaId, aviso.titulo, aviso.cuerpo, disparo]
       );
     }
   }
 
-  // Si ni el de 1h ni el de 30min caben en el futuro (visita muy próxima o "hoy mismo, ya casi"),
-  // programamos un aviso urgente para YA (o para la hora de la visita si aún no llega).
   if (!algunoFuturo && horaVisita > ahora) {
     await pool.query(
       `INSERT INTO notificaciones_programadas
        (usuario_id, tipo, referencia_tabla, referencia_id, titulo, cuerpo, fecha_disparo)
-       VALUES ($1,'visita_urgente','personas',$2,'🚨 ¡Visita muy pronto!',$3,$4)`,
-      [usuarioId, personaId, cuerpoBase, ahora]
+       VALUES ($1,'visita_urgente','personas',$2,$3,$4,$5)`,
+      [usuarioId, personaId, `${nombre} — Visita ahora`, alAzar(msgsUrgente), ahora]
     );
   }
 }
 
-/**
- * Programa los avisos de una ASIGNACIÓN: día 7, 5, 3, 1 antes de la reunión.
- * Si la fecha ya está muy cerca (menos de 1 día), programa solo un aviso motivador inmediato.
- */
 async function programarAvisosAsignacion({ usuarioId, asigId, nombreParte, fecha, ayudante, fechaPractica }) {
   await limpiarAvisosPendientes('asignaciones', asigId);
   if (!fecha) return;
@@ -89,31 +94,31 @@ async function programarAvisosAsignacion({ usuarioId, asigId, nombreParte, fecha
   };
 
   if (semanas >= 4) {
-    push(28, '🗓️ Nueva asignación', `¿Ya pensaste en el tema de "${nombreParte}"? Tienes tiempo, ¡empieza a planificar!`);
-    push(21, '📚 Sigue preparándote', `¿Cómo vas con "${nombreParte}"? Esta semana es buen momento para investigar.`);
-    push(14, '✍️ Vas bien', `¿Ya tienes el bosquejo o los puntos principales de "${nombreParte}"?`);
-    push(7,  '💪 ¡Una semana!', `Falta una semana para "${nombreParte}". Es hora de practicar en voz alta.`);
+    push(28, 'Nueva asignacion asignada', `Ya pensaste en el tema de "${nombreParte}"? Tienes tiempo, empieza a planificar.`);
+    push(21, 'Sigue preparandote', `Como vas con "${nombreParte}"? Esta semana es buen momento para investigar.`);
+    push(14, 'Vas bien, sigue asi', `Ya tienes el bosquejo o los puntos principales de "${nombreParte}"?`);
+    push(7,  'Una semana para tu parte', `Falta una semana para "${nombreParte}". Es hora de practicar en voz alta.`);
   } else if (semanas >= 3) {
-    push(21, '📚 Sigue preparándote', `¿Cómo vas con "${nombreParte}"? Esta semana es buen momento para investigar.`);
-    push(14, '✍️ Vas bien', `¿Ya tienes los puntos principales de "${nombreParte}"?`);
-    push(7,  '💪 ¡Una semana!', `Falta una semana para "${nombreParte}". Es hora de practicar en voz alta.`);
+    push(21, 'Sigue preparandote', `Como vas con "${nombreParte}"? Esta semana es buen momento para investigar.`);
+    push(14, 'Vas bien, sigue asi', `Ya tienes los puntos principales de "${nombreParte}"?`);
+    push(7,  'Una semana para tu parte', `Falta una semana para "${nombreParte}". Es hora de practicar en voz alta.`);
   } else if (semanas >= 2) {
-    push(14, '✍️ Vas bien', `¿Ya tienes los puntos principales de "${nombreParte}"?`);
-    push(7,  '💪 ¡Una semana!', `Falta una semana para "${nombreParte}". Es hora de practicar en voz alta.`);
+    push(14, 'Vas bien, sigue asi', `Ya tienes los puntos principales de "${nombreParte}"?`);
+    push(7,  'Una semana para tu parte', `Falta una semana para "${nombreParte}". Es hora de practicar en voz alta.`);
   } else if (semanas >= 1) {
-    push(7, '💪 ¡Una semana!', `Falta una semana para "${nombreParte}". Es hora de practicar en voz alta.`);
+    push(7, 'Una semana para tu parte', `Falta una semana para "${nombreParte}". Es hora de practicar en voz alta.`);
   }
 
-  push(3, '📖 Últimos días', `¡Últimos 3 días para "${nombreParte}"! Últimos ensayos — tú puedes.`);
-  push(2, '📖 Ya casi', `Faltan 2 días para "${nombreParte}". Repasa tus puntos principales.`);
-  push(1, '💪 ¡Mañana es tu parte!', `Tu parte "${nombreParte}" es mañana. Confía en tu preparación.`);
-  push(0, '🎉 ¡Hoy es tu día!', `Hoy presentas "${nombreParte}". ¡Mucho éxito!`);
+  push(3, 'Ultimos dias para tu parte', `Ultimos 3 dias para "${nombreParte}". Ultimos ensayos, tu puedes.`);
+  push(2, 'Ya casi es tu parte', `Faltan 2 dias para "${nombreParte}". Repasa tus puntos principales.`);
+  push(1, 'Manana es tu parte', `Tu parte "${nombreParte}" es manana. Confia en tu preparacion.`);
+  push(0, 'Hoy presentas tu parte', `Hoy presentas "${nombreParte}". Mucho exito!`);
 
   if (ayudante && fechaPractica) {
     const practicaFecha = construirFechaHora(fechaPractica, '09:00');
     const disparo1 = new Date(practicaFecha.getTime() - 24 * 60 * 60000);
-    if (disparo1 > ahora) avisos.push({ tipo: 'asig_practica_previa', titulo: 'Práctica mañana', cuerpo: `¿Ya coordinaron todo con ${ayudante} para mañana?`, disparo: disparo1 });
-    if (practicaFecha > ahora) avisos.push({ tipo: 'asig_practica_hoy', titulo: '¡Hoy practican!', cuerpo: `Hoy es el día de practicar con ${ayudante}. ¡Mucho éxito!`, disparo: practicaFecha });
+    if (disparo1 > ahora) avisos.push({ tipo: 'asig_practica_previa', titulo: 'Practica manana', cuerpo: `Ya coordinaron todo con ${ayudante} para manana?`, disparo: disparo1 });
+    if (practicaFecha > ahora) avisos.push({ tipo: 'asig_practica_hoy', titulo: 'Hoy practican', cuerpo: `Hoy es el dia de practicar con ${ayudante}. Mucho exito!`, disparo: practicaFecha });
   }
 
   for (const a of avisos) {
@@ -129,14 +134,28 @@ async function programarAvisosAsignacion({ usuarioId, asigId, nombreParte, fecha
     await pool.query(
       `INSERT INTO notificaciones_programadas
        (usuario_id, tipo, referencia_tabla, referencia_id, titulo, cuerpo, fecha_disparo)
-       VALUES ($1,'asig_urgente','asignaciones',$2,'💪 ¡Tu parte es muy pronto!',$3,$4)`,
-      [usuarioId, asigId, `Tu parte "${nombreParte}" está muy cerca. ¡Confía en tu preparación!`, ahora]
+       VALUES ($1,'asig_urgente','asignaciones',$2,$3,$4,$5)`,
+      [usuarioId, asigId, 'Tu parte es muy pronto', `Tu parte "${nombreParte}" esta muy cerca. Confia en tu preparacion!`, ahora]
     );
   }
+}
+
+async function programarAvisoRecordatorio({ usuarioId, recordatorioId, titulo, descripcion, fecha }) {
+  const disparo = construirFechaHora(fecha, '09:00');
+  const ahora = new Date();
+  if (disparo <= ahora) return;
+  const cuerpo = descripcion && descripcion.trim() ? descripcion.trim() : 'Tienes un recordatorio pendiente hoy.';
+  await pool.query(
+    `INSERT INTO notificaciones_programadas
+     (usuario_id, tipo, referencia_tabla, referencia_id, titulo, cuerpo, fecha_disparo)
+     VALUES ($1,'recordatorio_personal','recordatorios_personales',$2,$3,$4,$5)`,
+    [usuarioId, recordatorioId, titulo, cuerpo, disparo]
+  );
 }
 
 module.exports = {
   programarAvisosVisita,
   programarAvisosAsignacion,
+  programarAvisoRecordatorio,
   limpiarAvisosPendientes,
 };
