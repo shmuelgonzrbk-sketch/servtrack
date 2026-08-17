@@ -27,18 +27,26 @@ async function programarAvisosVisita({ usuarioId, personaId, nombre, fecha, hora
   const ahora = new Date();
   const temaTxt = pub && pub.trim() ? ` · Tema: ${pub.trim()}` : '';
 
-  const msgs1h = [
-    `En 1 hora tienes visita con ${nombre} a las ${hora}. Prepara tu tema.${temaTxt}`,
-    `Recuerda: visita con ${nombre} a las ${hora}. Revisa tus notas.${temaTxt}`,
-    `Falta 1 hora para tu visita con ${nombre}. No olvides llegar a tiempo.${temaTxt}`,
-    `${nombre} te espera a las ${hora}. Tienes 1 hora para prepararte.${temaTxt}`,
-  ];
+  let minutosAntesPref = 60;
+  try {
+    const ajustesRes = await pool.query('SELECT minutos_antes FROM ajustes WHERE usuario_id = $1', [usuarioId]);
+    if (ajustesRes.rows[0] && ajustesRes.rows[0].minutos_antes > 0) {
+      minutosAntesPref = ajustesRes.rows[0].minutos_antes;
+    }
+  } catch (e) {}
 
-  const msgs30m = [
-    `En 30 minutos tienes visita con ${nombre}. Ya casi es hora.${temaTxt}`,
-    `Faltan 30 min para tu visita con ${nombre} a las ${hora}. Sal con tiempo.${temaTxt}`,
-    `Tu visita con ${nombre} es en 30 minutos. Revisa la direccion.${temaTxt}`,
-    `Casi es hora de visitar a ${nombre}. Faltan 30 minutos.${temaTxt}`,
+  function formatearMinutos(m) {
+    if (m < 60) return `${m} minutos`;
+    if (m % 60 === 0) return m === 60 ? '1 hora' : `${m/60} horas`;
+    return `${Math.floor(m/60)}h ${m%60}min`;
+  }
+  const etiquetaTiempo = formatearMinutos(minutosAntesPref);
+
+  const msgsAviso = [
+    `En ${etiquetaTiempo} tienes visita con ${nombre} a las ${hora}. Prepara tu tema.${temaTxt}`,
+    `Recuerda: visita con ${nombre} a las ${hora}. Revisa tus notas.${temaTxt}`,
+    `Falta ${etiquetaTiempo} para tu visita con ${nombre}. No olvides llegar a tiempo.${temaTxt}`,
+    `${nombre} te espera a las ${hora}. Tienes ${etiquetaTiempo} para prepararte.${temaTxt}`,
   ];
 
   const msgsUrgente = [
@@ -49,8 +57,7 @@ async function programarAvisosVisita({ usuarioId, personaId, nombre, fecha, hora
   ];
 
   const avisos = [
-    { tipo: 'visita_1h',  minutosAntes: 60, titulo: `${nombre} — Visita a las ${hora}`, cuerpo: alAzar(msgs1h) },
-    { tipo: 'visita_30m', minutosAntes: 30, titulo: `${nombre} — En 30 minutos`, cuerpo: alAzar(msgs30m) },
+    { tipo: 'visita_aviso', minutosAntes: minutosAntesPref, titulo: `${nombre} — Visita a las ${hora}`, cuerpo: alAzar(msgsAviso) },
   ];
 
   let algunoFuturo = false;
