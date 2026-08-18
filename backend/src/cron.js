@@ -53,7 +53,7 @@ async function sendPush(usuarioId, title, body, cardId = null) {
    la persona o asignación (ver notifHelper.js), así que aquí no hay
    ninguna comparación de fechas ni ventanas frágiles.
 ================================================================ */
-cron.schedule('*/5 * * * *', async () => {
+cron.schedule('*/10 10-23,0-6 * * *', async () => {
   try {
     console.log('Cron corriendo, hora servidor:', new Date().toString());
 
@@ -108,7 +108,7 @@ console.log('Cron jobs iniciados');
    mueve la visita al mismo día de la siguiente semana.
    Máximo 4 reprogramaciones (4 semanas).
 ================================================================ */
-cron.schedule('0 * * * *', async () => {
+cron.schedule('0 10-23,0-6 * * *', async () => {
   try {
     const ahora = new Date();
     
