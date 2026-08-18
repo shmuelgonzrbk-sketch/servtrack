@@ -53,7 +53,7 @@ async function sendPush(usuarioId, title, body, cardId = null) {
    la persona o asignación (ver notifHelper.js), así que aquí no hay
    ninguna comparación de fechas ni ventanas frágiles.
 ================================================================ */
-cron.schedule('* * * * *', async () => {
+cron.schedule('*/5 * * * *', async () => {
   try {
     console.log('Cron corriendo, hora servidor:', new Date().toString());
 
