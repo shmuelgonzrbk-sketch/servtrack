@@ -17,4 +17,10 @@ pool.connect()
   .then(() => console.log('✅ Conectado a PostgreSQL'))
   .catch(err => console.error('❌ Error de conexión:', err));
 
+// Evita que una desconexión inesperada de la base (ej. Neon cerrando el socket)
+// tumbe todo el servidor. Sin este listener, Node trata el error como no manejado y se cae.
+pool.on('error', (err) => {
+  console.error('⚠️ Error inesperado en el pool de PostgreSQL (no se cayó el servidor):', err.message);
+});
+
 module.exports = pool;
