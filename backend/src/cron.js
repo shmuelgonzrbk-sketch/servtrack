@@ -108,7 +108,7 @@ console.log('Cron jobs iniciados');
    mueve la visita al mismo día de la siguiente semana.
    Máximo 4 reprogramaciones (4 semanas).
 ================================================================ */
-cron.schedule('0 10-23,0-6 * * *', async () => {
+cron.schedule('0 7-22/2 * * *', async () => {
   try {
     const ahora = new Date();
     
