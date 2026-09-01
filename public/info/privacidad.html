@@ -42,14 +42,67 @@
     .footer-mini { padding: 24px; text-align: center; font-size: 12px; color: #9c9a92; border-top: 1px solid #e8e6e1; }
     .footer-mini a { color: #2e6be6; text-decoration: none; }
     @media (max-width: 480px) { .page-header h1 { font-size: 24px; } .content h2 { font-size: 18px; } }
+      .nav{position:fixed;top:0;left:0;right:0;z-index:999;background:rgba(255,255,255,.92);backdrop-filter:blur(12px);border-bottom:1px solid rgba(0,0,0,.06);padding:0 24px}
+    .nav.scrolled{box-shadow:0 2px 20px rgba(0,0,0,.08)}
+    .nav-inner{max-width:1080px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:56px}
+    .nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+    .nav-logo img{width:32px;height:32px;border-radius:8px}
+    .nav-logo span{font-size:16px;font-weight:800;color:#1a2b40;letter-spacing:-.3px}
+    .nav-links{display:flex;align-items:center;gap:24px}
+    .nav-links a{font-size:13px;font-weight:600;color:#5c5a52;text-decoration:none;transition:color .15s}
+    .nav-links a:hover{color:#1a2b40}
+    .nav-cta{padding:10px 24px;background:#1a2b40;color:#ffffff !important;border-radius:10px;font-size:13px;font-weight:700;text-decoration:none;transition:transform .15s,box-shadow .15s;box-shadow:0 2px 8px rgba(26,43,64,.3)}
+    .nav-cta:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(26,43,64,.4)}
+    .nav-dropdown{position:relative}
+    .nav-drop-trigger{font-size:13px;font-weight:600;color:#5c5a52;text-decoration:none;display:flex;align-items:center;gap:4px;cursor:pointer;transition:color .15s;padding:4px 0}
+    .nav-drop-trigger:hover{color:#1a2b40}
+    .nav-drop-trigger svg{transition:transform .2s}
+    .nav-dropdown:hover .nav-drop-trigger svg{transform:rotate(180deg)}
+    .nav-drop-menu{position:absolute;top:100%;left:50%;transform:translateX(-50%);background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:12px;padding:6px;min-width:190px;box-shadow:0 8px 32px rgba(0,0,0,.1),0 2px 8px rgba(0,0,0,.04);opacity:0;visibility:hidden;transform:translateX(-50%) translateY(8px);transition:opacity .2s,visibility .2s,transform .2s;z-index:1000}
+    .nav-dropdown:hover .nav-drop-menu{opacity:1;visibility:visible;transform:translateX(-50%) translateY(4px)}
+    .nav-drop-menu a{display:block;padding:10px 14px;font-size:13px;font-weight:500;color:#5c5a52;text-decoration:none;border-radius:8px;transition:background .12s,color .12s}
+    .nav-drop-menu a:hover{background:#f4f3f0;color:#1a2b40}
+    @media(max-width:768px){.nav-links a:not(.nav-cta){display:none}.nav-dropdown{display:none}}
   </style>
 </head>
 <body>
 
-  <nav class="nav">
+  <nav class="nav" id="nav">
     <div class="nav-inner">
-      <a href="/info" class="nav-logo"><img src="/img/logotipo.png" alt="AssendApp"><span>AssendApp</span></a>
-      <a href="/info" class="nav-back"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>Volver al inicio</a>
+      <a href="/info/index.html" class="nav-logo">
+        <img src="/img/logotipo.png" alt="AssendApp">
+        <span>AssendApp</span>
+      </a>
+      <div class="nav-links">
+        <a href="/info/index.html" style="font-size:13px;font-weight:600;color:#5c5a52;text-decoration:none;transition:color .15s">Inicio</a>
+        <div class="nav-dropdown">
+          <a href="/info/funciones.html" class="nav-drop-trigger">Funciones <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg></a>
+          <div class="nav-drop-menu">
+            <a href="/info/funciones.html#web">Web</a>
+            <a href="/info/funciones.html#app">App Android</a>
+          </div>
+        </div>
+        <div class="nav-dropdown">
+          <a href="#guias" class="nav-drop-trigger">Guias <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg></a>
+          <div class="nav-drop-menu">
+            <a href="/info/guias/activar-notificaciones.html">Activar notificaciones</a>
+            <a href="/info/guias/compartir-revisitas.html">Compartir revisitas</a>
+            <a href="/info/guias/guardar-gps.html">Guardar ubicacion GPS</a>
+            <a href="/info/guias/registrar-horas.html">Registrar horas</a>
+          </div>
+        </div>
+        <div class="nav-dropdown">
+          <a href="#faq" class="nav-drop-trigger">Ayuda <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg></a>
+          <div class="nav-drop-menu">
+            <a href="#faq">Preguntas frecuentes</a>
+            <a href="mailto:shmuelgonzrbk@gmail.com">Reportar problema</a>
+            <a href="mailto:shmuelgonzrbk@gmail.com">Contacto</a>
+          </div>
+        </div>
+        <div id="navUserArea">
+          <a href="https://assendapp.com" class="nav-cta">Pruebalo gratis</a>
+        </div>
+      </div>
     </div>
   </nav>
 
@@ -359,7 +412,7 @@
   </div>
 
   <div class="footer-mini">
-    <a href="/info">Volver al inicio</a> · <a href="/info/terminos.html">Términos y Condiciones</a> · <a href="https://assendapp.com">assendapp.com</a>
+    <a href="/info/index.html">Volver al inicio</a> · <a href="/info/terminos.html">Términos y Condiciones</a> · <a href="https://assendapp.com">assendapp.com</a>
   </div>
 
 </body>

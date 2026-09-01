@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Donaciones — AssendApp</title>
+  <meta name="description" content="Apoya AssendApp con una donación voluntaria. Mantén el servicio gratuito para todos.">
+  <link rel="icon" href="/img/logotipo.png">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Inter', -apple-system, system-ui, sans-serif; color: #1a1a2e; background: #fff; -webkit-font-smoothing: antialiased; }
+    img { max-width: 100%; height: auto; display: block; }
+
+    /* Nav */
+    .nav { position: fixed; top: 0; left: 0; right: 0; z-index: 999; background: rgba(255,255,255,.92); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(0,0,0,.06); padding: 0 24px; }
+    .nav-inner { max-width: 1080px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; height: 56px; }
+    .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .nav-logo img { width: 32px; height: 32px; border-radius: 8px; }
+    .nav-logo span { font-size: 16px; font-weight: 800; color: #1a2b40; letter-spacing: -.3px; }
+    .nav-back { font-size: 13px; font-weight: 600; color: #5c5a52; text-decoration: none; display: flex; align-items: center; gap: 6px; transition: color .15s; }
+    .nav-back:hover { color: #1a2b40; }
+    .nav-cta { padding: 8px 20px; background: #1a2b40; color: #fff !important; border-radius: 10px; font-size: 13px; font-weight: 700; text-decoration: none; margin-left: 16px; }
+
+    /* Hero */
+    .hero {
+      padding: 100px 24px 56px;
+      background: linear-gradient(160deg, #fff8ee 0%, #fff5f0 50%, #fef0f2 100%);
+      text-align: center;
+    }
+    .hero-icon {
+      width: 72px; height: 72px; border-radius: 22px;
+      background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 24px;
+      box-shadow: 0 8px 32px rgba(238,90,36,.2);
+    }
+    .hero h1 { font-size: 36px; font-weight: 900; color: #1a2b40; letter-spacing: -.5px; margin-bottom: 10px; }
+    .hero p { font-size: 16px; color: #6b6961; max-width: 460px; margin: 0 auto; line-height: 1.7; }
+
+    /* Container */
+    .container { max-width: 700px; margin: 0 auto; padding: 0 24px; }
+
+    /* Section */
+    .section { padding: 56px 24px; }
+    .section-gray { background: #f8f7f5; }
+    .section-tag { display: inline-block; padding: 6px 14px; background: #eef3fa; color: #2e6be6; border-radius: 99px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 16px; }
+    .section-title { font-size: 24px; font-weight: 900; color: #1a2b40; letter-spacing: -.3px; margin-bottom: 8px; }
+    .section-sub { font-size: 14px; color: #9c9a92; margin-bottom: 32px; line-height: 1.6; }
+
+    /* Why donate */
+    .why-grid {
+      display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px;
+      margin-bottom: 16px;
+    }
+    .why-card {
+      background: #fff; border: 1px solid #e8e6e1; border-radius: 18px;
+      padding: 28px 20px; text-align: center;
+      transition: transform .15s, box-shadow .15s;
+    }
+    .why-card:hover { transform: translateY(-4px); box-shadow: 0 8px 32px rgba(0,0,0,.06); }
+    .why-icon {
+      width: 48px; height: 48px; border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 14px;
+    }
+    .why-icon svg { width: 24px; height: 24px; }
+    .why-title { font-size: 15px; font-weight: 700; color: #1a2b40; margin-bottom: 6px; }
+    .why-desc { font-size: 12px; color: #6b6961; line-height: 1.6; }
+
+    /* Costs */
+    .costs-list {
+      display: flex; flex-direction: column; gap: 12px;
+    }
+    .cost-item {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 22px;
+      background: #fff; border: 1px solid #e8e6e1; border-radius: 16px;
+    }
+    .cost-left { display: flex; align-items: center; gap: 14px; }
+    .cost-icon {
+      width: 42px; height: 42px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .cost-icon svg { width: 20px; height: 20px; }
+    .cost-name { font-size: 14px; font-weight: 700; color: #1a2b40; }
+    .cost-detail { font-size: 12px; color: #9c9a92; margin-top: 2px; }
+    .cost-type {
+      font-size: 11px; font-weight: 700; padding: 4px 12px;
+      border-radius: 8px; text-transform: uppercase; letter-spacing: .3px;
+      flex-shrink: 0;
+    }
+    .type-monthly { background: #eef3fa; color: #2e6be6; }
+    .type-annual { background: #f3e5f5; color: #7b1fa2; }
+    .type-once { background: #edf7ef; color: #1e7e34; }
+    .type-ongoing { background: #fff8ee; color: #a0660a; }
+
+    /* Donate methods */
+    .donate-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+      max-width: 500px; margin: 0 auto;
+    }
+    .donate-card {
+      background: #fff; border: 1.5px solid #e8e6e1; border-radius: 20px;
+      padding: 28px 24px; text-align: center;
+      transition: transform .15s, box-shadow .15s, border-color .15s;
+      cursor: pointer;
+    }
+    .donate-card:hover { transform: translateY(-4px); box-shadow: 0 8px 32px rgba(0,0,0,.06); border-color: #2e6be6; }
+    .donate-card-logo {
+      width: 56px; height: 56px; border-radius: 16px;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 16px;
+      font-size: 28px; font-weight: 900;
+    }
+    .donate-card-name { font-size: 18px; font-weight: 800; color: #1a2b40; margin-bottom: 4px; }
+    .donate-card-number { font-size: 14px; color: #6b6961; margin-bottom: 16px; }
+    .donate-qr {
+      max-height: 0; overflow: hidden;
+      transition: max-height .35s cubic-bezier(.4,0,.2,1);
+    }
+    .donate-qr.open { max-height: 250px; margin-top: 12px; }
+    .donate-qr img {
+      width: 180px; height: 180px;
+      border-radius: 16px; border: 1px solid #e8e6e1;
+      padding: 10px; background: #fff;
+      margin: 0 auto;
+    }
+    .donate-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 18px; background: #f4f3f0; border-radius: 10px;
+      font-size: 12px; font-weight: 700; color: #1a2b40;
+      border: none; cursor: pointer; font-family: inherit;
+      transition: background .15s;
+    }
+    .donate-btn:hover { background: #eef3fa; color: #2e6be6; }
+
+    /* Transparency */
+    .trans-box {
+      background: #fff; border: 1.5px solid #e8e6e1; border-radius: 20px;
+      padding: 32px; max-width: 500px; margin: 0 auto;
+    }
+    .trans-item {
+      display: flex; align-items: flex-start; gap: 12px;
+      padding: 12px 0;
+    }
+    .trans-item:not(:last-child) { border-bottom: 1px solid #f0eeeb; }
+    .trans-item svg { flex-shrink: 0; margin-top: 2px; }
+    .trans-item p { font-size: 14px; color: #5c5a52; line-height: 1.7; }
+    .trans-item strong { color: #1a2b40; }
+
+    /* Thanks */
+    .thanks-box {
+      max-width: 500px; margin: 0 auto;
+      background: linear-gradient(135deg, #1a2b40, #2e6be6);
+      border-radius: 24px; padding: 40px 32px;
+      text-align: center; position: relative; overflow: hidden;
+    }
+    .thanks-box::before { content: ''; position: absolute; top: -40px; right: -40px; width: 150px; height: 150px; border-radius: 50%; background: rgba(255,255,255,.05); }
+    .thanks-box h3 { font-size: 22px; font-weight: 900; color: #fff; margin-bottom: 10px; position: relative; z-index: 1; }
+    .thanks-box p { font-size: 14px; color: rgba(255,255,255,.6); line-height: 1.7; position: relative; z-index: 1; max-width: 380px; margin: 0 auto 24px; }
+    .thanks-btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 14px 28px; background: #fff; color: #1a2b40;
+      border-radius: 14px; font-size: 14px; font-weight: 700;
+      text-decoration: none; transition: transform .15s;
+      position: relative; z-index: 1;
+    }
+    .thanks-btn:hover { transform: translateY(-2px); }
+
+    /* Footer mini */
+    .footer-mini { padding: 24px; text-align: center; font-size: 12px; color: #9c9a92; border-top: 1px solid #e8e6e1; }
+    .footer-mini a { color: #2e6be6; text-decoration: none; }
+
+    @media (max-width: 768px) {
+      .why-grid { grid-template-columns: 1fr; max-width: 400px; margin: 0 auto 16px; }
+      .donate-grid { grid-template-columns: 1fr; max-width: 320px; }
+      .hero h1 { font-size: 28px; }
+    }
+      .nav{position:fixed;top:0;left:0;right:0;z-index:999;background:rgba(255,255,255,.92);backdrop-filter:blur(12px);border-bottom:1px solid rgba(0,0,0,.06);padding:0 24px}
+    .nav.scrolled{box-shadow:0 2px 20px rgba(0,0,0,.08)}
+    .nav-inner{max-width:1080px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:56px}
+    .nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+    .nav-logo img{width:32px;height:32px;border-radius:8px}
+    .nav-logo span{font-size:16px;font-weight:800;color:#1a2b40;letter-spacing:-.3px}
+    .nav-links{display:flex;align-items:center;gap:24px}
+    .nav-links a{font-size:13px;font-weight:600;color:#5c5a52;text-decoration:none;transition:color .15s}
+    .nav-links a:hover{color:#1a2b40}
+    .nav-cta{padding:10px 24px;background:#1a2b40;color:#ffffff !important;border-radius:10px;font-size:13px;font-weight:700;text-decoration:none;transition:transform .15s,box-shadow .15s;box-shadow:0 2px 8px rgba(26,43,64,.3)}
+    .nav-cta:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(26,43,64,.4)}
+    .nav-dropdown{position:relative}
+    .nav-drop-trigger{font-size:13px;font-weight:600;color:#5c5a52;text-decoration:none;display:flex;align-items:center;gap:4px;cursor:pointer;transition:color .15s;padding:4px 0}
+    .nav-drop-trigger:hover{color:#1a2b40}
+    .nav-drop-trigger svg{transition:transform .2s}
+    .nav-dropdown:hover .nav-drop-trigger svg{transform:rotate(180deg)}
+    .nav-drop-menu{position:absolute;top:100%;left:50%;transform:translateX(-50%);background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:12px;padding:6px;min-width:190px;box-shadow:0 8px 32px rgba(0,0,0,.1),0 2px 8px rgba(0,0,0,.04);opacity:0;visibility:hidden;transform:translateX(-50%) translateY(8px);transition:opacity .2s,visibility .2s,transform .2s;z-index:1000}
+    .nav-dropdown:hover .nav-drop-menu{opacity:1;visibility:visible;transform:translateX(-50%) translateY(4px)}
+    .nav-drop-menu a{display:block;padding:10px 14px;font-size:13px;font-weight:500;color:#5c5a52;text-decoration:none;border-radius:8px;transition:background .12s,color .12s}
+    .nav-drop-menu a:hover{background:#f4f3f0;color:#1a2b40}
+    @media(max-width:768px){.nav-links a:not(.nav-cta){display:none}.nav-dropdown{display:none}}
+  </style>
+</head>
+<body>
+
+  <nav class="nav" id="nav">
+    <div class="nav-inner">
+      <a href="/info/index.html" class="nav-logo">
+        <img src="/img/logotipo.png" alt="AssendApp">
+        <span>AssendApp</span>
+      </a>
+      <div class="nav-links">
+        <a href="/info/index.html" style="font-size:13px;font-weight:600;color:#5c5a52;text-decoration:none;transition:color .15s">Inicio</a>
+        <div class="nav-dropdown">
+          <a href="/info/funciones.html" class="nav-drop-trigger">Funciones <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg></a>
+          <div class="nav-drop-menu">
+            <a href="/info/funciones.html#web">Web</a>
+            <a href="/info/funciones.html#app">App Android</a>
+          </div>
+        </div>
+        <div class="nav-dropdown">
+          <a href="#guias" class="nav-drop-trigger">Guias <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg></a>
+          <div class="nav-drop-menu">
+            <a href="/info/guias/activar-notificaciones.html">Activar notificaciones</a>
+            <a href="/info/guias/compartir-revisitas.html">Compartir revisitas</a>
+            <a href="/info/guias/guardar-gps.html">Guardar ubicacion GPS</a>
+            <a href="/info/guias/registrar-horas.html">Registrar horas</a>
+          </div>
+        </div>
+        <div class="nav-dropdown">
+          <a href="#faq" class="nav-drop-trigger">Ayuda <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg></a>
+          <div class="nav-drop-menu">
+            <a href="#faq">Preguntas frecuentes</a>
+            <a href="mailto:shmuelgonzrbk@gmail.com">Reportar problema</a>
+            <a href="mailto:shmuelgonzrbk@gmail.com">Contacto</a>
+          </div>
+        </div>
+        <div id="navUserArea">
+          <a href="https://assendapp.com" class="nav-cta">Pruebalo gratis</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-icon">
+      <svg viewBox="0 0 24 24" width="36" height="36" fill="#fff"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+    </div>
+    <h1>Apoya AssendApp</h1>
+    <p>Tu donación nos ayuda a mantener el servicio gratuito para todos los publicadores. Cada aporte cuenta.</p>
+  </section>
+
+  <!-- Por qué donar -->
+  <section class="section">
+    <div class="container">
+      <div style="text-align:center">
+        <div class="section-tag">Por qué donar</div>
+        <h2 class="section-title">AssendApp es gratuita gracias a ti</h2>
+        <p class="section-sub">No hay anuncios, no hay planes de pago, no hay datos vendidos. El proyecto se mantiene con el apoyo voluntario de usuarios como tú.</p>
+      </div>
+      <div class="why-grid">
+        <div class="why-card">
+          <div class="why-icon" style="background:#edf7ef"><svg viewBox="0 0 24 24" fill="#27ae60"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></div>
+          <div class="why-title">100% gratuita</div>
+          <div class="why-desc">Sin anuncios, sin compras, sin límites. Para todos por igual.</div>
+        </div>
+        <div class="why-card">
+          <div class="why-icon" style="background:#eef3fa"><svg viewBox="0 0 24 24" fill="#2e6be6"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z"/></svg></div>
+          <div class="why-title">Servidores activos</div>
+          <div class="why-desc">Tus datos necesitan servidores que funcionan 24/7 todo el año.</div>
+        </div>
+        <div class="why-card">
+          <div class="why-icon" style="background:#f3e5f5"><svg viewBox="0 0 24 24" fill="#7b1fa2"><path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/></svg></div>
+          <div class="why-title">Desarrollo continuo</div>
+          <div class="why-desc">Cientos de horas de trabajo para crear nuevas funciones y mejorar la app.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Costos reales -->
+  <section class="section section-gray">
+    <div class="container">
+      <div style="text-align:center">
+        <div class="section-tag">Transparencia</div>
+        <h2 class="section-title">Costos reales del proyecto</h2>
+        <p class="section-sub">Esto es lo que cuesta mantener AssendApp funcionando</p>
+      </div>
+      <div class="costs-list">
+        <div class="cost-item">
+          <div class="cost-left">
+            <div class="cost-icon" style="background:#eef3fa"><svg viewBox="0 0 24 24" fill="#2e6be6"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93z"/></svg></div>
+            <div>
+              <div class="cost-name">Dominio assendapp.com</div>
+              <div class="cost-detail">Cloudflare — nombre y certificado SSL</div>
+            </div>
+          </div>
+          <div class="cost-type type-annual">Anual</div>
+        </div>
+        <div class="cost-item">
+          <div class="cost-left">
+            <div class="cost-icon" style="background:#f3e5f5"><svg viewBox="0 0 24 24" fill="#7b1fa2"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z"/></svg></div>
+            <div>
+              <div class="cost-name">Servidores</div>
+              <div class="cost-detail">Render (backend) + Neon (base de datos) + Vercel (frontend)</div>
+            </div>
+          </div>
+          <div class="cost-type type-monthly">Mensual</div>
+        </div>
+        <div class="cost-item">
+          <div class="cost-left">
+            <div class="cost-icon" style="background:#edf7ef"><svg viewBox="0 0 24 24" fill="#27ae60"><path d="M17 1.01L7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14z"/></svg></div>
+            <div>
+              <div class="cost-name">Google Play Store</div>
+              <div class="cost-detail">Licencia de desarrollador para publicar la app Android</div>
+            </div>
+          </div>
+          <div class="cost-type type-once">Único</div>
+        </div>
+        <div class="cost-item">
+          <div class="cost-left">
+            <div class="cost-icon" style="background:#fff8ee"><svg viewBox="0 0 24 24" fill="#a0660a"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z"/></svg></div>
+            <div>
+              <div class="cost-name">Desarrollo</div>
+              <div class="cost-detail">Cientos de horas de programación, diseño y mantenimiento</div>
+            </div>
+          </div>
+          <div class="cost-type type-ongoing">Continuo</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Cómo donar -->
+  <section class="section" id="donar">
+    <div class="container">
+      <div style="text-align:center">
+        <div class="section-tag">Donar</div>
+        <h2 class="section-title">Cómo puedes apoyarnos</h2>
+        <p class="section-sub">Elige el método que te resulte más cómodo. Cualquier monto es bienvenido.</p>
+      </div>
+      <div class="donate-grid">
+        <div class="donate-card" onclick="toggleQR('yape')">
+          <div class="donate-card-logo" style="background:linear-gradient(135deg,#6b21a8,#9333ea);color:#fff">Y</div>
+          <div class="donate-card-name">Yape</div>
+          <div class="donate-card-number">929 742 215</div>
+          <button class="donate-btn">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M3 3h7v2H5v4H3V3zm18 0h-7v2h5v4h2V3zM3 21h7v-2H5v-4H3v6zm18 0h-7v-2h5v-4h2v6zM7 7h10v10H7V7z"/></svg>
+            Ver QR
+          </button>
+          <div class="donate-qr" id="qr-yape">
+            <img src="/img/qr.png" alt="QR Yape">
+          </div>
+        </div>
+        <div class="donate-card" onclick="toggleQR('plin')">
+          <div class="donate-card-logo" style="background:linear-gradient(135deg,#00b4d8,#0077b6);color:#fff">P</div>
+          <div class="donate-card-name">Plin</div>
+          <div class="donate-card-number">929 742 215</div>
+          <button class="donate-btn">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M3 3h7v2H5v4H3V3zm18 0h-7v2h5v4h2V3zM3 21h7v-2H5v-4H3v6zm18 0h-7v-2h5v-4h2v6zM7 7h10v10H7V7z"/></svg>
+            Ver QR
+          </button>
+          <div class="donate-qr" id="qr-plin">
+            <img src="/img/qr.png" alt="QR Plin">
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Transparencia -->
+  <section class="section section-gray">
+    <div class="container">
+      <div style="text-align:center">
+        <div class="section-tag">Compromiso</div>
+        <h2 class="section-title">Transparencia total</h2>
+        <p class="section-sub">Queremos que sepas exactamente cómo se usa tu aporte</p>
+      </div>
+      <div class="trans-box">
+        <div class="trans-item">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="#27ae60" style="flex-shrink:0;margin-top:2px"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+          <p><strong>Cada donación se usa exclusivamente</strong> para mantener los servidores activos, renovar el dominio y seguir desarrollando nuevas funciones.</p>
+        </div>
+        <div class="trans-item">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="#27ae60" style="flex-shrink:0;margin-top:2px"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+          <p><strong>No hay fines de lucro.</strong> AssendApp es un proyecto personal creado para servir a la congregación, no para generar dinero.</p>
+        </div>
+        <div class="trans-item">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="#27ae60" style="flex-shrink:0;margin-top:2px"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+          <p><strong>Las donaciones son 100% voluntarias.</strong> No otorgan privilegios ni funciones extra. La app es igual para todos, done o no done.</p>
+        </div>
+        <div class="trans-item">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="#27ae60" style="flex-shrink:0;margin-top:2px"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+          <p><strong>Tu donación mantiene la app viva.</strong> Gracias a personas como tú, AssendApp puede seguir siendo gratuita para miles de publicadores.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Gracias -->
+  <section class="section">
+    <div class="container">
+      <div class="thanks-box">
+        <h3>Gracias por tu apoyo</h3>
+        <p>Cada donación, por pequeña que sea, nos motiva a seguir mejorando AssendApp. Tu generosidad hace posible que esta herramienta siga siendo gratuita para todos los publicadores.</p>
+        <a href="https://assendapp.com" class="thanks-btn">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+          Abrir AssendApp
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <div class="footer-mini">
+    <a href="/info/index.html">Inicio</a> · <a href="/info/funciones.html">Funciones</a> · <a href="/info/ayuda.html">Ayuda</a> · <a href="/info/privacidad.html">Privacidad</a> · <a href="https://assendapp.com">assendapp.com</a>
+  </div>
+
+  <script>
+    function toggleQR(id) {
+      var el = document.getElementById('qr-' + id);
+      el.classList.toggle('open');
+    }
+  </script>
+
+</body>
+</html>

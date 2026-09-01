@@ -22,8 +22,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <link rel="icon" type="image/png" href="/img/logotipo.png"/>
-  <link rel="manifest" href="/manifest.json"/>
-  <link rel="apple-touch-icon" href="/img/icon-192.png"/>
 
   <script type="application/ld+json">
   {
@@ -128,10 +126,10 @@
         Inicio
       </div>
       <div class="dnav-item" id="dnav-home" onclick="goTo('home')">
-        <svg class="dnav-icon" viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+        <svg class="dnav-icon" viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
         Cursos y Revisitas
       </div>
-      <div class="dnav-item dnav-item-toggle" id="dnavPrecToggle" onclick="toggleDrawerPrecursorado()" style="justify-content:space-between">
+      <div class="dnav-item" onclick="toggleDrawerPrecursorado()" style="justify-content:space-between">
         <div style="display:flex;align-items:center;gap:12px">
           <svg class="dnav-icon" viewBox="0 0 24 24"><path d="M20 6h-4V4c0-1.1-.9-2-2-2h-4c-1.1 0-2 .9-2 2v2H4c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zM10 4h4v2h-4V4zm10 15H4V8h16v11z"/></svg>
           Precursorado
@@ -140,11 +138,11 @@
       </div>
       <div id="dnavPrecSub" style="display:none;flex-direction:column">
         <div class="dnav-item" id="dnav-precursorado" onclick="goTo('precursorado')" style="padding-left:44px;font-size:13px;display:flex;align-items:center;gap:10px">
-          <svg class="dnav-subicon" width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z"/></svg>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z"/></svg>
           Horas
         </div>
         <div class="dnav-item" id="dnav-horario" onclick="goTo('horario')" style="padding-left:44px;font-size:13px;display:flex;align-items:center;gap:10px">
-          <svg class="dnav-subicon" width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11z"/></svg>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM9 10H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2z"/></svg>
           Horario
         </div>
       </div>
@@ -284,7 +282,7 @@
     </div>
     <div class="form-body">
       <div class="fgroup"><label id="lbl-nombre">Nombre completo *</label><input id="fNombre" type="text" placeholder="Nombre y apellido"/></div>
-      <div class="fgroup"><label>Territorio</label><input id="fTerritorio" type="text" placeholder="Territorio..."/></div>
+      <div class="fgroup"><label>Territorio</label><input id="fTerritorio" type="text" placeholder=""/></div>
       <div class="fgroup"><label id="lbl-dir">Dirección</label><input id="fDir" type="text" placeholder="Calle, número, piso…"/></div>
 
       <!-- GPS -->
@@ -334,22 +332,6 @@
         </select>
       </div>
       <div class="fgroup"><label id="lbl-notas">Notas</label><textarea id="fNotas" placeholder="Observaciones, preguntas, temas de interés…"></textarea></div>
-
-      <div class="fgroup">
-        <label>Color de etiqueta</label>
-        <div class="pal-dots" id="fColorDots" style="margin-bottom:4px">
-          <button type="button" onclick="seleccionarColorEtiqueta('f','#ff8a80')" class="cdot" data-c="#ff8a80" style="background:#ff8a80" title="Rojo suave"></button>
-          <button type="button" onclick="seleccionarColorEtiqueta('f','#ffd54f')" class="cdot" data-c="#ffd54f" style="background:#ffd54f" title="Plátano"></button>
-          <button type="button" onclick="seleccionarColorEtiqueta('f','#a5d6a7')" class="cdot" data-c="#a5d6a7" style="background:#a5d6a7" title="Verde claro"></button>
-          <button type="button" onclick="seleccionarColorEtiqueta('f','#90caf9')" class="cdot" data-c="#90caf9" style="background:#90caf9" title="Azul suave"></button>
-          <button type="button" onclick="seleccionarColorEtiqueta('f','#ce93d8')" class="cdot" data-c="#ce93d8" style="background:#ce93d8" title="Morado suave"></button>
-          <button type="button" onclick="seleccionarColorEtiqueta('f','#ffab91')" class="cdot" data-c="#ffab91" style="background:#ffab91" title="Durazno"></button>
-          <button type="button" onclick="toggleColorPickerInline('f')" style="width:30px;height:30px;border-radius:50%;border:1.5px dashed var(--border-dk);background:var(--bg);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0" title="Elegir color personalizado">
-            <svg viewBox="0 0 24 24" width="15" height="15" fill="var(--tx3)"><path d="M20.71 5.63l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-3.12 3.12L11.5 4.08c-.39-.39-1.02-.39-1.41 0L8.68 5.5c-.39.39-.39 1.02 0 1.41l2.33 2.33L2.5 17.75V21h3.25l8.49-8.49 2.33 2.33c.39.39 1.02.39 1.41 0l1.41-1.41c.39-.39.39-1.02 0-1.41l-2.33-2.33 3.12-3.12c.4-.4.4-1.03.02-1.42zM4.92 19L4 18.08l8.06-8.06.92.92L4.92 19z"/></svg>
-          </button>
-        </div>
-        <input type="hidden" id="fColor" value=""/>
-      </div>
 
       <input type="hidden" id="fId"/>
       <button class="btn-save" id="saveBtn" onclick="saveCard()">Guardar</button>

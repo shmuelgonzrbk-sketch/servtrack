@@ -81,7 +81,7 @@
 
     /* ═══ HERO ═══ */
     .hero {
-      padding: 120px 24px 80px;
+      padding: clamp(70px, 12vw, 120px) clamp(20px, 4vw, 24px) clamp(50px, 8vw, 80px);
       background: linear-gradient(160deg, #f8f9ff 0%, #eef3fa 40%, #e8eff7 100%);
       overflow: hidden;
       position: sticky;
@@ -101,7 +101,7 @@
       margin-bottom: 20px;
     }
     .hero h1 {
-      font-size: 52px; font-weight: 900; color: #1a2b40;
+      font-size: clamp(30px, 5.5vw, 52px); font-weight: 900; color: #1a2b40;
       line-height: 1.1; letter-spacing: -1px; margin-bottom: 16px;
     }
     .hero h1 span { color: #2e6be6; }
@@ -131,25 +131,60 @@
     .hero-phone {
       flex-shrink: 0; width: 340px; position: relative;
     }
+    .hero-glow {
+      position: absolute; inset: -30px;
+      background: radial-gradient(circle, rgba(46,107,230,.18), transparent 65%);
+      filter: blur(24px);
+      z-index: 0;
+    }
+    .hero-phone-wrap {
+      position: relative; z-index: 1;
+    }
     .phone-frame {
-      background: #1a1a2e;
-      border-radius: 36px;
-      padding: 12px;
-      box-shadow: 0 20px 60px rgba(0,0,0,.18), 0 4px 16px rgba(0,0,0,.1);
+      background: linear-gradient(160deg, #2a2d3a 0%, #16171f 100%);
+      border-radius: 44px;
+      padding: 14px;
+      box-shadow:
+        0 30px 70px rgba(0,0,0,.28),
+        0 8px 24px rgba(0,0,0,.15),
+        inset 0 0 0 1.5px rgba(255,255,255,.06);
       position: relative;
     }
+    .phone-frame::before,
+    .phone-frame::after {
+      content: '';
+      position: absolute;
+      background: #16171f;
+      border-radius: 3px;
+    }
+    .phone-frame::before {
+      left: -3px; top: 90px; width: 3px; height: 46px;
+    }
+    .phone-frame::after {
+      right: -3px; top: 120px; width: 3px; height: 64px;
+    }
     .phone-notch {
-      width: 100px; height: 24px;
-      background: #1a1a2e;
-      border-radius: 0 0 16px 16px;
-      position: absolute; top: 0; left: 50%;
+      width: 90px; height: 26px;
+      background: #0a0b10;
+      border-radius: 20px;
+      position: absolute; top: 22px; left: 50%;
       transform: translateX(-50%);
       z-index: 2;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.04);
     }
     .phone-screen {
-      border-radius: 24px;
+      border-radius: 32px;
       overflow: hidden;
       background: #f4f3f0;
+      position: relative;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.03);
+    }
+    .phone-screen::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,.08) 0%, transparent 30%);
+      pointer-events: none;
+      z-index: 3;
     }
     .phone-screen img {
       width: 100%;
@@ -181,7 +216,7 @@
       border-radius: 99px; font-size: 11px; font-weight: 700;
       text-transform: uppercase; letter-spacing: .5px; margin-bottom: 12px;
     }
-    .section-title { font-size: 32px; font-weight: 900; color: #1a2b40; letter-spacing: -.5px; margin-bottom: 8px; }
+    .section-title { font-size: clamp(22px, 3.2vw, 32px); font-weight: 900; color: #1a2b40; letter-spacing: -.5px; margin-bottom: 8px; }
     .section-sub { font-size: 15px; color: #9c9a92; max-width: 500px; margin: 0 auto; line-height: 1.6; }
 
     /* ═══ PROBLEMA / SOLUCION ═══ */
@@ -432,7 +467,7 @@
       .hero h1 { font-size: 34px; }
       .hero-desc { margin: 0 auto 28px; }
       .hero-buttons { justify-content: center; }
-      .hero-phone { width: 220px; margin: 0 auto; }
+      .hero-phone { display: none; }
       .nav-links a:not(.nav-cta) { display: none; }
       .nav-dropdown { display: none; }
       .problem-grid { grid-template-columns: 1fr; }
@@ -633,32 +668,39 @@
       .about-checks { align-items: center; }
       .about-check { text-align: left; }
     }
+    @keyframes ddFade {
+      from { opacity: 0; transform: translateY(-8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    #userDropdown div:hover { background: #f8f7f5; }
   </style>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
 
   <!-- ═══ NAV ═══ -->
   <nav class="nav" id="nav">
     <div class="nav-inner">
-      <a href="/info" class="nav-logo">
+      <a href="/info/index.html" class="nav-logo">
         <img src="/img/logotipo.png" alt="AssendApp">
         <span>AssendApp</span>
       </a>
       <div class="nav-links">
+        <a href="/info/index.html" style="font-size:13px;font-weight:600;color:#5c5a52;text-decoration:none;transition:color .15s">Inicio</a>
         <div class="nav-dropdown">
-          <a href="#funciones" class="nav-drop-trigger">Funciones <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg></a>
+          <a href="/info/funciones.html" class="nav-drop-trigger">Funciones <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg></a>
           <div class="nav-drop-menu">
-            <a href="#funciones" onclick="switchTab('web',document.querySelector('.tab-btn'))">Web</a>
-            <a href="#funciones" onclick="switchTab('app',document.querySelectorAll('.tab-btn')[1])">App Android</a>
+            <a href="/info/funciones.html#web">Web</a>
+            <a href="/info/funciones.html#app">App Android</a>
           </div>
         </div>
         <div class="nav-dropdown">
           <a href="#guias" class="nav-drop-trigger">Guias <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg></a>
           <div class="nav-drop-menu">
-            <a href="#guias">Activar notificaciones</a>
-            <a href="#guias">Compartir revisitas</a>
-            <a href="#guias">Guardar ubicacion GPS</a>
-            <a href="#guias">Registrar horas</a>
+            <a href="/info/guias/activar-notificaciones.html">Activar notificaciones</a>
+            <a href="/info/guias/compartir-revisitas.html">Compartir revisitas</a>
+            <a href="/info/guias/guardar-gps.html">Guardar ubicacion GPS</a>
+            <a href="/info/guias/registrar-horas.html">Registrar horas</a>
           </div>
         </div>
         <div class="nav-dropdown">
@@ -669,7 +711,9 @@
             <a href="mailto:shmuelgonzrbk@gmail.com">Contacto</a>
           </div>
         </div>
-        <a href="https://assendapp.com" class="nav-cta">Pruebalo gratis</a>
+        <div id="navUserArea">
+          <a href="https://assendapp.com" class="nav-cta">Pruebalo gratis</a>
+        </div>
       </div>
     </div>
   </nav>
@@ -678,25 +722,28 @@
   <section class="hero">
     <div class="hero-inner">
       <div class="hero-text">
-        <div class="hero-badge">Gratuito y sin limites</div>
-        <h1>Organiza tu<br><span>ministerio</span> de<br>forma simple</h1>
-        <p class="hero-desc">Registra revisitas, lleva el control de tus horas, gestiona asignaciones y envia informes mensuales. Todo en un solo lugar.</p>
+        <h1>Organiza tu servicio<br>sin libretas, <span>sin estrés</span><span class="hero-emoji">✨</span></h1>
+        <p class="hero-desc">Registra horas, organiza revisitas y genera informes automáticamente. Todo desde tu celular, en segundos.</p>
         <div class="hero-buttons">
           <a href="https://assendapp.com" class="btn-main">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
-            Abrir web app
+            Empieza gratis
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/></svg>
           </a>
-          <a href="#descargar" class="btn-outline">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M17 1.01L7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14z"/></svg>
-            Descargar app
+          <a href="#funciones" class="btn-outline">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+            Ver funciones
           </a>
         </div>
+
       </div>
       <div class="hero-phone">
-        <div class="phone-frame">
-          <div class="phone-notch"></div>
-          <div class="phone-screen">
-            <img src="/img/hero-phone.png" alt="AssendApp pantalla">
+        <div class="hero-glow"></div>
+        <div class="hero-phone-wrap">
+          <div class="phone-frame">
+            <div class="phone-notch"></div>
+            <div class="phone-screen">
+              <img src="/img/hero-phone.png" alt="AssendApp pantalla">
+            </div>
           </div>
         </div>
       </div>
@@ -779,7 +826,7 @@
             <div class="feature-row-title">Tus revisitas organizadas</div>
             <div class="feature-row-desc">Registra cada persona con nombre, direccion, telefono, publicacion entregada y notas. Filtra por tipo, busca por nombre y ve quien necesita visita hoy.</div>
           </div>
-          <div class="feature-row-img"><img src="/img/about-app.png" alt="Inicio"></div>
+          <div class="feature-row-img"><img src="/img/about-app1.png" alt="Inicio"></div>
         </div>
 
         <div class="feature-row reverse">
@@ -931,162 +978,40 @@
       <div class="section-header">
         <div class="section-tag">Testimonios</div>
         <h2 class="section-title">Lo que dicen nuestros usuarios</h2>
-        <p class="section-sub">Publicadores reales que usan AssendApp cada dia</p>
+        <p class="section-sub">Publicadores reales que usan AssendApp cada día</p>
       </div>
-      <div class="reviews-grid">
-        <div class="review-card">
-          <div class="review-stars">★★★★★</div>
-          <p class="review-text">Antes anotaba todo en papelitos que siempre perdia. Ahora tengo todo organizado en un solo lugar y puedo acceder desde cualquier dispositivo.</p>
-          <div class="review-author">
-            <div class="review-avatar">JG</div>
-            <div>
-              <div class="review-name">Jampier G.</div>
-              <div class="review-role">Publicador</div>
+
+      <!-- Formulario de reseña (solo logueados) -->
+      <div id="resenaFormWrap" style="display:none;max-width:500px;margin:0 auto 40px">
+        <div style="background:#fff;border:1.5px solid #e8e6e1;border-radius:20px;padding:28px;text-align:center">
+          <div id="resenaUserInfo" style="display:flex;align-items:center;gap:12px;justify-content:center;margin-bottom:20px"></div>
+          <div style="margin-bottom:16px">
+            <div style="font-size:13px;font-weight:600;color:#9c9a92;margin-bottom:8px">Tu calificación</div>
+            <div id="starPicker" style="display:flex;gap:4px;justify-content:center;font-size:28px;cursor:pointer">
+              <span onclick="pickStar(1)" data-star="1" style="color:#d4d2cd">★</span>
+              <span onclick="pickStar(2)" data-star="2" style="color:#d4d2cd">★</span>
+              <span onclick="pickStar(3)" data-star="3" style="color:#d4d2cd">★</span>
+              <span onclick="pickStar(4)" data-star="4" style="color:#d4d2cd">★</span>
+              <span onclick="pickStar(5)" data-star="5" style="color:#d4d2cd">★</span>
             </div>
           </div>
-        </div>
-        <div class="review-card">
-          <div class="review-stars">★★★★★</div>
-          <p class="review-text">Me encanta que me recuerde las visitas automaticamente. Ya no se me olvida ninguna revisita y puedo llevar mejor mi territorio.</p>
-          <div class="review-author">
-            <div class="review-avatar">ST</div>
-            <div>
-              <div class="review-name">Santos T.</div>
-              <div class="review-role">Precursor auxiliar</div>
-            </div>
-          </div>
-        </div>
-        <div class="review-card">
-          <div class="review-stars">★★★★★</div>
-          <p class="review-text">El informe mensual lo envio en 2 segundos por WhatsApp. Antes me tomaba media hora calculando todo a mano. Esta app es increible.</p>
-          <div class="review-author">
-            <div class="review-avatar">GY</div>
-            <div>
-              <div class="review-name">Gabriela Y.</div>
-              <div class="review-role">Publicadora</div>
-            </div>
-          </div>
-        </div>
-        <div class="review-card">
-          <div class="review-stars">★★★★★</div>
-          <p class="review-text">Lo mejor es que funciona sin internet. En mi territorio la senal es mala y puedo seguir registrando todo sin problema.</p>
-          <div class="review-author">
-            <div class="review-avatar">AB</div>
-            <div>
-              <div class="review-name">Aaron B.</div>
-              <div class="review-role">Publicador</div>
-            </div>
-          </div>
+          <textarea id="resenaTexto" placeholder="Cuéntanos tu experiencia con AssendApp..." rows="3" style="width:100%;padding:14px 16px;border:1.5px solid #e8e6e1;border-radius:14px;font-size:14px;font-family:inherit;resize:none;outline:none;line-height:1.6;background:#f8f7f5;color:#1a2b40;box-sizing:border-box"></textarea>
+          <button onclick="enviarResena()" id="resenaBtn" style="margin-top:14px;width:100%;padding:14px;background:#1a2b40;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:opacity .15s">Enviar reseña</button>
+          <div id="resenaMensaje" style="display:none;margin-top:12px;font-size:13px;padding:10px;border-radius:10px"></div>
         </div>
       </div>
-    </div>
-  </section>
 
-  <!-- ═══ GUIAS ═══ -->
-  <section class="section section-gray" id="guias">
-    <div class="container">
-      <div class="section-header">
-        <div class="section-tag">Tutoriales</div>
-        <h2 class="section-title">Guias rapidas</h2>
-        <p class="section-sub">Aprende a usar cada funcion en segundos</p>
-      </div>
-      <div class="tuto-list">
-
-        <div class="tuto-item">
-          <div class="tuto-header" onclick="toggleTuto(this)">
-            <div class="tuto-icon" style="background:#eef3fa"><svg viewBox="0 0 24 24" fill="#2e6be6"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg></div>
-            <div class="tuto-title">Como activar notificaciones</div>
-            <svg class="tuto-chev" viewBox="0 0 24 24" width="20" height="20"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg>
-          </div>
-          <div class="tuto-body">
-            <div class="tuto-body-inner">
-              <div class="tuto-steps">
-                <span>1. Abre <strong>Ajustes</strong> desde el menu lateral</span>
-                <span>2. Toca <strong>Notificaciones</strong></span>
-                <span>3. El navegador pedira permiso — toca <strong>Permitir</strong></span>
-                <span>4. Listo! Recibiras avisos de tus visitas</span>
-              </div>
-              <img src="/img/tuto-notificaciones.png" alt="Notificaciones" class="tuto-img">
-            </div>
-          </div>
-        </div>
-
-        <div class="tuto-item">
-          <div class="tuto-header" onclick="toggleTuto(this)">
-            <div class="tuto-icon" style="background:#fce4ec"><svg viewBox="0 0 24 24" fill="#c62828"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92c0-1.61-1.31-2.92-2.92-2.92z"/></svg></div>
-            <div class="tuto-title">Como compartir una revisita</div>
-            <svg class="tuto-chev" viewBox="0 0 24 24" width="20" height="20"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg>
-          </div>
-          <div class="tuto-body">
-            <div class="tuto-body-inner">
-              <div class="tuto-steps">
-                <span>1. En inicio, <strong>manten presionado</strong> el card de la persona</span>
-                <span>2. Se abre el menu de compartir de tu telefono</span>
-                <span>3. Elige <strong>WhatsApp</strong> y envia el link</span>
-                <span>4. La otra persona abre el link y el contacto se agrega</span>
-              </div>
-              <img src="/img/tuto-compartir.png" alt="Compartir" class="tuto-img">
-            </div>
-          </div>
-        </div>
-
-        <div class="tuto-item">
-          <div class="tuto-header" onclick="toggleTuto(this)">
-            <div class="tuto-icon" style="background:#e3f2fd"><svg viewBox="0 0 24 24" fill="#1565c0"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg></div>
-            <div class="tuto-title">Como guardar ubicacion GPS</div>
-            <svg class="tuto-chev" viewBox="0 0 24 24" width="20" height="20"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg>
-          </div>
-          <div class="tuto-body">
-            <div class="tuto-body-inner">
-              <div class="tuto-steps">
-                <span>1. Al agregar o editar persona, toca <strong>Buscar en mapa</strong></span>
-                <span>2. Busca la direccion o toca el mapa para marcar</span>
-                <span>3. Toca <strong>Confirmar ubicacion</strong></span>
-                <span>4. Ahora puedes ver la casa y obtener indicaciones</span>
-              </div>
-              <img src="/img/tuto-gps.png" alt="GPS" class="tuto-img">
-            </div>
-          </div>
-        </div>
-
-        <div class="tuto-item">
-          <div class="tuto-header" onclick="toggleTuto(this)">
-            <div class="tuto-icon" style="background:#f3e5f5"><svg viewBox="0 0 24 24" fill="#7b1fa2"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z"/></svg></div>
-            <div class="tuto-title">Como registrar horas de servicio</div>
-            <svg class="tuto-chev" viewBox="0 0 24 24" width="20" height="20"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg>
-          </div>
-          <div class="tuto-body">
-            <div class="tuto-body-inner">
-              <div class="tuto-steps">
-                <span>1. Ve a <strong>Precursorado</strong> desde el menu lateral</span>
-                <span>2. Selecciona tu tipo: Publicador, Auxiliar, Regular o Especial</span>
-                <span>3. Toca <strong>+30 min</strong>, <strong>+1 hora</strong> o <strong>+2 horas</strong></span>
-                <span>4. Tu progreso se actualiza al instante</span>
-              </div>
-              <img src="/img/tuto-horas.png" alt="Horas" class="tuto-img">
-            </div>
-          </div>
+      <!-- Botón para loguearse y dejar reseña -->
+      <div id="resenaLoginWrap" style="text-align:center;margin-bottom:40px">
+        <div id="resenaLoginBtn" style="display:inline-flex;align-items:center;gap:8px;padding:14px 28px;background:#fff;border:1.5px solid #e8e6e1;border-radius:14px;cursor:pointer;transition:border-color .15s,box-shadow .15s;font-size:14px;font-weight:600;color:#1a2b40" onclick="window.location.href='/info/login.html?from=resena'" onmouseover="this.style.borderColor='#2e6be6';this.style.boxShadow='0 4px 16px rgba(0,0,0,.06)'" onmouseout="this.style.borderColor='#e8e6e1';this.style.boxShadow='none'">
+          <svg viewBox="0 0 24 24" width="18" height="18"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+          Inicia sesión para dejar tu reseña
         </div>
       </div>
-    </div>
-  </section>
 
-  <!-- ═══ FAQ ═══ -->
-  <section class="section" id="faq">
-    <div class="container">
-      <div class="section-header">
-        <div class="section-tag">FAQ</div>
-        <h2 class="section-title">Preguntas frecuentes</h2>
-        <p class="section-sub">Lo que mas nos preguntan</p>
-      </div>
-      <div class="faq-list">
-        <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Es realmente gratis?<svg viewBox="0 0 24 24" width="20" height="20"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg></div><div class="faq-a"><div class="faq-a-inner">Si, completamente. Sin anuncios, sin compras dentro de la app y sin limites en la cantidad de contactos que puedes registrar. AssendApp se mantiene gracias a donaciones voluntarias.</div></div></div>
-        <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Mis datos estan seguros?<svg viewBox="0 0 24 24" width="20" height="20"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg></div><div class="faq-a"><div class="faq-a-inner">Si. Usamos autenticacion de Google (OAuth 2.0) y tus datos se almacenan en servidores con conexion cifrada SSL. Solo tu puedes acceder a tu informacion con tu cuenta de Google.</div></div></div>
-        <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Funciona sin internet?<svg viewBox="0 0 24 24" width="20" height="20"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg></div><div class="faq-a"><div class="faq-a-inner">Si. Puedes registrar contactos, horas y visitas sin conexion. Cuando vuelvas a tener senal, todo se sincroniza automaticamente sin que tengas que hacer nada.</div></div></div>
-        <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">En que dispositivos funciona?<svg viewBox="0 0 24 24" width="20" height="20"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg></div><div class="faq-a"><div class="faq-a-inner">La web funciona en Chrome, Safari, Firefox y Edge en celulares, tablets y computadoras. La app Android requiere Android 7.0 o superior.</div></div></div>
-        <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Puedo usarla en PC y celular?<svg viewBox="0 0 24 24" width="20" height="20"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg></div><div class="faq-a"><div class="faq-a-inner">Si. Tus datos estan en la nube. Accede desde cualquier dispositivo con tu cuenta de Google y todo se mantiene sincronizado.</div></div></div>
-        <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Que pasa si pierdo mi celular?<svg viewBox="0 0 24 24" width="20" height="20"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg></div><div class="faq-a"><div class="faq-a-inner">No pasa nada. Tus datos estan en la nube. Inicia sesion desde otro dispositivo y toda tu informacion estara ahi.</div></div></div>
-        <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Hay version para iPhone?<svg viewBox="0 0 24 24" width="20" height="20"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg></div><div class="faq-a"><div class="faq-a-inner">Por ahora no hay app nativa para iOS, pero puedes usar la version web desde Safari. Funciona igual de bien y puedes agregarla como acceso directo en tu pantalla de inicio.</div></div></div>
+      <!-- Grid de reseñas -->
+      <div class="reviews-grid" id="reviewsGrid">
+        <div style="text-align:center;padding:40px;color:#9c9a92;font-size:14px">Cargando reseñas...</div>
       </div>
     </div>
   </section>
@@ -1123,9 +1048,7 @@
         </div>
         <p class="footer-brand-desc">Unete a los publicadores que organizan su ministerio de forma simple con AssendApp.</p>
         <div class="footer-social">
-          <a href="#" class="footer-social-btn" title="Instagram">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M7.8 2h8.4C19.4 2 22 4.6 22 7.8v8.4a5.8 5.8 0 0 1-5.8 5.8H7.8C4.6 22 2 19.4 2 16.2V7.8A5.8 5.8 0 0 1 7.8 2m-.2 2A3.6 3.6 0 0 0 4 7.6v8.8C4 18.39 5.61 20 7.6 20h8.8a3.6 3.6 0 0 0 3.6-3.6V7.6C20 5.61 18.39 4 16.4 4H7.6m9.65 1.5a1.25 1.25 0 0 1 1.25 1.25A1.25 1.25 0 0 1 17.25 8 1.25 1.25 0 0 1 16 6.75a1.25 1.25 0 0 1 1.25-1.25M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3z"/></svg>
-          </a>
+
           <a href="https://wa.me/51929742215" class="footer-social-btn" title="WhatsApp">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
           </a>
@@ -1139,19 +1062,24 @@
           <div class="footer-col-title">Producto</div>
           <a href="https://assendapp.com" class="footer-link">Abrir web app</a>
           <a href="#descargar" class="footer-link">Descargar Android</a>
-          <a href="#funciones" class="footer-link">Funciones</a>
-          <a href="#como-funciona" class="footer-link">Como funciona</a>
+          <a href="/info/funciones.html" class="footer-link">Funciones</a>
+          <a href="/info/novedades.html" class="footer-link">Novedades</a>
         </div>
         <div class="footer-col">
           <div class="footer-col-title">Soporte</div>
-          <a href="#faq" class="footer-link">Preguntas frecuentes</a>
-          <a href="#guias" class="footer-link">Guias de uso</a>
-          <a href="mailto:shmuelgonzrbk@gmail.com" class="footer-link">Reportar problema</a>
+          <a href="/info/ayuda.html#faq" class="footer-link">Preguntas frecuentes</a>
+          <a href="/info/ayuda.html#guias" class="footer-link">Guias de uso</a>
+          <a href="/info/ayuda.html" class="footer-link">Centro de ayuda</a>
+          <a href="mailto:shmuelgonzrbk@gmail.com?subject=Sugerencia para AssendApp" class="footer-link">Sugerencias</a>
+          <a href="/info/donaciones.html" class="footer-link">Donaciones</a>
         </div>
         <div class="footer-col">
           <div class="footer-col-title">Proyecto</div>
-          <a href="#" class="footer-link">Acerca de AssendApp</a>
+          <a href="/info/acerca.html" class="footer-link">Acerca de AssendApp</a>
           <a href="mailto:shmuelgonzrbk@gmail.com" class="footer-link">Contacto</a>
+          <a href="/info/seguridad.html" class="footer-link">Seguridad</a>
+          <a href="https://wa.me/51929742215" class="footer-link">WhatsApp</a>
+          <a href="#resenas" class="footer-link">Reseñas</a>
         </div>
       </div>
     </div>
@@ -1227,6 +1155,270 @@
       heroInner.style.opacity = 1 - progress;
       heroInner.style.transform = 'translateY(' + (scrollY * 0.3) + 'px) scale(' + (1 - progress * 0.05) + ')';
     }, { passive: true });
-  </script>
+  
+
+    // ═══ AUTH ═══
+    var API_URL = 'https://servtrack-api.onrender.com/api';
+    var WEB_CLIENT_ID = '49946061194-4i73ke5meccdt7eu98fd0el62uq24ung.apps.googleusercontent.com';
+    var _selectedStars = 5;
+
+    function getInfoToken() { return localStorage.getItem('st_token'); }
+    function getInfoUser() {
+      try { return JSON.parse(localStorage.getItem('st_user')); } catch(e) { return null; }
+    }
+
+    function initInfoAuth() {
+      var user = getInfoUser();
+      var area = document.getElementById('navUserArea');
+      if (!area) return;
+
+      if (user && getInfoToken()) {
+        // Logueado
+        var inicial = user.nombre ? user.nombre.charAt(0).toUpperCase() : '?';
+        var picUrl = user.picture || '';
+        area.innerHTML = '<div style="display:flex;align-items:center;gap:10px">'
+          + '<a href="https://assendapp.com" class="nav-cta">Abrir mi cuenta</a>'
+          + '<img id="navUserPic" src="' + picUrl + '" referrerpolicy="no-referrer" style="width:34px;height:34px;border-radius:50%;border:2px solid #e8e6e1;cursor:pointer;object-fit:cover" title="' + user.nombre + '">'
+          + '<div id="navUserInitial" style="display:none;width:34px;height:34px;border-radius:50%;background:#1a2b40;color:#fff;font-size:14px;font-weight:700;align-items:center;justify-content:center;cursor:pointer" title="' + user.nombre + '">' + inicial + '</div>'
+          + '</div>';
+        var pic = document.getElementById("navUserPic");
+        if (pic) pic.onerror = function() { this.style.display="none"; document.getElementById("navUserInitial").style.display="flex"; };
+        // Dropdown al tocar foto
+        var picEl = document.getElementById("navUserPic");
+        var initialEl = document.getElementById("navUserInitial");
+        function toggleUserMenu() {
+          var existing = document.getElementById("userDropdown");
+          if (existing) { existing.remove(); return; }
+          var dd = document.createElement("div");
+          dd.id = "userDropdown";
+          dd.style.cssText = "position:absolute;top:52px;right:0;background:#fff;border:1px solid #e8e6e1;border-radius:16px;padding:8px 0;min-width:240px;box-shadow:0 12px 40px rgba(0,0,0,.12);z-index:1000;animation:ddFade .2s ease";
+          dd.innerHTML = '<div style="padding:14px 18px;border-bottom:1px solid #f0eeeb">'
+            + '<div style="font-size:15px;font-weight:700;color:#1a2b40">' + user.nombre + '</div>'
+            + '<div style="font-size:12px;color:#9c9a92;margin-top:2px">' + user.email + '</div>'
+            + (user.congregacion ? '<div style="font-size:12px;color:#2e6be6;margin-top:4px;font-weight:600">' + user.congregacion + '</div>' : '')
+          + '</div>'
+          + '<div onclick="window.location.href=\'https://assendapp.com\'" style="padding:12px 18px;font-size:13px;color:#1a2b40;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:10px;transition:background .12s"><svg viewBox=\'0 0 24 24\' width=\'16\' height=\'16\' fill=\'#5c5a52\'><path d=\'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93z\'/></svg>Abrir AssendApp</div>'
+          + '<div onclick="cerrarSesionInfo()" style="padding:12px 18px;font-size:13px;color:#c0392b;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:10px;transition:background .12s;border-top:1px solid #f0eeeb"><svg viewBox=\'0 0 24 24\' width=\'16\' height=\'16\' fill=\'#c0392b\'><path d=\'M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z\'/></svg>Cerrar sesión</div>';
+          area.style.position = "relative";
+          area.appendChild(dd);
+          // Cerrar al tocar fuera
+          setTimeout(function() {
+            document.addEventListener("click", function closeDD(e) {
+              if (!dd.contains(e.target) && e.target !== picEl && e.target !== initialEl) {
+                dd.remove();
+                document.removeEventListener("click", closeDD);
+              }
+            });
+          }, 10);
+        }
+        if (picEl) picEl.onclick = toggleUserMenu;
+        if (initialEl) initialEl.onclick = toggleUserMenu;
+
+        // Mostrar form de reseña
+        var formWrap = document.getElementById('resenaFormWrap');
+        var loginWrap = document.getElementById('resenaLoginWrap');
+        if (formWrap) formWrap.style.display = 'block';
+        if (loginWrap) loginWrap.style.display = 'none';
+
+        // Info del usuario en el form
+        var userInfo = document.getElementById('resenaUserInfo');
+        if (userInfo) {
+          userInfo.innerHTML = (user.picture ? '<img src="' + user.picture + '" style="width:36px;height:36px;border-radius:50%">' : '')
+            + '<div style="text-align:left"><div style="font-size:14px;font-weight:700;color:#1a2b40">' + user.nombre + '</div>'
+            + (user.congregacion ? '<div style="font-size:12px;color:#9c9a92">' + user.congregacion + '</div>' : '') + '</div>';
+        }
+
+        // Marcar 5 estrellas por defecto
+        pickStar(5);
+      } else {
+        area.innerHTML = '<div style="display:flex;align-items:center;gap:10px">'
+          + '<a href="/info/login.html" style="font-size:13px;font-weight:600;color:#5c5a52;text-decoration:none;transition:color .15s">Iniciar sesión</a>'
+          + '<a href="https://assendapp.com" class="nav-cta">Pruébalo gratis</a>'
+          + '</div>';
+      }
+    }
+
+    function loginParaResena() {
+      window.location.href = '/info/login.html?from=resena';
+    }
+
+    function _unusedLoginModal() {
+      var existing = document.getElementById('loginModal');
+      if (existing) existing.remove();
+
+      var modal = document.createElement('div');
+      modal.id = 'loginModal';
+      modal.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(10,15,25,.5);backdrop-filter:blur(4px);animation:ddFade .25s ease';
+      modal.innerHTML = '<div style="background:#fff;border-radius:24px;padding:40px 36px;max-width:400px;width:90%;text-align:center;position:relative;box-shadow:0 20px 60px rgba(0,0,0,.15);animation:ddFade .3s ease">'
+        + '<button onclick="cerrarLoginModal()" style="position:absolute;top:16px;right:16px;width:32px;height:32px;border-radius:50%;border:none;background:#f4f3f0;color:#5c5a52;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:background .15s">✕</button>'
+        + '<img src="/img/logotipo.png" style="width:56px;height:56px;border-radius:16px;margin:0 auto 20px;box-shadow:0 4px 16px rgba(26,43,64,.1)">'
+        + '<div style="font-size:22px;font-weight:900;color:#1a2b40;margin-bottom:6px">Iniciar sesión</div>'
+        + '<div style="font-size:14px;color:#9c9a92;margin-bottom:28px;line-height:1.6">Inicia sesión con tu cuenta de Google para dejar reseñas y acceder a tu cuenta</div>'
+        + '<div id="googleLoginBtn" style="display:flex;justify-content:center;margin-bottom:20px"></div>'
+        + '<div style="font-size:11px;color:#d4d2cd;margin-top:16px">Al iniciar sesión aceptas nuestros <a href="/info/terminos.html" style="color:#9c9a92">Términos</a> y <a href="/info/privacidad.html" style="color:#9c9a92">Privacidad</a></div>'
+      + '</div>';
+      document.body.appendChild(modal);
+
+      // Cerrar al tocar fondo
+      modal.addEventListener('click', function(e) {
+        if (e.target === modal) cerrarLoginModal();
+      });
+
+      // Renderizar botón de Google
+      try {
+        google.accounts.id.initialize({
+          client_id: WEB_CLIENT_ID,
+          callback: handleInfoLogin,
+          auto_select: false
+        });
+        google.accounts.id.renderButton(document.getElementById('googleLoginBtn'), {
+          type: 'standard',
+          theme: 'outline',
+          size: 'large',
+          text: 'signin_with',
+          shape: 'pill',
+          width: 300,
+          logo_alignment: 'center'
+        });
+      } catch(e) { console.error('Google login error:', e); }
+    }
+
+    function cerrarLoginModal() {
+      var modal = document.getElementById('loginModal');
+      if (modal) modal.remove();
+    }
+
+    async function handleInfoLogin(response) {
+      try {
+        var res = await fetch(API_URL + '/auth/google', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ idToken: response.credential })
+        });
+        var data = await res.json();
+        if (data.token && data.user) {
+          localStorage.setItem('st_token', data.token);
+          localStorage.setItem('st_user', JSON.stringify(data.user));
+          cerrarLoginModal();
+          initInfoAuth();
+          loadResenas();
+        }
+      } catch(e) {
+        console.error('Login error:', e);
+      }
+    }
+
+    function cerrarSesionInfo() {
+      localStorage.removeItem('st_token');
+      localStorage.removeItem('st_user');
+      location.reload();
+    }
+
+    // ═══ ESTRELLAS ═══
+    function pickStar(n) {
+      _selectedStars = n;
+      var stars = document.querySelectorAll('#starPicker span');
+      stars.forEach(function(s, i) {
+        s.style.color = i < n ? '#f0a71a' : '#d4d2cd';
+      });
+    }
+
+    // ═══ ENVIAR RESEÑA ═══
+    async function enviarResena() {
+      var texto = document.getElementById('resenaTexto').value.trim();
+      var btn = document.getElementById('resenaBtn');
+      var msg = document.getElementById('resenaMensaje');
+
+      if (texto.length < 10) {
+        msg.style.display = 'block';
+        msg.style.background = '#fef0f2';
+        msg.style.color = '#9b2335';
+        msg.textContent = 'Escribe al menos 10 caracteres';
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Enviando...';
+
+      try {
+        var res = await fetch(API_URL + '/resenas', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + getInfoToken()
+          },
+          body: JSON.stringify({ texto: texto, estrellas: _selectedStars })
+        });
+        var data = await res.json();
+
+        if (data.ok) {
+          msg.style.display = 'block';
+          msg.style.background = '#edf7ef';
+          msg.style.color = '#1e7e34';
+          msg.textContent = 'Reseña enviada. Será visible después de ser aprobada.';
+          document.getElementById('resenaTexto').value = '';
+          btn.style.display = 'none';
+        } else {
+          msg.style.display = 'block';
+          msg.style.background = '#fef0f2';
+          msg.style.color = '#9b2335';
+          msg.textContent = data.error || 'Error al enviar';
+          btn.disabled = false;
+          btn.textContent = 'Enviar reseña';
+        }
+      } catch(e) {
+        msg.style.display = 'block';
+        msg.style.background = '#fef0f2';
+        msg.style.color = '#9b2335';
+        msg.textContent = 'Error de conexión';
+        btn.disabled = false;
+        btn.textContent = 'Enviar reseña';
+      }
+    }
+
+    // ═══ CARGAR RESEÑAS ═══
+    async function loadResenas() {
+      var grid = document.getElementById('reviewsGrid');
+      if (!grid) return;
+
+      try {
+        var res = await fetch(API_URL + '/resenas');
+        var data = await res.json();
+
+        if (!data.length) {
+          grid.innerHTML = '<div style="text-align:center;padding:40px;color:#9c9a92;font-size:14px">Aún no hay reseñas. Sé el primero en dejar la tuya.</div>';
+          return;
+        }
+
+        grid.innerHTML = data.map(function(r) {
+          var stars = '';
+          for (var i = 0; i < 5; i++) stars += '<span style="color:' + (i < r.estrellas ? '#f0a71a' : '#d4d2cd') + '">★</span>';
+          var iniciales = r.nombre.split(' ').map(function(n) { return n[0]; }).join('').substring(0, 2).toUpperCase();
+          var fecha = new Date(r.fecha).toLocaleDateString('es-PE', { month: 'short', year: 'numeric' });
+
+          return '<div class="review-card">'
+            + '<div class="review-stars">' + stars + '</div>'
+            + '<p class="review-text">"' + r.texto + '"</p>'
+            + '<div class="review-author">'
+              + '<div class="review-avatar">' + iniciales + '</div>'
+              + '<div>'
+                + '<div class="review-name">' + r.nombre + '</div>'
+                + (r.congregacion ? '<div class="review-role">' + r.congregacion + '</div>' : '')
+              + '</div>'
+              + '<div style="margin-left:auto;font-size:11px;color:#9c9a92">' + fecha + '</div>'
+            + '</div>'
+          + '</div>';
+        }).join('');
+      } catch(e) {
+        grid.innerHTML = '<div style="text-align:center;padding:40px;color:#9c9a92;font-size:14px">Error al cargar reseñas</div>';
+      }
+    }
+
+    // Inicializar
+    document.addEventListener('DOMContentLoaded', function() {
+      initInfoAuth();
+      loadResenas();
+    });
+</script>
 </body>
 </html>

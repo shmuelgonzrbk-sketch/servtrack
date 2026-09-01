@@ -4,8 +4,8 @@
    Compatible con WebSWAdapter.js
    ================================================================ */
 
-const SW_VERSION = 'v3';
-const CACHE_NAME = 'assendapp-v3';
+const SW_VERSION = 'v4';
+const CACHE_NAME = 'assendapp-v4';
 const APP_SHELL = [
   '/',
   '/index.html',
