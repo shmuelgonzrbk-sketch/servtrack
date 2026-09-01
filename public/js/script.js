@@ -389,6 +389,7 @@ async function loadCards() {
         tipo: p.tipo,
         estado: p.estado,
         notas: p.notas,
+        pub: p.pub,
         fecha: p.proxima_visita ? p.proxima_visita.split('T')[0] : '',
         hora:  p.proxima_visita_hora ? p.proxima_visita_hora.substring(0,5) : '',
         recordatorio_tipo: p.recordatorio_tipo || 'una_vez',
@@ -1789,16 +1790,27 @@ function buildDashboard() {
 
   setTimeout(function(){
     const carr = document.getElementById('dbCarrusel');
-    if (carr && !carr.dataset.bound) {
-      carr.dataset.bound = '1';
-      carr.addEventListener('scroll', function(){
+    if (carr) {
+      const ajustarAlturaCarrusel = function(){
         const idx = Math.round(carr.scrollLeft / Math.max(1, carr.offsetWidth));
-        document.querySelectorAll('#dbCarruselDots .db-dot').forEach(function(d){
-          const on = parseInt(d.dataset.i) === idx;
-          d.style.background = on ? 'var(--navy)' : 'var(--border-dk)';
-          d.style.width = on ? '18px' : '6px';
-        });
-      }, { passive: true });
+        const slides = carr.children;
+        if (slides[idx]) {
+          carr.style.height = slides[idx].offsetHeight + 'px';
+        }
+      };
+      ajustarAlturaCarrusel();
+      if (!carr.dataset.bound) {
+        carr.dataset.bound = '1';
+        carr.addEventListener('scroll', function(){
+          const idx = Math.round(carr.scrollLeft / Math.max(1, carr.offsetWidth));
+          document.querySelectorAll('#dbCarruselDots .db-dot').forEach(function(d){
+            const on = parseInt(d.dataset.i) === idx;
+            d.style.background = on ? 'var(--navy)' : 'var(--border-dk)';
+            d.style.width = on ? '18px' : '6px';
+          });
+          ajustarAlturaCarrusel();
+        }, { passive: true });
+      }
     }
     const carr2 = document.getElementById('dbCarrusel2');
     if (carr2 && !carr2.dataset.bound) {
@@ -2240,7 +2252,7 @@ function buildHorario() {
         + '<div style="font-size:19px;font-weight:800;color:var(--tx);margin-top:3px">' + totalSemana + 'h</div>'
       + '</div>'
     + '</div>'
-    + '<a href"https://www.jw.org/es/biblioteca/guia-actividades-reunion-testigos-jehova/julio-2016-mwb/programa-reunion-11-17julio/horario-precursor-regular/" target="_blank" rel="noopener noreferrer" style="display:flex;align-items:center;gap:11px;padding:14px;background:var(--card-bg);border:1px solid var(--border);border-radius:16px;margin-bottom:14px;text-decoration:none">'
+    + '<a href="https://www.jw.org/es/biblioteca/guia-actividades-reunion-testigos-jehova/julio-2016-mwb/programa-reunion-11-17julio/horario-precursor-regular/" target="_blank" rel="noopener noreferrer" style="display:flex;align-items:center;gap:11px;padding:14px;background:var(--card-bg);border:1px solid var(--border);border-radius:16px;margin-bottom:14px;text-decoration:none">'
         + '<div style="width:38px;height:38px;border-radius:11px;background:var(--navy-light);display:flex;align-items:center;justify-content:center;flex-shrink:0">'
           + '<svg viewBox="0 0 24 24" width="19" height="19" fill="var(--navy)"><path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2-1.09V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72L12 15l5-2.73v3.72z"/></svg>'
         + '</div>'
@@ -3223,6 +3235,7 @@ async function saveCard() {
     tipo:      document.getElementById('fTipo').value,
     estado:    document.getElementById('fEstado').value,
     notas:     document.getElementById('fNotas').value.trim(),
+    pub:       document.getElementById('fPub').value.trim(),
     proxima_visita:      document.getElementById('fFecha').value || null,
     proxima_visita_hora: document.getElementById('fHora').value || null,
     recordatorio_tipo:   document.getElementById('fRecordatorio').value,
@@ -3252,6 +3265,7 @@ async function saveCard() {
         tipo: p.tipo,
         estado: p.estado,
         notas: p.notas,
+        pub: p.pub,
         territorio: p.territorio || '',
         fecha: p.proxima_visita ? p.proxima_visita.split('T')[0] : '',
         hora:  p.proxima_visita_hora ? p.proxima_visita_hora.substring(0,5) : '',
@@ -6690,7 +6704,7 @@ function pintarChat() {
       const esUsuario = m.remitente === 'usuario';
       const hora = new Date(m.fecha).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'America/Lima' });
       const cat = m.categoria ? CATEGORIAS_REPORTE[m.categoria] : null;
-      const avatar = !esUsuario ? '<img src="/img/asistente.png" class="chat-bubble-avatar">' : '';
+      const avatar = !esUsuario ? '<div class="chat-bubble-avatar" style="display:flex;align-items:center;justify-content:center;background:var(--navy);color:#fff"><svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/></svg></div>' : '';
       return '<div class="chat-row ' + (esUsuario ? 'chat-row-user' : 'chat-row-admin') + '" style="animation-delay:' + Math.min(i * 0.03, 0.3) + 's">'
         + avatar
         + '<div onclick="abrirMenuMensaje(' + m.id + ',' + esUsuario + ')" class="chat-bubble ' + (esUsuario ? 'chat-bubble-user' : 'chat-bubble-admin') + '">'
@@ -6751,7 +6765,7 @@ function mostrarEscribiendo() {
   const div = document.createElement('div');
   div.id = 'chatEscribiendo';
   div.className = 'chat-row chat-row-admin';
-  div.innerHTML = '<img src="/img/asistente.png" class="chat-bubble-avatar">'
+  div.innerHTML = '<div class="chat-bubble-avatar" style="display:flex;align-items:center;justify-content:center;background:var(--navy);color:#fff"><svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/></svg></div>'
     + '<div class="chat-bubble chat-bubble-admin"><span class="chat-typing"><span></span><span></span><span></span></span></div>';
   cont.appendChild(div);
   cont.scrollTop = cont.scrollHeight;
