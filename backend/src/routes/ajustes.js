@@ -24,13 +24,13 @@ router.get('/', auth, async (req, res) => {
 
 // ACTUALIZAR
 router.put('/', auth, async (req, res) => {
-  const { notificaciones, vibrar, sonido, minutos_antes, orden_lista, tema } = req.body;
+  const { notificaciones, vibrar, sonido, minutos_antes, orden_lista, tema, recordatorios_minutos } = req.body;
   try {
     const result = await pool.query(
       `UPDATE ajustes SET notificaciones=$1, vibrar=$2, sonido=$3,
-       minutos_antes=$4, orden_lista=$5, tema=$6
-       WHERE usuario_id=$7 RETURNING *`,
-      [notificaciones, vibrar, sonido, minutos_antes, orden_lista, tema, req.userId]
+       minutos_antes=$4, orden_lista=$5, tema=$6, recordatorios_minutos=$7
+       WHERE usuario_id=$8 RETURNING *`,
+      [notificaciones, vibrar, sonido, minutos_antes, orden_lista, tema, JSON.stringify(recordatorios_minutos || [minutos_antes || 60]), req.userId]
     );
     res.json(result.rows[0]);
   } catch (err) {
