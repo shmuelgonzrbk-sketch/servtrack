@@ -5751,6 +5751,7 @@ function dbAbrirFormRecordatorio(fecha, iconoId, editData) {
     + '</div>'
     + '<div class="fgroup" style="margin-bottom:10px"><label>Título</label><input id="recTitulo" type="text" value="' + (editData ? (editData.titulo||'').replace(/"/g,'&quot;') : '') + '"/></div>'
     + '<div class="fgroup" style="margin-bottom:10px"><label>Descripción (opcional)</label><input id="recDesc" type="text" value="' + (editData ? (editData.descripcion||'').replace(/"/g,'&quot;') : '') + '"/></div>'
+    + '<div class="fgroup" style="margin-bottom:10px"><label>Hora</label><input id="recHora" type="time" value="' + (editData && editData.hora ? editData.hora.substring(0,5) : '09:00') + '"/></div>'
     + colorEtiquetaHtml('rec', editData ? editData.color : '')
     + formNotifRowHtml()
     + '<button id="recGuardarBtn" onclick="dbGuardarRecordatorioPersonal(&quot;' + fecha + '&quot;,&quot;' + iconoId + '&quot;)" style="width:100%;padding:14px;border:none;background:var(--navy);color:#fff;border-radius:14px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--f-sans);box-shadow:0 4px 12px rgba(26,43,64,.2);margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:8px">Guardar</button>'
@@ -5772,10 +5773,11 @@ async function dbGuardarRecordatorioPersonal(fecha, iconoId) {
   try {
     const token = localStorage.getItem('st_token');
     const editando = !!_recEditId;
+    const hora = document.getElementById('recHora').value || '09:00';
     const res = await fetch(API_URL + '/recordatorios' + (editando ? '/' + _recEditId : ''), {
       method: editando ? 'PUT' : 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-      body: JSON.stringify({ titulo, descripcion: desc, fecha, icono: iconoId, recordatorios_minutos: _formNotifMinutos })
+      body: JSON.stringify({ titulo, descripcion: desc, fecha, hora, icono: iconoId, recordatorios_minutos: _formNotifMinutos })
     });
     if (!res.ok) throw new Error('Error del servidor');
     await res.json();

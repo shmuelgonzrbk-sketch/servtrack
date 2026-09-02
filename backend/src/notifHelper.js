@@ -156,8 +156,8 @@ async function programarAvisosAsignacion({ usuarioId, asigId, nombreParte, fecha
   }
 }
 
-async function programarAvisoRecordatorio({ usuarioId, recordatorioId, titulo, descripcion, fecha }) {
-  const fechaBase = construirFechaHora(fecha, '09:00');
+async function programarAvisoRecordatorio({ usuarioId, recordatorioId, titulo, descripcion, fecha, hora }) {
+  const fechaBase = construirFechaHora(fecha, hora || '09:00');
   const ahora = new Date();
 
   let listaMinutos = [1440];
