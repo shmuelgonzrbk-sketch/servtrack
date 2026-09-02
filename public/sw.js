@@ -254,6 +254,8 @@ self.addEventListener('push', function(e) {
       icon: '/img/logotipo.png',
       badge: '/img/logotipo.png',
       vibrate: [200, 100, 200],
+      data: { cardId: data.cardId },
+      tag: data.cardId ? String(data.cardId) : undefined,
     })
   );
 });
