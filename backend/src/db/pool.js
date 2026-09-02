@@ -14,7 +14,10 @@ const pool = new Pool(
 );
 
 pool.connect()
-  .then(() => console.log('✅ Conectado a PostgreSQL'))
+  .then(client => {
+    console.log('✅ Conectado a PostgreSQL');
+    client.release(); // Importante: devolver el cliente al pool, si no queda huérfano y sin manejo de errores
+  })
   .catch(err => console.error('❌ Error de conexión:', err));
 
 // Evita que una desconexión inesperada de la base (ej. Neon cerrando el socket)

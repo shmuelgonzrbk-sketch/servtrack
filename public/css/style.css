@@ -335,7 +335,35 @@ html, body {
 
 .view-scroll {
   flex: 1; overflow-y: auto; overflow-x: hidden;
+  overscroll-behavior-y: contain;
   padding: 16px 14px calc(var(--safe-b) + 24px);
+}
+
+.ptr-indicator {
+  position: absolute;
+  top: 0; left: 50%;
+  width: 34px; height: 34px;
+  transform: translate(-50%, -50px);
+  border-radius: 50%;
+  background: var(--card-bg);
+  box-shadow: 0 2px 10px rgba(0,0,0,.15);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 50;
+  transition: transform .2s ease, opacity .2s ease;
+  opacity: 0;
+  pointer-events: none;
+}
+.ptr-indicator svg {
+  width: 18px; height: 18px;
+  color: var(--navy);
+  transition: transform .1s linear;
+}
+.ptr-indicator.spinning svg {
+  animation: ptr-spin .7s linear infinite;
+}
+@keyframes ptr-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
 }
 
 /* ================================================================
