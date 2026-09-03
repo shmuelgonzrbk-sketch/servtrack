@@ -390,7 +390,6 @@ async function loadCards() {
         estado: p.estado,
         notas: p.notas,
         pub: p.pub,
-        color: p.color || '',
         fecha: p.proxima_visita ? p.proxima_visita.split('T')[0] : '',
         hora:  p.proxima_visita_hora ? p.proxima_visita_hora.substring(0,5) : '',
         recordatorio_tipo: p.recordatorio_tipo || 'una_vez',
@@ -2963,7 +2962,6 @@ function openForm(editData) {
     document.getElementById('fEstado').value = editData.estado || 'pendiente';
     document.getElementById('fNotas').value  = editData.notas  || '';
     document.getElementById('fId').value     = editData.id;
-    seleccionarColorEtiqueta('f', editData.color || '');
     document.getElementById('fRecordatorio').value = editData.recordatorio_tipo || 'una_vez';
     if (editData.lat && editData.lng) {
       document.getElementById('fLat').value = editData.lat;
@@ -2976,7 +2974,6 @@ function openForm(editData) {
   } else {
     title.textContent = t('nueva_persona'); btn.textContent = t('guardar');
     ['fNombre','fTerritorio','fDir','fTel','fPub','fHora','fNotas'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
-    seleccionarColorEtiqueta('f', '');
     document.getElementById('fFecha').value  = today();
     document.getElementById('fTipo').value   = 'revisita';
     document.getElementById('fEstado').value = 'pendiente';
@@ -3254,7 +3251,6 @@ async function saveCard() {
     estado:    document.getElementById('fEstado').value,
     notas:     document.getElementById('fNotas').value.trim(),
     pub:       document.getElementById('fPub').value.trim(),
-    color:     document.getElementById('fColor').value,
     proxima_visita:      document.getElementById('fFecha').value || null,
     proxima_visita_hora: document.getElementById('fHora').value || null,
     recordatorio_tipo:   document.getElementById('fRecordatorio').value,
@@ -3285,7 +3281,6 @@ async function saveCard() {
         estado: p.estado,
         notas: p.notas,
         pub: p.pub,
-        color: p.color || '',
         territorio: p.territorio || '',
         fecha: p.proxima_visita ? p.proxima_visita.split('T')[0] : '',
         hora:  p.proxima_visita_hora ? p.proxima_visita_hora.substring(0,5) : '',
@@ -4791,7 +4786,7 @@ function buildCalendario() {
     if (tieneVisitas) {
       html += '<div style="display:flex;gap:2.5px;margin-top:4px">';
       visitas.slice(0, 3).forEach(function(v, vi) {
-        var dotColor = v.color || (v.esRecordatorio ? (v.colorRec || '#5a6472') : (v.esAsignacion ? '#7b1fa2' : (v.tipo === 'estudio' ? '#1e7e34' : '#2e6be6')));
+        var dotColor = v.esRecordatorio ? (v.colorRec || '#5a6472') : (v.esAsignacion ? '#7b1fa2' : (v.tipo === 'estudio' ? '#1e7e34' : '#2e6be6'));
         html += '<div style="width:9px;height:2.5px;border-radius:2px;background:' + dotColor + '"></div>';
       });
       if (visitas.length > 3) html += '<div style="width:9px;height:2.5px;border-radius:2px;background:var(--tx3)"></div>';
@@ -5461,160 +5456,6 @@ function abrirFormNuevoTipo(secId) {
   updateFabVisibility();
 }
 
-const COLORES_ETIQUETA = [
-  { c:'#ff8a80', n:'Rojo suave' },
-  { c:'#ffd54f', n:'Plátano' },
-  { c:'#a5d6a7', n:'Verde claro' },
-  { c:'#90caf9', n:'Azul suave' },
-  { c:'#ce93d8', n:'Morado suave' },
-  { c:'#ffab91', n:'Durazno' },
-  { c:'#80cbc4', n:'Turquesa' },
-];
-
-function colorEtiquetaHtml(idPrefix, selected) {
-  const dots = COLORES_ETIQUETA.map(function(o){
-    const sel = (selected||'').toLowerCase() === o.c.toLowerCase();
-    return '<button type="button" onclick="seleccionarColorEtiqueta(&quot;' + idPrefix + '&quot;,&quot;' + o.c + '&quot;)" class="cdot' + (sel?' active':'') + '" data-c="' + o.c + '" style="background:' + o.c + '" title="' + o.n + '"></button>';
-  }).join('');
-  return '<div class="fgroup">'
-    + '<label>Color de etiqueta</label>'
-    + '<div class="pal-dots" id="' + idPrefix + 'ColorDots" style="margin-bottom:4px">'
-      + dots
-    + '</div>'
-    + '<input type="hidden" id="' + idPrefix + 'Color" value="' + (selected || '') + '"/>'
-  + '</div>';
-}
-
-function seleccionarColorEtiqueta(idPrefix, color) {
-  const hidden = document.getElementById(idPrefix + 'Color');
-  if (hidden) hidden.value = color || '';
-  const esPreset = COLORES_ETIQUETA.some(function(o){ return o.c.toLowerCase() === (color||'').toLowerCase(); });
-  document.querySelectorAll('#' + idPrefix + 'ColorDots .cdot').forEach(function(el){
-    el.classList.toggle('active', el.dataset.c.toLowerCase() === (color||'').toLowerCase());
-  });
-  const btnCustom = document.getElementById(idPrefix + 'ColorCustomBtn');
-  if (btnCustom) {
-    if (color && !esPreset) {
-      btnCustom.style.background = color;
-      btnCustom.style.border = '1.5px solid rgba(0,0,0,.15)';
-      btnCustom.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" fill="#fff" style="filter:drop-shadow(0 0 1px rgba(0,0,0,.5))"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>';
-      btnCustom.title = 'Color personalizado activo — toca para cambiarlo';
-    } else {
-      btnCustom.style.background = 'var(--bg)';
-      btnCustom.style.border = '1.5px dashed var(--border-dk)';
-      btnCustom.innerHTML = '<svg viewBox="0 0 24 24" width="15" height="15" fill="var(--tx3)"><path d="M20.71 5.63l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-3.12 3.12L11.5 4.08c-.39-.39-1.02-.39-1.41 0L8.68 5.5c-.39.39-.39 1.02 0 1.41l2.33 2.33L2.5 17.75V21h3.25l8.49-8.49 2.33 2.33c.39.39 1.02.39 1.41 0l1.41-1.41c.39-.39.39-1.02 0-1.41l-2.33-2.33 3.12-3.12c.4-.4.4-1.03.02-1.42zM4.92 19L4 18.08l8.06-8.06.92.92L4.92 19z"/></svg>';
-      btnCustom.title = 'Elegir color personalizado';
-    }
-  }
-}
-let _colPick = {};
-
-function toggleColorPickerInline(idPrefix) {
-  const existing = document.getElementById(idPrefix + 'ColorInline');
-  if (existing) { existing.remove(); return; }
-
-  const current = document.getElementById(idPrefix + 'Color').value || '#ff8a80';
-  const hsv = hexToHsv(current);
-  _colPick[idPrefix] = { h: hsv.h, s: hsv.s, v: hsv.v };
-
-  const dotsRow = document.getElementById(idPrefix + 'ColorDots');
-  const wrap = document.createElement('div');
-  wrap.id = idPrefix + 'ColorInline';
-  wrap.style.cssText = 'margin-top:10px;background:var(--card-bg);border:1px solid var(--border);border-radius:14px;padding:14px;animation:dcFadeIn .15s ease';
-  wrap.innerHTML =
-      '<canvas id="' + idPrefix + 'CpSquare" width="260" height="140" style="width:100%;height:130px;border-radius:10px;cursor:pointer;touch-action:none;display:block"></canvas>'
-    + '<canvas id="' + idPrefix + 'CpHue" width="260" height="18" style="width:100%;height:18px;border-radius:99px;margin-top:10px;cursor:pointer;touch-action:none;display:block"></canvas>'
-    + '<div style="display:flex;align-items:center;gap:10px;margin-top:12px">'
-      + '<div id="' + idPrefix + 'CpPreview" style="width:36px;height:36px;border-radius:10px;flex-shrink:0;border:2px solid rgba(0,0,0,.1)"></div>'
-      + '<input id="' + idPrefix + 'CpHex" type="text" maxlength="7" style="flex:1;min-width:0;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:monospace;background:var(--input-bg);color:var(--tx)"/>'
-      + '<button type="button" onclick="confirmInlineColor(&quot;' + idPrefix + '&quot;)" style="padding:10px 16px;border:none;background:var(--navy);color:#fff;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--f-sans);flex-shrink:0">Usar</button>'
-    + '</div>';
-  dotsRow.insertAdjacentElement('afterend', wrap);
-
-  setTimeout(function() {
-    const sqCanvas = document.getElementById(idPrefix + 'CpSquare');
-    const sqCtx = sqCanvas.getContext('2d');
-    const hueCanvas = document.getElementById(idPrefix + 'CpHue');
-    const hueCtx = hueCanvas.getContext('2d');
-    _colPick[idPrefix].sqCanvas = sqCanvas;
-    _colPick[idPrefix].sqCtx = sqCtx;
-
-    drawHueBarGeneric(hueCtx, hueCanvas.width, hueCanvas.height);
-    drawSquareGeneric(idPrefix);
-    updateInlinePreview(idPrefix);
-    document.getElementById(idPrefix + 'CpHex').value = current;
-
-    let draggingSq = false, draggingHue = false;
-    const sqPos = function(e) {
-      const r = sqCanvas.getBoundingClientRect();
-      const x = (e.touches ? e.touches[0].clientX : e.clientX) - r.left;
-      const y = (e.touches ? e.touches[0].clientY : e.clientY) - r.top;
-      _colPick[idPrefix].s = Math.max(0, Math.min(100, (x / r.width) * 100));
-      _colPick[idPrefix].v = Math.max(0, Math.min(100, 100 - (y / r.height) * 100));
-      drawSquareGeneric(idPrefix); updateInlinePreview(idPrefix);
-    };
-    const huePos = function(e) {
-      const r = hueCanvas.getBoundingClientRect();
-      const x = (e.touches ? e.touches[0].clientX : e.clientX) - r.left;
-      _colPick[idPrefix].h = Math.max(0, Math.min(360, (x / r.width) * 360));
-      drawSquareGeneric(idPrefix); updateInlinePreview(idPrefix);
-    };
-    sqCanvas.addEventListener('mousedown', function(e){ draggingSq = true; sqPos(e); });
-    sqCanvas.addEventListener('touchstart', function(e){ draggingSq = true; sqPos(e); }, { passive:true });
-    window.addEventListener('mousemove', function(e){ if(draggingSq) sqPos(e); if(draggingHue) huePos(e); });
-    window.addEventListener('touchmove', function(e){ if(draggingSq) sqPos(e); if(draggingHue) huePos(e); }, { passive:true });
-    window.addEventListener('mouseup', function(){ draggingSq = false; draggingHue = false; });
-    window.addEventListener('touchend', function(){ draggingSq = false; draggingHue = false; });
-    hueCanvas.addEventListener('mousedown', function(e){ draggingHue = true; huePos(e); });
-    hueCanvas.addEventListener('touchstart', function(e){ draggingHue = true; huePos(e); }, { passive:true });
-
-    document.getElementById(idPrefix + 'CpHex').addEventListener('input', function(e) {
-      const val = e.target.value;
-      if (/^#[0-9A-Fa-f]{6}$/.test(val)) {
-        const hsv2 = hexToHsv(val);
-        _colPick[idPrefix].h = hsv2.h; _colPick[idPrefix].s = hsv2.s; _colPick[idPrefix].v = hsv2.v;
-        drawSquareGeneric(idPrefix); updateInlinePreview(idPrefix, false);
-      }
-    });
-  }, 30);
-}
-
-function drawHueBarGeneric(ctx, w, h) {
-  const grad = ctx.createLinearGradient(0, 0, w, 0);
-  for (let i = 0; i <= 6; i++) grad.addColorStop(i/6, hsvToHex(i*60, 100, 100));
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, w, h);
-}
-
-function drawSquareGeneric(idPrefix) {
-  const st = _colPick[idPrefix]; if (!st || !st.sqCtx) return;
-  const ctx = st.sqCtx, w = st.sqCanvas.width, h = st.sqCanvas.height;
-  const satGrad = ctx.createLinearGradient(0, 0, w, 0);
-  satGrad.addColorStop(0, '#fff'); satGrad.addColorStop(1, hsvToHex(st.h, 100, 100));
-  ctx.fillStyle = satGrad; ctx.fillRect(0, 0, w, h);
-  const valGrad = ctx.createLinearGradient(0, 0, 0, h);
-  valGrad.addColorStop(0, 'rgba(0,0,0,0)'); valGrad.addColorStop(1, '#000');
-  ctx.fillStyle = valGrad; ctx.fillRect(0, 0, w, h);
-  const x = (st.s/100) * w, y = (1 - st.v/100) * h;
-  ctx.beginPath(); ctx.arc(x, y, 7, 0, Math.PI*2);
-  ctx.strokeStyle = '#fff'; ctx.lineWidth = 3; ctx.stroke();
-  ctx.strokeStyle = 'rgba(0,0,0,.3)'; ctx.lineWidth = 1; ctx.stroke();
-}
-
-function updateInlinePreview(idPrefix, syncHex) {
-  if (syncHex === undefined) syncHex = true;
-  const st = _colPick[idPrefix]; if (!st) return;
-  const hex = hsvToHex(st.h, st.s, st.v);
-  const prev = document.getElementById(idPrefix + 'CpPreview'); if (prev) prev.style.background = hex;
-  if (syncHex) { const inp = document.getElementById(idPrefix + 'CpHex'); if (inp) inp.value = hex; }
-}
-
-function confirmInlineColor(idPrefix) {
-  const st = _colPick[idPrefix]; if (!st) return;
-  const hex = hsvToHex(st.h, st.s, st.v);
-  seleccionarColorEtiqueta(idPrefix, hex);
-  document.getElementById(idPrefix + 'ColorInline')?.remove();
-}
 
 const RECORDATORIO_ICONOS = {
   pin:        { color:'#5a6472', bg:'#f1f2f4', label:'Recordatorio', svg:'<path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z"/>' },
@@ -5785,7 +5626,6 @@ function dbAbrirFormRecordatorio(fecha, iconoId, editData) {
     + '<div class="fgroup" style="margin-bottom:10px"><label>Título</label><input id="recTitulo" type="text" value="' + (editData ? (editData.titulo||'').replace(/"/g,'&quot;') : '') + '"/></div>'
     + '<div class="fgroup" style="margin-bottom:10px"><label>Descripción (opcional)</label><input id="recDesc" type="text" value="' + (editData ? (editData.descripcion||'').replace(/"/g,'&quot;') : '') + '"/></div>'
     + '<div class="fgroup" style="margin-bottom:10px"><label>Hora</label><input id="recHora" type="time" value="' + (editData && editData.hora ? editData.hora.substring(0,5) : '09:00') + '"/></div>'
-    + colorEtiquetaHtml('rec', editData ? editData.color : '')
     + formNotifRowHtml()
     + '<button id="recGuardarBtn" onclick="dbGuardarRecordatorioPersonal(&quot;' + fecha + '&quot;,&quot;' + iconoId + '&quot;)" style="width:100%;padding:14px;border:none;background:var(--navy);color:#fff;border-radius:14px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--f-sans);box-shadow:0 4px 12px rgba(26,43,64,.2);margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:8px">Guardar</button>'
     + '<button onclick="document.getElementById(&quot;dbFormRecModal&quot;).remove()" style="width:100%;padding:12px;border:none;background:transparent;color:var(--tx3);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--f-sans)">Cancelar</button>'
