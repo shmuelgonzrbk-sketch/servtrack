@@ -7304,8 +7304,7 @@ const pendingShare = new URLSearchParams(window.location.search).get('c');
 if (pendingShare) localStorage.setItem('pendingShare', pendingShare);
 
 if (!isLoggedIn()) {
-  document.getElementById('splashLoader')?.remove();
-  showAuthScreen();
+  window.location.href = '/login';
 } else {
   registerSW().then(() => {
     init();

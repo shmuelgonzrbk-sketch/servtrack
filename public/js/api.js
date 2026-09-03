@@ -217,7 +217,7 @@ function logout() {
   if (!confirm('¿Estás seguro que quieres cerrar sesión?')) return;
   localStorage.removeItem('st_token');
   localStorage.removeItem('st_user');
-  location.reload();
+  window.location.href = '/login';
 }
 
 // Socket para indicador de actividad
