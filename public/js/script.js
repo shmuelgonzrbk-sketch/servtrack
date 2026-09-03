@@ -5468,6 +5468,7 @@ const COLORES_ETIQUETA = [
   { c:'#90caf9', n:'Azul suave' },
   { c:'#ce93d8', n:'Morado suave' },
   { c:'#ffab91', n:'Durazno' },
+  { c:'#80cbc4', n:'Turquesa' },
 ];
 
 function colorEtiquetaHtml(idPrefix, selected) {
@@ -5479,9 +5480,6 @@ function colorEtiquetaHtml(idPrefix, selected) {
     + '<label>Color de etiqueta</label>'
     + '<div class="pal-dots" id="' + idPrefix + 'ColorDots" style="margin-bottom:4px">'
       + dots
-      + '<button type="button" id="' + idPrefix + 'ColorCustomBtn" onclick="toggleColorPickerInline(&quot;' + idPrefix + '&quot;)" style="width:30px;height:30px;border-radius:50%;border:1.5px dashed var(--border-dk);background:var(--bg);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0" title="Elegir color personalizado">'
-        + '<svg viewBox="0 0 24 24" width="15" height="15" fill="var(--tx3)"><path d="M20.71 5.63l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-3.12 3.12L11.5 4.08c-.39-.39-1.02-.39-1.41 0L8.68 5.5c-.39.39-.39 1.02 0 1.41l2.33 2.33L2.5 17.75V21h3.25l8.49-8.49 2.33 2.33c.39.39 1.02.39 1.41 0l1.41-1.41c.39-.39.39-1.02 0-1.41l-2.33-2.33 3.12-3.12c.4-.4.4-1.03.02-1.42zM4.92 19L4 18.08l8.06-8.06.92.92L4.92 19z"/></svg>'
-      + '</button>'
     + '</div>'
     + '<input type="hidden" id="' + idPrefix + 'Color" value="' + (selected || '') + '"/>'
   + '</div>';
