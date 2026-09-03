@@ -1702,11 +1702,19 @@ function buildDashboard() {
     + '</div>';
   }
 
+  if (_dbSoloProgreso) {
+    const panelEl = document.getElementById('dbPanelProgreso');
+    if (panelEl) {
+      panelEl.innerHTML = (_dbVistaProgreso==='mensual' ? mensualHtml : dbConstruirSemanalHtml());
+      _dbSoloProgreso = false;
+      return;
+    }
+  }
   el.innerHTML =
       '<div style="margin-bottom:16px">' + headerHtml + '</div>'
     + '<div style="margin-bottom:8px;font-size:11px;font-weight:800;color:var(--tx3);text-transform:uppercase;letter-spacing:.06em">Resumen del mes</div>'
     + '<div style="margin-bottom:16px">' + statsHtml + '</div>'
-    + '<div style="margin-bottom:16px">' + (_dbVistaProgreso==='mensual' ? mensualHtml : dbConstruirSemanalHtml()) + '</div>'
+    + '<div id="dbPanelProgreso" style="margin-bottom:16px">' + (_dbVistaProgreso==='mensual' ? mensualHtml : dbConstruirSemanalHtml()) + '</div>'
     + '<div style="margin-bottom:8px;font-size:11px;font-weight:800;color:var(--tx3);text-transform:uppercase;letter-spacing:.06em">Agenda</div>'
     + '<div style="margin-bottom:16px">'
         + '<div id="dbCarrusel" style="display:flex;align-items:flex-start;overflow-x:auto;scroll-snap-type:x mandatory;gap:10px;-webkit-overflow-scrolling:touch;scrollbar-width:none;-ms-overflow-style:none">'
@@ -1947,10 +1955,12 @@ function horarioLeer() {
 }
 let _dbVistaProgreso = 'mensual';
 let _dbProgresoAnimar = false;
+let _dbSoloProgreso = false;
 function dbCambiarVistaProgreso(v) {
   if (v === _dbVistaProgreso) return;
   _dbVistaProgreso = v;
   _dbProgresoAnimar = true;
+  _dbSoloProgreso = true;
   buildDashboard();
   _dbProgresoAnimar = false;
 }
@@ -3350,9 +3360,9 @@ function buildPrec() {
           + '<svg id="precManualChev" viewBox="0 0 24 24" width="13" height="13" fill="currentColor" style="transition:transform .2s"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg>'
         + '</button>'
       + '</div>'
+      + '<button class="prec-btn-sub" style="width:100%;box-sizing:border-box;height:47px;display:flex;align-items:center;justify-content:center;white-space:nowrap;margin-top:8px" onclick="subH()">− 1 hora</button>'
       + '<div id="precManualWrap" style="max-height:0;overflow:hidden;transition:max-height .3s ease">'
         + dbHtmlRuedaHorasPrec()
-        + '<button class="prec-btn-sub" style="width:100%;box-sizing:border-box;height:47px;display:flex;align-items:center;justify-content:center;white-space:nowrap;margin-top:8px" onclick="subH()">− 1 hora</button>'
       + '</div>'
       + '<button onclick="dbAbrirCalendarioHoras()" style="width:100%;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:10px;padding:13px;border-radius:12px;border:1.5px dashed var(--navy-bd);background:var(--navy-light);color:var(--navy);font-size:13px;font-weight:700;cursor:pointer">'
         + '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11z"/></svg>'
@@ -4419,7 +4429,7 @@ async function guardarPerfil() {
   }
 }
 
-const NOTIF_TIEMPO_PRESETS = [15, 30, 60, 120, 1440];
+const NOTIF_TIEMPO_PRESETS = [15, 30, 60, 120, 180, 1440];
 
 function notifEtiquetaMinutos(m) {
   if (m < 60) return m + ' minutos antes';
