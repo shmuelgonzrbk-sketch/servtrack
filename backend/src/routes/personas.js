@@ -53,14 +53,14 @@ router.get('/', auth, async (req, res) => {
 
 // AGREGAR
 router.post('/', auth, async (req, res) => {
-  const { nombre, direccion, telefono, gps_lat, gps_lng, tipo, estado, notas, proxima_visita, proxima_visita_hora, pub, recordatorio_tipo, territorio } = req.body;
+  const { nombre, direccion, telefono, gps_lat, gps_lng, tipo, estado, notas, proxima_visita, proxima_visita_hora, pub, recordatorio_tipo, territorio, color } = req.body;
   try {
     const dirEncriptada = await encrypt(direccion);
     const notasEncriptadas = await encrypt(notas);
     const result = await pool.query(
-      `INSERT INTO personas (usuario_id, nombre, direccion, telefono, gps_lat, gps_lng, tipo, estado, notas, proxima_visita, proxima_visita_hora, pub, recordatorio_tipo, territorio)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) RETURNING *`,
-      [req.userId, nombre, dirEncriptada, telefono, gps_lat, gps_lng, tipo || 'Revisita', estado || 'Pendiente', notasEncriptadas, proxima_visita || null, proxima_visita_hora || null, pub || null, recordatorio_tipo || 'una_vez', territorio || null]
+      `INSERT INTO personas (usuario_id, nombre, direccion, telefono, gps_lat, gps_lng, tipo, estado, notas, proxima_visita, proxima_visita_hora, pub, recordatorio_tipo, territorio, color)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15) RETURNING *`,
+      [req.userId, nombre, dirEncriptada, telefono, gps_lat, gps_lng, tipo || 'Revisita', estado || 'Pendiente', notasEncriptadas, proxima_visita || null, proxima_visita_hora || null, pub || null, recordatorio_tipo || 'una_vez', territorio || null, color || null]
     );
     const p = result.rows[0];
 
@@ -90,16 +90,16 @@ router.post('/', auth, async (req, res) => {
 
 // EDITAR
 router.put('/:id', auth, async (req, res) => {
-  const { nombre, direccion, telefono, gps_lat, gps_lng, tipo, estado, notas, proxima_visita, proxima_visita_hora, pub, recordatorio_tipo, territorio } = req.body;
+  const { nombre, direccion, telefono, gps_lat, gps_lng, tipo, estado, notas, proxima_visita, proxima_visita_hora, pub, recordatorio_tipo, territorio, color } = req.body;
   try {
     const dirEncriptada = await encrypt(direccion);
     const notasEncriptadas = await encrypt(notas);
     const result = await pool.query(
       `UPDATE personas SET nombre=$1, direccion=$2, telefono=$3,
        gps_lat=$4, gps_lng=$5, tipo=$6, estado=$7, notas=$8,
-       proxima_visita=$9, proxima_visita_hora=$10, pub=$11, recordatorio_tipo=$12, territorio=$13
-       WHERE id=$14 AND usuario_id=$15 RETURNING *`,
-      [nombre, dirEncriptada, telefono, gps_lat, gps_lng, tipo, estado, notasEncriptadas, proxima_visita || null, proxima_visita_hora || null, pub || null, recordatorio_tipo || 'una_vez', territorio || null, req.params.id, req.userId]
+       proxima_visita=$9, proxima_visita_hora=$10, pub=$11, recordatorio_tipo=$12, territorio=$13, color=$14
+       WHERE id=$15 AND usuario_id=$16 RETURNING *`,
+      [nombre, dirEncriptada, telefono, gps_lat, gps_lng, tipo, estado, notasEncriptadas, proxima_visita || null, proxima_visita_hora || null, pub || null, recordatorio_tipo || 'una_vez', territorio || null, color || null, req.params.id, req.userId]
     );
     const p = result.rows[0];
 

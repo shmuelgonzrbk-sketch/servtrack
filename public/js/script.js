@@ -272,9 +272,9 @@ function getSaludo() {
   const nombre = user ? user.nombre.split(' ')[0] : '';
   const h = new Date().getHours();
   const saludos = {
-    manana: ['Buenos días, ' + nombre, 'Buen día, ' + nombre, 'Hola de nuevo, ' + nombre, 'Que tengas un buen día, ' + nombre + ' :D'],
-    tarde: ['Buenas tardes, ' + nombre, 'Hola de nuevo, ' + nombre, 'Como va tu día, ' + nombre + '?', 'Sigue dando lo mejor de tí, ' + nombre + ' :D', 'Gran trabajo hoy, ' + nombre, 'Tu esfuerzo vale la pena, ' + nombre],
-    noche: ['Buenas noches, ' + nombre, 'Hola de nuevo, ' + nombre, 'Que tal tu día, ' + nombre + '?']
+    manana: ['Buenos días, ' + nombre, 'Buen día, ' + nombre, 'Un nuevo día', 'El día apenas comienza'],
+    tarde: ['¿Cómo va tu día?', 'Sigue dando lo mejor de ti', 'Gran trabajo hoy', 'Tu esfuerzo vale la pena', 'La tarde es buen momento para avanzar'],
+    noche: ['Buen trabajo hoy, hora de descansar', 'Tu esfuerzo valió la pena', 'Ya es hora de descansar', 'Buen cierre de día', 'Mañana será un nuevo día']
   };
   const periodo = h < 12 ? 'manana' : h < 18 ? 'tarde' : 'noche';
   const opciones = saludos[periodo];
@@ -390,6 +390,7 @@ async function loadCards() {
         estado: p.estado,
         notas: p.notas,
         pub: p.pub,
+        color: p.color || '',
         fecha: p.proxima_visita ? p.proxima_visita.split('T')[0] : '',
         hora:  p.proxima_visita_hora ? p.proxima_visita_hora.substring(0,5) : '',
         recordatorio_tipo: p.recordatorio_tipo || 'una_vez',
@@ -1702,11 +1703,12 @@ function buildDashboard() {
     + '</div>';
   }
 
-  if (_dbSoloProgreso) {
+  const _soloProgresoActual = _dbSoloProgreso;
+  _dbSoloProgreso = false; // siempre se resetea aquí, sin importar si el panel existía o no
+  if (_soloProgresoActual) {
     const panelEl = document.getElementById('dbPanelProgreso');
     if (panelEl) {
       panelEl.innerHTML = (_dbVistaProgreso==='mensual' ? mensualHtml : dbConstruirSemanalHtml());
-      _dbSoloProgreso = false;
       return;
     }
   }
@@ -1802,11 +1804,15 @@ function buildDashboard() {
       const ajustarAlturaCarrusel = function(){
         const idx = Math.round(carr.scrollLeft / Math.max(1, carr.offsetWidth));
         const slides = carr.children;
-        if (slides[idx]) {
+        if (slides[idx] && slides[idx].offsetHeight > 0) {
           carr.style.height = slides[idx].offsetHeight + 'px';
         }
+        // Si la medición da 0 (el contenido aún no tiene layout listo),
+        // no tocamos la altura — mejor dejar la anterior que colapsar a 0.
       };
       ajustarAlturaCarrusel();
+      // Reintento por si la primera medición coincidió justo antes de que el navegador terminara el layout
+      requestAnimationFrame(function(){ requestAnimationFrame(ajustarAlturaCarrusel); });
       if (!carr.dataset.bound) {
         carr.dataset.bound = '1';
         carr.addEventListener('scroll', function(){
@@ -2957,6 +2963,7 @@ function openForm(editData) {
     document.getElementById('fEstado').value = editData.estado || 'pendiente';
     document.getElementById('fNotas').value  = editData.notas  || '';
     document.getElementById('fId').value     = editData.id;
+    seleccionarColorEtiqueta('f', editData.color || '');
     document.getElementById('fRecordatorio').value = editData.recordatorio_tipo || 'una_vez';
     if (editData.lat && editData.lng) {
       document.getElementById('fLat').value = editData.lat;
@@ -2969,6 +2976,7 @@ function openForm(editData) {
   } else {
     title.textContent = t('nueva_persona'); btn.textContent = t('guardar');
     ['fNombre','fTerritorio','fDir','fTel','fPub','fHora','fNotas'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+    seleccionarColorEtiqueta('f', '');
     document.getElementById('fFecha').value  = today();
     document.getElementById('fTipo').value   = 'revisita';
     document.getElementById('fEstado').value = 'pendiente';
@@ -3246,6 +3254,7 @@ async function saveCard() {
     estado:    document.getElementById('fEstado').value,
     notas:     document.getElementById('fNotas').value.trim(),
     pub:       document.getElementById('fPub').value.trim(),
+    color:     document.getElementById('fColor').value,
     proxima_visita:      document.getElementById('fFecha').value || null,
     proxima_visita_hora: document.getElementById('fHora').value || null,
     recordatorio_tipo:   document.getElementById('fRecordatorio').value,
@@ -3276,6 +3285,7 @@ async function saveCard() {
         estado: p.estado,
         notas: p.notas,
         pub: p.pub,
+        color: p.color || '',
         territorio: p.territorio || '',
         fecha: p.proxima_visita ? p.proxima_visita.split('T')[0] : '',
         hora:  p.proxima_visita_hora ? p.proxima_visita_hora.substring(0,5) : '',
@@ -4781,7 +4791,7 @@ function buildCalendario() {
     if (tieneVisitas) {
       html += '<div style="display:flex;gap:2.5px;margin-top:4px">';
       visitas.slice(0, 3).forEach(function(v, vi) {
-        var dotColor = v.esRecordatorio ? (v.colorRec || '#5a6472') : (v.esAsignacion ? '#7b1fa2' : (v.tipo === 'estudio' ? '#1e7e34' : '#2e6be6'));
+        var dotColor = v.color || (v.esRecordatorio ? (v.colorRec || '#5a6472') : (v.esAsignacion ? '#7b1fa2' : (v.tipo === 'estudio' ? '#1e7e34' : '#2e6be6')));
         html += '<div style="width:9px;height:2.5px;border-radius:2px;background:' + dotColor + '"></div>';
       });
       if (visitas.length > 3) html += '<div style="width:9px;height:2.5px;border-radius:2px;background:var(--tx3)"></div>';
@@ -5469,7 +5479,7 @@ function colorEtiquetaHtml(idPrefix, selected) {
     + '<label>Color de etiqueta</label>'
     + '<div class="pal-dots" id="' + idPrefix + 'ColorDots" style="margin-bottom:4px">'
       + dots
-      + '<button type="button" onclick="toggleColorPickerInline(&quot;' + idPrefix + '&quot;)" style="width:30px;height:30px;border-radius:50%;border:1.5px dashed var(--border-dk);background:var(--bg);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0" title="Elegir color personalizado">'
+      + '<button type="button" id="' + idPrefix + 'ColorCustomBtn" onclick="toggleColorPickerInline(&quot;' + idPrefix + '&quot;)" style="width:30px;height:30px;border-radius:50%;border:1.5px dashed var(--border-dk);background:var(--bg);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0" title="Elegir color personalizado">'
         + '<svg viewBox="0 0 24 24" width="15" height="15" fill="var(--tx3)"><path d="M20.71 5.63l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-3.12 3.12L11.5 4.08c-.39-.39-1.02-.39-1.41 0L8.68 5.5c-.39.39-.39 1.02 0 1.41l2.33 2.33L2.5 17.75V21h3.25l8.49-8.49 2.33 2.33c.39.39 1.02.39 1.41 0l1.41-1.41c.39-.39.39-1.02 0-1.41l-2.33-2.33 3.12-3.12c.4-.4.4-1.03.02-1.42zM4.92 19L4 18.08l8.06-8.06.92.92L4.92 19z"/></svg>'
       + '</button>'
     + '</div>'
@@ -5479,10 +5489,25 @@ function colorEtiquetaHtml(idPrefix, selected) {
 
 function seleccionarColorEtiqueta(idPrefix, color) {
   const hidden = document.getElementById(idPrefix + 'Color');
-  if (hidden) hidden.value = color;
+  if (hidden) hidden.value = color || '';
+  const esPreset = COLORES_ETIQUETA.some(function(o){ return o.c.toLowerCase() === (color||'').toLowerCase(); });
   document.querySelectorAll('#' + idPrefix + 'ColorDots .cdot').forEach(function(el){
-    el.classList.toggle('active', el.dataset.c.toLowerCase() === color.toLowerCase());
+    el.classList.toggle('active', el.dataset.c.toLowerCase() === (color||'').toLowerCase());
   });
+  const btnCustom = document.getElementById(idPrefix + 'ColorCustomBtn');
+  if (btnCustom) {
+    if (color && !esPreset) {
+      btnCustom.style.background = color;
+      btnCustom.style.border = '1.5px solid rgba(0,0,0,.15)';
+      btnCustom.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" fill="#fff" style="filter:drop-shadow(0 0 1px rgba(0,0,0,.5))"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>';
+      btnCustom.title = 'Color personalizado activo — toca para cambiarlo';
+    } else {
+      btnCustom.style.background = 'var(--bg)';
+      btnCustom.style.border = '1.5px dashed var(--border-dk)';
+      btnCustom.innerHTML = '<svg viewBox="0 0 24 24" width="15" height="15" fill="var(--tx3)"><path d="M20.71 5.63l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-3.12 3.12L11.5 4.08c-.39-.39-1.02-.39-1.41 0L8.68 5.5c-.39.39-.39 1.02 0 1.41l2.33 2.33L2.5 17.75V21h3.25l8.49-8.49 2.33 2.33c.39.39 1.02.39 1.41 0l1.41-1.41c.39-.39.39-1.02 0-1.41l-2.33-2.33 3.12-3.12c.4-.4.4-1.03.02-1.42zM4.92 19L4 18.08l8.06-8.06.92.92L4.92 19z"/></svg>';
+      btnCustom.title = 'Elegir color personalizado';
+    }
+  }
 }
 let _colPick = {};
 

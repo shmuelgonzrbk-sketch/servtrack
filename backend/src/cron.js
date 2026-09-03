@@ -193,7 +193,7 @@ cron.schedule('0 20 * * *', async () => {
 
       await sendPush(
         u.usuario_id,
-        'Manana termina el mes',
+        'Mañana termina el mes',
         msg
       );
     }

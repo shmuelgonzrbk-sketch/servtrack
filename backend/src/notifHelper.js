@@ -61,7 +61,6 @@ async function programarAvisosVisita({ usuarioId, personaId, nombre, fecha, hora
       `En ${etiqueta} tienes visita con ${nombre} a las ${hora}. Prepara tu tema.${temaTxt}`,
       `Recuerda: visita con ${nombre} a las ${hora}. Revisa tus notas.${temaTxt}`,
       `Falta ${etiqueta} para tu visita con ${nombre}. No olvides llegar a tiempo.${temaTxt}`,
-      `${nombre} te espera a las ${hora}. Tienes ${etiqueta} para prepararte.${temaTxt}`,
     ];
   }
 
@@ -142,8 +141,8 @@ async function programarAvisosAsignacion({ usuarioId, asigId, nombreParte, fecha
   if (ayudante && fechaPractica) {
     const practicaFecha = construirFechaHora(fechaPractica, '09:00');
     const disparo1 = new Date(practicaFecha.getTime() - 24 * 60 * 60000);
-    if (disparo1 > ahora) avisos.push({ tipo: 'asig_practica_previa', titulo: 'Practica manana', cuerpo: `Ya coordinaron todo con ${ayudante} para manana?`, disparo: disparo1 });
-    if (practicaFecha > ahora) avisos.push({ tipo: 'asig_practica_hoy', titulo: 'Hoy practican', cuerpo: `Hoy es el dia de practicar con ${ayudante}. Mucho exito!`, disparo: practicaFecha });
+    if (disparo1 > ahora) avisos.push({ tipo: 'asig_practica_previa', titulo: 'Práctica mañana', cuerpo: `¿Ya coordinaron todo con ${ayudante} para mañana?`, disparo: disparo1 });
+    if (practicaFecha > ahora) avisos.push({ tipo: 'asig_practica_hoy', titulo: 'Hoy practican', cuerpo: `Hoy es el día de practicar con ${ayudante}. ¡Mucho éxito!`, disparo: practicaFecha });
   }
 
   for (const a of avisos) {
