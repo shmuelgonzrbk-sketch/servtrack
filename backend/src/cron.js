@@ -1,50 +1,6 @@
 const cron = require('node-cron');
 const pool = require('./db/pool');
-const webpush = require('web-push');
-const { enviarNotificacionFCM } = require('./fcm');
-
-webpush.setVapidDetails(
-  process.env.VAPID_EMAIL,
-  process.env.VAPID_PUBLIC_KEY,
-  process.env.VAPID_PRIVATE_KEY
-);
-
-async function sendPush(usuarioId, title, body, cardId = null) {
-  let enviado = false;
-
-  // 1. Intentar FCM primero (app Android nativa)
-  try {
-    const fcmResult = await pool.query(
-      'SELECT token FROM fcm_tokens WHERE usuario_id = $1', [usuarioId]
-    );
-    if (fcmResult.rows.length > 0) {
-      const resp = await enviarNotificacionFCM(fcmResult.rows[0].token, title, body, cardId ? { cardId: String(cardId) } : {});
-      if (resp.success) {
-        enviado = true;
-        console.log('FCM enviado a usuario', usuarioId);
-      }
-    }
-  } catch (err) {
-    console.error('Error FCM:', err.message);
-  }
-
-  // 2. Web push como fallback (navegador)
-  if (!enviado) {
-    try {
-      const result = await pool.query(
-        'SELECT subscription FROM push_subscriptions WHERE usuario_id = $1',
-        [usuarioId]
-      );
-      if (result.rows.length > 0) {
-        const subscription = JSON.parse(result.rows[0].subscription);
-        await webpush.sendNotification(subscription, JSON.stringify({ title, body, cardId }));
-        console.log('Web push enviado a usuario', usuarioId);
-      }
-    } catch (err) {
-      console.error('Error web push:', err.message);
-    }
-  }
-}
+const { sendPush } = require('./pushSender');
 
 /* ================================================================
    CRON PRINCIPAL — cada minuto revisa avisos YA PROGRAMADOS
@@ -53,14 +9,14 @@ async function sendPush(usuarioId, title, body, cardId = null) {
    la persona o asignación (ver notifHelper.js), así que aquí no hay
    ninguna comparación de fechas ni ventanas frágiles.
 ================================================================ */
-cron.schedule('*/20 * * * *', async () => {
+cron.schedule('0 * * * *', async () => { // respaldo: solo por si el servidor se reinició y perdió las alarmas en memoria
   try {
     console.log('Cron corriendo, hora servidor:', new Date().toString());
 
     const pendientes = await pool.query(
       `SELECT id, usuario_id, titulo, cuerpo, referencia_id, referencia_tabla
        FROM notificaciones_programadas
-       WHERE enviada = false AND fecha_disparo <= NOW()
+       WHERE enviada = false AND fecha_disparo <= NOW() - interval '2 minutes'
        ORDER BY fecha_disparo ASC
        LIMIT 50`
     );

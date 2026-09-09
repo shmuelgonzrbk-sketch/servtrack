@@ -1,4 +1,5 @@
 const pool = require('./db/pool');
+const { scheduleRow, cancelRow } = require('./notifScheduler');
 
 function construirFechaHora(fechaStr, horaStr) {
   // Siempre interpretar como hora Peru (UTC-5), sin importar timezone del servidor
@@ -10,6 +11,12 @@ function construirFechaHora(fechaStr, horaStr) {
 }
 
 async function limpiarAvisosPendientes(tabla, referenciaId) {
+  const viejos = await pool.query(
+    `SELECT id FROM notificaciones_programadas
+     WHERE referencia_tabla = $1 AND referencia_id = $2 AND enviada = false`,
+    [tabla, referenciaId]
+  );
+  viejos.rows.forEach(r => cancelRow(r.id));
   await pool.query(
     `DELETE FROM notificaciones_programadas
      WHERE referencia_tabla = $1 AND referencia_id = $2 AND enviada = false`,
@@ -82,22 +89,24 @@ async function programarAvisosVisita({ usuarioId, personaId, nombre, fecha, hora
     const disparo = new Date(horaVisita.getTime() - aviso.minutosAntes * 60000);
     if (disparo > ahora) {
       algunoFuturo = true;
-      await pool.query(
+      const ins = await pool.query(
         `INSERT INTO notificaciones_programadas
          (usuario_id, tipo, referencia_tabla, referencia_id, titulo, cuerpo, fecha_disparo)
-         VALUES ($1,$2,'personas',$3,$4,$5,$6)`,
+         VALUES ($1,$2,'personas',$3,$4,$5,$6) RETURNING *`,
         [usuarioId, aviso.tipo, personaId, aviso.titulo, aviso.cuerpo, disparo]
       );
+      scheduleRow(ins.rows[0]);
     }
   }
 
   if (!algunoFuturo && horaVisita > ahora) {
-    await pool.query(
+    const ins = await pool.query(
       `INSERT INTO notificaciones_programadas
        (usuario_id, tipo, referencia_tabla, referencia_id, titulo, cuerpo, fecha_disparo)
-       VALUES ($1,'visita_urgente','personas',$2,$3,$4,$5)`,
+       VALUES ($1,'visita_urgente','personas',$2,$3,$4,$5) RETURNING *`,
       [usuarioId, personaId, `${nombre} — Visita ahora`, alAzar(msgsUrgente), ahora]
     );
+    scheduleRow(ins.rows[0]);
   }
 }
 
@@ -146,12 +155,13 @@ async function programarAvisosAsignacion({ usuarioId, asigId, nombreParte, fecha
   }
 
   for (const a of avisos) {
-    await pool.query(
+    const ins = await pool.query(
       `INSERT INTO notificaciones_programadas
        (usuario_id, tipo, referencia_tabla, referencia_id, titulo, cuerpo, fecha_disparo)
-       VALUES ($1,$2,'asignaciones',$3,$4,$5,$6)`,
+       VALUES ($1,$2,'asignaciones',$3,$4,$5,$6) RETURNING *`,
       [usuarioId, a.tipo, asigId, a.titulo, a.cuerpo, a.disparo]
     );
+    scheduleRow(ins.rows[0]);
   }
 }
 
@@ -172,12 +182,13 @@ async function programarAvisoRecordatorio({ usuarioId, recordatorioId, titulo, d
   for (const m of listaMinutos) {
     const disparo = new Date(fechaBase.getTime() - m * 60000);
     if (disparo <= ahora) continue;
-    await pool.query(
+    const ins = await pool.query(
       `INSERT INTO notificaciones_programadas
        (usuario_id, tipo, referencia_tabla, referencia_id, titulo, cuerpo, fecha_disparo)
-       VALUES ($1,$2,'recordatorios_personales',$3,$4,$5,$6)`,
+       VALUES ($1,$2,'recordatorios_personales',$3,$4,$5,$6) RETURNING *`,
       [usuarioId, `recordatorio_${m}`, recordatorioId, titulo, cuerpoBase, disparo]
     );
+    scheduleRow(ins.rows[0]);
   }
 }
 

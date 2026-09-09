@@ -295,3 +295,7 @@ app.use('/api/recordatorios', recordatoriosRoutes);
 app.get('/', (req, res) => res.json({ message: 'AssendApp API ✅' }));
 
 require('./cron');
+
+// Al arrancar, carga todos los avisos pendientes y les asigna su alarma exacta en memoria
+const { cargarYProgramarTodo } = require('./notifScheduler');
+cargarYProgramarTodo();
