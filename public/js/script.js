@@ -2413,7 +2413,7 @@ function openMapPicker() {
   // Crear overlay del mapa
   const overlay = document.createElement('div');
   overlay.id = 'mapPickerOverlay';
-  overlay.style.cssText = 'position:fixed;inset:0;background:#fff;z-index:9999;display:flex;flex-direction:column';
+  overlay.style.cssText = 'position:fixed;inset:0;background:#fff;z-index:9999;display:flex;flex-direction:column;transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1)';
 
   overlay.innerHTML =
     '<div style="display:flex;align-items:center;gap:12px;padding:14px 16px;background:var(--navy);color:#fff">'
@@ -2422,15 +2422,13 @@ function openMapPicker() {
       + '</button>'
       + '<span style="font-size:16px;font-weight:600">Buscar ubicación</span>'
     + '</div>'
-    + '<div style="padding:10px 16px;background:#f8f9fb;border-bottom:1px solid var(--border)">'
-      + '<input id="mapSearchInput" type="text" placeholder="Buscar dirección..." style="'
+    + '<div style="padding:10px 16px;background:#f8f9fb;border-bottom:1px solid var(--border);position:relative">'
+      + '<input id="mapSearchInput" type="text" placeholder="Buscar dirección..." autocomplete="off" style="'
         + 'width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;'
         + 'font-size:14px;font-family:var(--f-sans);box-sizing:border-box"'
+        + ' oninput="buscarSugerenciasMapa(this.value)"'
         + ' onkeydown="if(event.key===\'Enter\') searchMapAddress()"/>'
-      + '<button onclick="searchMapAddress()" style="'
-        + 'margin-top:8px;width:100%;padding:10px;border-radius:10px;'
-        + 'background:var(--navy);color:#fff;border:none;font-size:14px;'
-        + 'font-weight:600;cursor:pointer">Buscar</button>'
+      + '<div id="mapSugerencias" style="display:none;position:absolute;top:100%;left:16px;right:16px;z-index:60;background:#fff;border:1px solid var(--border);border-radius:10px;margin-top:2px;box-shadow:0 8px 24px rgba(0,0,0,.12);max-height:220px;overflow-y:auto"></div>'
     + '</div>'
     + '<div style="font-size:12px;color:var(--tx3);padding:8px 16px;background:#f8f9fb;border-bottom:1px solid var(--border)">'
       + 'Toca el mapa para marcar la ubicación exacta'
@@ -2444,8 +2442,8 @@ function openMapPicker() {
     + '</div>';
 
   document.body.appendChild(overlay);
+  requestAnimationFrame(function(){ requestAnimationFrame(function(){ overlay.style.transform = 'translateY(0)'; }); });
 
-  // Inicializar mapa
   // Inicializar mapa
   setTimeout(() => {
     const latGuardada = document.getElementById('fLat').value;
@@ -2519,9 +2517,65 @@ function confirmMapLocation() {
 
 function closeMapPicker() {
   const overlay = document.getElementById('mapPickerOverlay');
-  if (overlay) overlay.remove();
-  if (_leafletMap) { _leafletMap.remove(); _leafletMap = null; }
-  _leafletMarker = null;
+  if (overlay) {
+    overlay.style.transform = 'translateY(100%)';
+    setTimeout(function(){
+      overlay.remove();
+      if (_leafletMap) { _leafletMap.remove(); _leafletMap = null; }
+      _leafletMarker = null;
+    }, 300);
+  } else {
+    if (_leafletMap) { _leafletMap.remove(); _leafletMap = null; }
+    _leafletMarker = null;
+  }
+}
+
+let _mapDirDebounce = null;
+function buscarSugerenciasMapa(query) {
+  clearTimeout(_mapDirDebounce);
+  const cont = document.getElementById('mapSugerencias');
+  if (!query || query.trim().length < 2) {
+    if (cont) cont.style.display = 'none';
+    return;
+  }
+  _mapDirDebounce = setTimeout(function() {
+    fetch('https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=5&countrycodes=pe&q=' + encodeURIComponent(query))
+      .then(function(res) { return res.json(); })
+      .then(function(resultados) { mostrarSugerenciasMapa(resultados); })
+      .catch(function() { if (cont) cont.style.display = 'none'; });
+  }, 300);
+}
+
+function mostrarSugerenciasMapa(resultados) {
+  const cont = document.getElementById('mapSugerencias');
+  if (!cont) return;
+  if (!resultados || !resultados.length) { cont.style.display = 'none'; return; }
+
+  cont.innerHTML = resultados.map(function(r, i) {
+    return '<div onclick="elegirSugerenciaMapa(' + i + ')" style="padding:11px 14px;cursor:pointer;font-size:13px;color:var(--tx);border-bottom:1px solid var(--border)">'
+      + '<div style="font-weight:600">' + (r.display_name.split(',')[0]) + '</div>'
+      + '<div style="font-size:11px;color:var(--tx3);margin-top:1px">' + r.display_name + '</div>'
+    + '</div>';
+  }).join('');
+
+  window._mapSugResultados = resultados;
+  cont.style.display = 'block';
+}
+
+function elegirSugerenciaMapa(i) {
+  const r = window._mapSugResultados[i];
+  if (!r) return;
+
+  document.getElementById('mapSearchInput').value = r.display_name.split(',').slice(0, 2).join(',');
+  document.getElementById('mapSugerencias').style.display = 'none';
+
+  const lat = parseFloat(r.lat);
+  const lng = parseFloat(r.lon);
+  _leafletMap.setView([lat, lng], 17);
+  if (_leafletMarker) _leafletMap.removeLayer(_leafletMarker);
+  _leafletMarker = L.marker([lat, lng]).addTo(_leafletMap);
+  document.getElementById('confirmMapBtn').disabled = false;
+  document.getElementById('confirmMapBtn').style.opacity = '1';
 }
 
 /* ================================================================
@@ -7323,4 +7377,64 @@ if (!isLoggedIn()) {
       checkUrlImport();
     }
   });
+}
+
+/* ================================================================
+   AUTOCOMPLETADO DE DIRECCIÓN — Nominatim (OpenStreetMap, gratuito)
+================================================================ */
+let _dirDebounce = null;
+
+function buscarDireccion(query) {
+  clearTimeout(_dirDebounce);
+  const cont = document.getElementById('dirSugerencias');
+  if (!query || query.trim().length < 2) {
+    if (cont) cont.style.display = 'none';
+    return;
+  }
+  _dirDebounce = setTimeout(function() {
+    fetch('https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=5&countrycodes=pe&q=' + encodeURIComponent(query))
+      .then(function(res) { return res.json(); })
+      .then(function(resultados) { mostrarSugerenciasDir(resultados); })
+      .catch(function() { if (cont) cont.style.display = 'none'; });
+  }, 300);
+}
+
+function mostrarSugerenciasDir(resultados) {
+  const cont = document.getElementById('dirSugerencias');
+  if (!cont) return;
+  if (!resultados || !resultados.length) { cont.style.display = 'none'; return; }
+
+  cont.innerHTML = resultados.map(function(r, i) {
+    return '<div onclick="elegirDireccion(' + i + ')" style="padding:11px 14px;cursor:pointer;font-size:13px;color:var(--tx);border-bottom:1px solid var(--border)">'
+      + '<div style="font-weight:600">' + (r.display_name.split(',')[0]) + '</div>'
+      + '<div style="font-size:11px;color:var(--tx3);margin-top:1px">' + r.display_name + '</div>'
+    + '</div>';
+  }).join('');
+
+  window._dirResultados = resultados;
+  cont.style.display = 'block';
+}
+
+function elegirDireccion(i) {
+  const r = window._dirResultados[i];
+  if (!r) return;
+
+  document.getElementById('fDir').value = r.display_name.split(',').slice(0, 2).join(',');
+  document.getElementById('dirSugerencias').style.display = 'none';
+
+  const lat = parseFloat(r.lat).toFixed(6);
+  const lng = parseFloat(r.lon).toFixed(6);
+  document.getElementById('fLat').value = lat;
+  document.getElementById('fLng').value = lng;
+  showMap(lat, lng);
+
+  const btnGps = document.querySelector('[onclick="captureGPS()"]');
+  if (btnGps) btnGps.innerHTML = '<svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3c-.46-4.17-3.77-7.48-7.94-7.94V1h-2v2.06C6.83 3.52 3.52 6.83 3.06 11H1v2h2.06c.46 4.17 3.77 7.48 7.94 7.94V23h2v-2.06c4.17-.46 7.48-3.77 7.94-7.94H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/></svg> ✔ Ubicación registrada';
+  document.getElementById('mapClearBtn').style.display = 'inline-flex';
+  toast('📍 Dirección y ubicación asignadas');
+}
+
+function ocultarSugerenciasDir() {
+  const cont = document.getElementById('dirSugerencias');
+  if (cont) cont.style.display = 'none';
 }

@@ -285,7 +285,11 @@
     <div class="form-body">
       <div class="fgroup"><label id="lbl-nombre">Nombre completo *</label><input id="fNombre" type="text" placeholder="Nombre y apellido"/></div>
       <div class="fgroup"><label>Territorio</label><input id="fTerritorio" type="text" placeholder="Territorio..."/></div>
-      <div class="fgroup"><label id="lbl-dir">Dirección</label><input id="fDir" type="text" placeholder="Calle, número, piso…"/></div>
+      <div class="fgroup" style="position:relative">
+        <label id="lbl-dir">Dirección</label>
+        <input id="fDir" type="text" placeholder="Calle, número, piso…" autocomplete="off" oninput="buscarDireccion(this.value)"/>
+        <div id="dirSugerencias" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:50;background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-top:4px;box-shadow:0 8px 24px rgba(0,0,0,.12);max-height:220px;overflow-y:auto"></div>
+      </div>
 
       <!-- GPS -->
       <div class="fgroup">
