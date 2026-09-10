@@ -1,22 +1,22 @@
-const admin = require('firebase-admin');
+const { initializeApp, cert, getApps } = require('firebase-admin/app');
+const { getMessaging } = require('firebase-admin/messaging');
 
-let initialized = false;
+let firebaseApp = null;
 
 function initFirebase() {
-  if (!initialized) {
+  if (!firebaseApp) {
     let credential;
     if (process.env.FIREBASE_SERVICE_ACCOUNT) {
       const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-      credential = admin.credential.cert(serviceAccount);
+      credential = cert(serviceAccount);
     } else {
-      // Local development
+      // Desarrollo local
       const serviceAccount = require('./firebase-service-account.json');
-      credential = admin.credential.cert(serviceAccount);
+      credential = cert(serviceAccount);
     }
-    admin.initializeApp({ credential });
-    initialized = true;
+    firebaseApp = getApps().length ? getApps()[0] : initializeApp({ credential });
   }
-  return admin;
+  return firebaseApp;
 }
 
 async function enviarNotificacionFCM(fcmToken, titulo, cuerpo, datos = {}) {
@@ -34,7 +34,7 @@ async function enviarNotificacionFCM(fcmToken, titulo, cuerpo, datos = {}) {
         priority: 'high'
       }
     };
-    const response = await app.messaging().send(message);
+    const response = await getMessaging(app).send(message);
     return { success: true, messageId: response };
   } catch (error) {
     console.error('FCM error:', error.message);
