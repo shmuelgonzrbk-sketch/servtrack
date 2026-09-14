@@ -9,7 +9,7 @@ const { sendPush } = require('./pushSender');
    la persona o asignación (ver notifHelper.js), así que aquí no hay
    ninguna comparación de fechas ni ventanas frágiles.
 ================================================================ */
-cron.schedule('0 * * * *', async () => { // respaldo: solo por si el servidor se reinició y perdió las alarmas en memoria
+cron.schedule('0 */3 * * *', async () => { // respaldo: solo por si el servidor se reinició y perdió las alarmas en memoria
   try {
     console.log('Cron corriendo, hora servidor:', new Date().toString());
 
