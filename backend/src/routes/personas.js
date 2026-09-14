@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../db/pool');
 const auth = require('../middleware/auth');
-const { programarAvisosVisita } = require('../notifHelper');
+const { programarAvisosVisita, limpiarAvisosPendientes } = require('../notifHelper');
 
 const KEY = process.env.ENCRYPTION_KEY;
 
@@ -134,6 +134,7 @@ router.delete('/:id', auth, async (req, res) => {
       'DELETE FROM personas WHERE id=$1 AND usuario_id=$2',
       [req.params.id, req.userId]
     );
+    await limpiarAvisosPendientes('personas', req.params.id);
     res.json({ message: 'Persona eliminada' });
   } catch (err) {
     res.status(500).json({ error: err.message });
