@@ -7551,9 +7551,25 @@ async function cargarNotifPanel() {
   }
 }
 
+function _actualizarConteosTabsNotif() {
+  const conteos = { todas: _notifsCache.length, ministerio: 0, anuncios: 0 };
+  _notifsCache.forEach(function(n) { conteos[_categoriaNotif(n.tipo)] = (conteos[_categoriaNotif(n.tipo)] || 0) + 1; });
+  document.querySelectorAll('.notif-tab').forEach(function(btn) {
+    const tab = btn.dataset.tab;
+    const etiquetas = { todas: 'Todas', ministerio: 'Ministerio', anuncios: 'Anuncios' };
+    const n = conteos[tab] || 0;
+    const activo = tab === _notifTabActual;
+    btn.innerHTML = etiquetas[tab] + (n > 0
+      ? ' <span style="display:inline-block;min-width:16px;padding:0 4px;border-radius:99px;font-size:10px;font-weight:800;background:' + (activo ? 'rgba(255,255,255,.25)' : 'var(--bg)') + ';margin-left:2px">' + n + '</span>'
+      : '');
+  });
+}
+
 function renderNotifLista() {
   const lista = document.getElementById('notifPanelLista');
   if (!lista) return;
+
+  _actualizarConteosTabsNotif();
 
   const filtradas = _notifTabActual === 'todas'
     ? _notifsCache
@@ -7585,16 +7601,20 @@ function renderNotifLista() {
       const iconoHtml = ic.logo
         ? '<img src="/img/logotipo.png" alt="AssendApp" style="width:22px;height:22px;object-fit:contain">'
         : '<svg viewBox="0 0 24 24" width="19" height="19" fill="' + ic.color + '">' + ic.svg + '</svg>';
-      return '<div style="display:flex;gap:12px;padding:13px 16px;background:var(--card-bg);border-bottom:1px solid var(--border);align-items:flex-start">'
+      const puntoColor = ic.logo ? 'var(--navy)' : ic.color;
+      return '<div style="display:flex;gap:12px;padding:13px 16px 13px 13px;background:var(--card-bg);border-bottom:1px solid var(--border);border-left:4px solid ' + puntoColor + ';align-items:flex-start">'
         + '<div style="width:38px;height:38px;border-radius:12px;background:' + ic.bg + ';display:flex;align-items:center;justify-content:center;flex-shrink:0">' + iconoHtml + '</div>'
         + '<div style="flex:1;min-width:0">'
           + '<div style="font-size:13.5px;font-weight:' + (n.leida ? '600' : '800') + ';color:var(--tx)">' + n.titulo + '</div>'
-          + '<div style="font-size:12px;color:var(--tx3);margin-top:2px;line-height:1.4">' + n.cuerpo + '</div>'
-          + '<div style="font-size:10.5px;color:var(--tx3);margin-top:5px;opacity:.7">' + hora + '</div>'
+          + '<div style="font-size:12px;color:var(--tx3);margin-top:2px;line-height:1.45">' + n.cuerpo + '</div>'
+          + '<div style="display:flex;align-items:center;gap:4px;font-size:10.5px;color:var(--tx3);margin-top:6px;opacity:.7">'
+            + '<svg viewBox="0 0 24 24" width="11" height="11" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm.5 5H11v6l5.25 3.15.75-1.23-4.5-2.67V7z"/></svg>'
+            + hora
+          + '</div>'
         + '</div>'
-        + (!n.leida ? '<div style="width:7px;height:7px;border-radius:50%;background:#7b1fa2;flex-shrink:0;margin-top:6px"></div>' : '')
-        + '<button onclick="event.stopPropagation();borrarNotif(' + n.id + ')" style="background:none;border:none;cursor:pointer;color:var(--tx3);flex-shrink:0;padding:2px;opacity:.5">'
-          + '<svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>'
+        + (!n.leida ? '<div style="width:7px;height:7px;border-radius:50%;background:' + puntoColor + ';flex-shrink:0;margin-top:6px"></div>' : '')
+        + '<button onclick="event.stopPropagation();borrarNotif(' + n.id + ')" style="background:var(--bg);border:none;border-radius:50%;width:22px;height:22px;cursor:pointer;color:var(--tx3);flex-shrink:0;display:flex;align-items:center;justify-content:center;margin-left:2px">'
+          + '<svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>'
         + '</button>'
       + '</div>';
     }).join('');

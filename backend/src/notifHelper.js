@@ -65,9 +65,9 @@ async function programarAvisosVisita({ usuarioId, personaId, nombre, fecha, hora
       ];
     }
     return [
-      `En ${etiqueta} tienes visita con ${nombre} a las ${hora}. Prepara tu tema.${temaTxt}`,
+      `Tienes visita con ${nombre} a las ${hora}. Prepara tu tema.${temaTxt}`,
       `Recuerda: visita con ${nombre} a las ${hora}. Revisa tus notas.${temaTxt}`,
-      `Falta ${etiqueta} para tu visita con ${nombre}. No olvides llegar a tiempo.${temaTxt}`,
+      `Tienes visita con ${nombre}. No olvides llegar a tiempo.${temaTxt}`,
     ];
   }
 
@@ -80,7 +80,7 @@ async function programarAvisosVisita({ usuarioId, personaId, nombre, fecha, hora
     `Tu visita con ${nombre} es en pocos minutos. Sal ahora.${temaTxt}`,
     `${nombre} te espera pronto. No demores en salir.${temaTxt}`,
     `La visita con ${nombre} a las ${hora} ya casi empieza.${temaTxt}`,
-    `Es hora de visitar a ${nombre}. La visita es a las ${hora}.${temaTxt}`,
+    `Es hora de visitar a ${nombre}.${temaTxt}`,
   ];
 
   let algunoFuturo = false;
