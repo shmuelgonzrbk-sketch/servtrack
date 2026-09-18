@@ -19,12 +19,12 @@ router.get('/', auth, async (req, res) => {
 
 // CREAR
 router.post('/', auth, async (req, res) => {
-  const { seccion, titulo, fecha_reunion, estado, notas, recordatorios_minutos } = req.body;
+  const { seccion, titulo, fecha_reunion, hora_reunion, estado, notas, recordatorios_minutos } = req.body;
   try {
     const result = await pool.query(
-      `INSERT INTO asignaciones (usuario_id, seccion, titulo, fecha_reunion, estado, notas, recordatorios_minutos)
-       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
-      [req.userId, seccion, titulo, fecha_reunion, estado || 'Pendiente', notas, JSON.stringify(recordatorios_minutos || [1440])]
+      `INSERT INTO asignaciones (usuario_id, seccion, titulo, fecha_reunion, hora_reunion, estado, notas, recordatorios_minutos)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
+      [req.userId, seccion, titulo, fecha_reunion, hora_reunion || null, estado || 'Pendiente', notas, JSON.stringify(recordatorios_minutos || [1440])]
     );
     const nueva = result.rows[0];
     if (fecha_reunion) {
@@ -45,12 +45,12 @@ router.post('/', auth, async (req, res) => {
 
 // ACTUALIZAR
 router.put('/:id', auth, async (req, res) => {
-  const { seccion, titulo, fecha_reunion, estado, notas, recordatorios_minutos } = req.body;
+  const { seccion, titulo, fecha_reunion, hora_reunion, estado, notas, recordatorios_minutos } = req.body;
   try {
     const result = await pool.query(
-      `UPDATE asignaciones SET seccion=$1, titulo=$2, fecha_reunion=$3, estado=$4, notas=$5, recordatorios_minutos=$6
-       WHERE id=$7 AND usuario_id=$8 RETURNING *`,
-      [seccion, titulo, fecha_reunion, estado, notas, JSON.stringify(recordatorios_minutos || [1440]), req.params.id, req.userId]
+      `UPDATE asignaciones SET seccion=$1, titulo=$2, fecha_reunion=$3, hora_reunion=$4, estado=$5, notas=$6, recordatorios_minutos=$7
+       WHERE id=$8 AND usuario_id=$9 RETURNING *`,
+      [seccion, titulo, fecha_reunion, hora_reunion || null, estado, notas, JSON.stringify(recordatorios_minutos || [1440]), req.params.id, req.userId]
     );
     const actualizada = result.rows[0];
     if (actualizada && fecha_reunion) {

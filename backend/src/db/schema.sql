@@ -50,8 +50,16 @@ CREATE TABLE IF NOT EXISTS asignaciones (
   seccion VARCHAR(50),
   titulo VARCHAR(255),
   fecha_reunion DATE,
+  hora_reunion TIME,
   estado VARCHAR(20) DEFAULT 'Pendiente',
   notas TEXT
+);
+
+CREATE TABLE IF NOT EXISTS registros_horas_dia (
+  id SERIAL PRIMARY KEY,
+  usuario_id INTEGER REFERENCES usuarios(id) ON DELETE CASCADE,
+  horas DECIMAL(5,2) NOT NULL,
+  registrado_en TIMESTAMP DEFAULT NOW()
 );
 
 CREATE TABLE IF NOT EXISTS informes (

@@ -7438,3 +7438,194 @@ function ocultarSugerenciasDir() {
   const cont = document.getElementById('dirSugerencias');
   if (cont) cont.style.display = 'none';
 }
+
+/* ================================================================
+   CENTRO DE NOTIFICACIONES — estilo Gmail
+================================================================ */
+function formatearHaceTiempo(fechaStr) {
+  const ahora = new Date();
+  const fecha = new Date(fechaStr);
+  const diffMs = ahora - fecha;
+  const diffMin = Math.floor(diffMs / 60000);
+  if (diffMin < 1) return 'ahora mismo';
+  if (diffMin < 60) return 'hace ' + diffMin + ' min';
+  const diffH = Math.floor(diffMin / 60);
+  if (diffH < 24) return 'hace ' + diffH + 'h';
+  const diffD = Math.floor(diffH / 24);
+  if (diffD < 7) return 'hace ' + diffD + 'd';
+  return fecha.toLocaleDateString('es-PE', { day: 'numeric', month: 'short' });
+}
+
+async function checkNotifBadge() {
+  try {
+    const token = localStorage.getItem('st_token');
+    if (!token) return;
+    const res = await fetch(API_URL + '/notificaciones/no-leidas', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    const data = await res.json();
+    const badge = document.getElementById('notifBadge');
+    if (badge) badge.style.display = data.total > 0 ? 'block' : 'none';
+  } catch (e) {}
+}
+
+let _notifTabActual = 'todas';
+let _notifsCache = [];
+
+function toggleNotifPanel() {
+  const overlay = document.getElementById('notifPanelOverlay');
+  if (!overlay) return;
+  const abierto = overlay.style.display === 'flex';
+  if (abierto) {
+    overlay.style.display = 'none';
+    return;
+  }
+  overlay.style.display = 'flex';
+  cargarNotifPanel();
+  try {
+    const token = localStorage.getItem('st_token');
+    fetch(API_URL + '/notificaciones/marcar-leidas', {
+      method: 'PUT',
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    const badge = document.getElementById('notifBadge');
+    if (badge) badge.style.display = 'none';
+  } catch (e) {}
+}
+
+function cambiarTabNotif(tab) {
+  _notifTabActual = tab;
+  document.querySelectorAll('.notif-tab').forEach(function(btn) {
+    const activo = btn.dataset.tab === tab;
+    btn.style.background = activo ? 'var(--navy)' : 'var(--card-bg)';
+    btn.style.color = activo ? '#fff' : 'var(--tx3)';
+    btn.style.border = activo ? 'none' : '1px solid var(--border)';
+  });
+  renderNotifLista();
+}
+
+function _categoriaNotif(tipo) {
+  if (!tipo) return 'anuncios';
+  if (tipo.startsWith('visita_') || tipo.startsWith('asig_') || tipo.startsWith('recordatorio_')) return 'ministerio';
+  return 'anuncios';
+}
+
+function _iconoNotif(tipo) {
+  if (tipo && tipo.startsWith('visita_')) {
+    return { bg: '#f3e5f5', color: '#7b1fa2', svg: '<path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z"/>' };
+  }
+  if (tipo && tipo.startsWith('asig_')) {
+    return { bg: '#eef3fa', color: '#1565c0', svg: '<path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 4h5v8l-2.5-1.5L6 12V4z"/>' };
+  }
+  if (tipo && tipo.startsWith('recordatorio_')) {
+    return { bg: '#fff8ee', color: '#a0660a', svg: '<path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z"/>' };
+  }
+  // Anuncios de AssendApp — usa el logo en vez de un ícono genérico
+  return { bg: 'var(--navy-light)', logo: true };
+}
+
+function _grupoFecha(fechaStr) {
+  const fecha = new Date(fechaStr);
+  const hoy = new Date();
+  const ayer = new Date(hoy); ayer.setDate(ayer.getDate() - 1);
+  const esMismoDia = function(a, b) { return a.toDateString() === b.toDateString(); };
+  if (esMismoDia(fecha, hoy)) return 'Hoy';
+  if (esMismoDia(fecha, ayer)) return 'Ayer';
+  return 'Anteriores';
+}
+
+async function cargarNotifPanel() {
+  const lista = document.getElementById('notifPanelLista');
+  if (!lista) return;
+  lista.innerHTML = '<div style="padding:40px 20px;text-align:center;color:var(--tx3);font-size:13px">Cargando…</div>';
+  try {
+    const token = localStorage.getItem('st_token');
+    const res = await fetch(API_URL + '/notificaciones', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    _notifsCache = await res.json();
+    if (!Array.isArray(_notifsCache)) _notifsCache = [];
+    renderNotifLista();
+  } catch (e) {
+    lista.innerHTML = '<div style="padding:24px;text-align:center;color:var(--tx3);font-size:13px">Error al cargar</div>';
+  }
+}
+
+function renderNotifLista() {
+  const lista = document.getElementById('notifPanelLista');
+  if (!lista) return;
+
+  const filtradas = _notifTabActual === 'todas'
+    ? _notifsCache
+    : _notifsCache.filter(function(n) { return _categoriaNotif(n.tipo) === _notifTabActual; });
+
+  if (!filtradas.length) {
+    lista.innerHTML = '<div style="padding:60px 20px;text-align:center;color:var(--tx3)">'
+      + '<svg viewBox="0 0 24 24" width="40" height="40" fill="currentColor" style="opacity:.2;margin-bottom:10px"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>'
+      + '<div style="font-size:13px">No tienes notificaciones</div>'
+    + '</div>';
+    return;
+  }
+
+  const grupos = {};
+  filtradas.forEach(function(n) {
+    const g = _grupoFecha(n.fecha_disparo);
+    if (!grupos[g]) grupos[g] = [];
+    grupos[g].push(n);
+  });
+
+  const orden = ['Hoy', 'Ayer', 'Anteriores'];
+  let html = '';
+  orden.forEach(function(g) {
+    if (!grupos[g] || !grupos[g].length) return;
+    html += '<div style="padding:14px 16px 6px;font-size:11px;font-weight:800;color:var(--tx3);text-transform:uppercase;letter-spacing:.04em">' + g + '</div>';
+    html += grupos[g].map(function(n) {
+      const ic = _iconoNotif(n.tipo);
+      const hora = new Date(n.fecha_disparo).toLocaleTimeString('es-PE', { hour: 'numeric', minute: '2-digit' });
+      const iconoHtml = ic.logo
+        ? '<img src="/img/logotipo.png" alt="AssendApp" style="width:22px;height:22px;object-fit:contain">'
+        : '<svg viewBox="0 0 24 24" width="19" height="19" fill="' + ic.color + '">' + ic.svg + '</svg>';
+      return '<div style="display:flex;gap:12px;padding:13px 16px;background:var(--card-bg);border-bottom:1px solid var(--border);align-items:flex-start">'
+        + '<div style="width:38px;height:38px;border-radius:12px;background:' + ic.bg + ';display:flex;align-items:center;justify-content:center;flex-shrink:0">' + iconoHtml + '</div>'
+        + '<div style="flex:1;min-width:0">'
+          + '<div style="font-size:13.5px;font-weight:' + (n.leida ? '600' : '800') + ';color:var(--tx)">' + n.titulo + '</div>'
+          + '<div style="font-size:12px;color:var(--tx3);margin-top:2px;line-height:1.4">' + n.cuerpo + '</div>'
+          + '<div style="font-size:10.5px;color:var(--tx3);margin-top:5px;opacity:.7">' + hora + '</div>'
+        + '</div>'
+        + (!n.leida ? '<div style="width:7px;height:7px;border-radius:50%;background:#7b1fa2;flex-shrink:0;margin-top:6px"></div>' : '')
+        + '<button onclick="event.stopPropagation();borrarNotif(' + n.id + ')" style="background:none;border:none;cursor:pointer;color:var(--tx3);flex-shrink:0;padding:2px;opacity:.5">'
+          + '<svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>'
+        + '</button>'
+      + '</div>';
+    }).join('');
+  });
+
+  html += '<div style="padding:16px;text-align:center;font-size:11px;color:var(--tx3);opacity:.7">Mantén tus notificaciones activas para no perder ninguna actividad importante.</div>';
+  lista.innerHTML = html;
+}
+
+async function borrarNotif(id) {
+  try {
+    const token = localStorage.getItem('st_token');
+    await fetch(API_URL + '/notificaciones/' + id, {
+      method: 'DELETE',
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    cargarNotifPanel();
+  } catch (e) { toast('No se pudo borrar'); }
+}
+
+async function borrarTodasNotifs() {
+  if (!confirm('¿Borrar todas las notificaciones?')) return;
+  try {
+    const token = localStorage.getItem('st_token');
+    await fetch(API_URL + '/notificaciones', {
+      method: 'DELETE',
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    cargarNotifPanel();
+  } catch (e) { toast('No se pudo borrar'); }
+}
+
+// Revisa si hay notificaciones no leídas al cargar la app
+setTimeout(checkNotifBadge, 2000);

@@ -115,7 +115,26 @@
     <div class="hdr-center">
       <span class="hdr-title" id="hdrTitle">AssendApp</span>
     </div>
+    <button class="hdr-menu" onclick="toggleNotifPanel()" aria-label="Notificaciones" style="position:relative">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
+      <span id="notifBadge" style="display:none;position:absolute;top:6px;right:6px;width:9px;height:9px;border-radius:50%;background:#e74c3c;border:1.5px solid var(--navy)"></span>
+    </button>
   </header>
+  <div id="notifPanelOverlay" style="display:none;position:fixed;inset:0;z-index:9998;background:var(--bg);flex-direction:column">
+    <div style="display:flex;align-items:center;gap:12px;padding:calc(var(--safe-t) + 12px) 16px 14px;background:var(--navy);color:#fff;flex-shrink:0">
+      <button onclick="toggleNotifPanel()" style="background:none;border:none;color:#fff;cursor:pointer;padding:0;display:flex">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+      </button>
+      <span style="font-size:17px;font-weight:700;flex:1">Notificaciones</span>
+      <button onclick="borrarTodasNotifs()" style="background:none;border:none;color:rgba(255,255,255,.8);cursor:pointer;font-size:12px;font-weight:600">Borrar todo</button>
+    </div>
+    <div style="display:flex;gap:8px;padding:12px 16px;background:var(--bg);flex-shrink:0;overflow-x:auto">
+      <button class="notif-tab active" data-tab="todas" onclick="cambiarTabNotif('todas')" style="padding:8px 16px;border-radius:99px;border:none;background:var(--navy);color:#fff;font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap">Todas</button>
+      <button class="notif-tab" data-tab="ministerio" onclick="cambiarTabNotif('ministerio')" style="padding:8px 16px;border-radius:99px;border:1px solid var(--border);background:var(--card-bg);color:var(--tx3);font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap">Ministerio</button>
+      <button class="notif-tab" data-tab="anuncios" onclick="cambiarTabNotif('anuncios')" style="padding:8px 16px;border-radius:99px;border:1px solid var(--border);background:var(--card-bg);color:var(--tx3);font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap">Anuncios</button>
+    </div>
+    <div id="notifPanelLista" style="overflow-y:auto;flex:1;padding-bottom:24px"></div>
+  </div>
   <div class="drawer-scrim" id="drawerScrim" onclick="closeDrawer()"></div>
   <nav class="drawer" id="drawer">
     <div class="drawer-head">

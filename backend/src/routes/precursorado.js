@@ -41,13 +41,13 @@ router.put('/', auth, async (req, res) => {
 });
 
 router.post('/horas', auth, async (req, res) => {
-  const { horas, fecha } = req.body;
+  const { horas, fecha, hora } = req.body;
   let mes, anio, fechaRegistro;
   if (fecha) {
     const partes = fecha.split('-');
     anio = parseInt(partes[0]);
     mes = parseInt(partes[1]);
-    fechaRegistro = fecha + 'T12:00:00';
+    fechaRegistro = fecha + 'T' + (hora ? hora + ':00' : '12:00:00');
   } else {
     const now = new Date();
     mes = now.getMonth() + 1;
@@ -96,7 +96,8 @@ router.get('/horas/diario', auth, async (req, res) => {
   const anio = parseInt(req.query.anio) || new Date().getFullYear();
   try {
     const result = await pool.query(
-      `SELECT DATE(registrado_en) as fecha, SUM(horas) as horas
+      `SELECT DATE(registrado_en) as fecha, SUM(horas) as horas,
+              TO_CHAR(MIN(registrado_en), 'HH24:MI') as hora
        FROM registros_horas_dia
        WHERE usuario_id = $1 AND EXTRACT(MONTH FROM registrado_en) = $2 AND EXTRACT(YEAR FROM registrado_en) = $3
        GROUP BY DATE(registrado_en)
