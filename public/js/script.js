@@ -7520,8 +7520,7 @@ function _iconoNotif(tipo) {
   if (tipo && tipo.startsWith('recordatorio_')) {
     return { bg: '#fff8ee', color: '#a0660a', svg: '<path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z"/>' };
   }
-  // Anuncios de AssendApp — usa el logo en vez de un ícono genérico
-  return { bg: 'var(--navy-light)', logo: true };
+  return { bg: '#eef3fa', color: '#4a5fc1', svg: '<path d="M18 11V4l-7 4H4v6h1.44L4 20.5 5.5 21l1.7-6.72L11 15v7h2v-7.4l5 2.86V11zm-2-3.72v6.62l-6-3.31V9.03l6-3.75z"/>' };
 }
 
 function _grupoFecha(fechaStr) {
@@ -7551,29 +7550,14 @@ async function cargarNotifPanel() {
   }
 }
 
-function _actualizarConteosTabsNotif() {
-  const conteos = { todas: _notifsCache.length, ministerio: 0, anuncios: 0 };
-  _notifsCache.forEach(function(n) { conteos[_categoriaNotif(n.tipo)] = (conteos[_categoriaNotif(n.tipo)] || 0) + 1; });
-  document.querySelectorAll('.notif-tab').forEach(function(btn) {
-    const tab = btn.dataset.tab;
-    const etiquetas = { todas: 'Todas', ministerio: 'Ministerio', anuncios: 'Anuncios' };
-    const n = conteos[tab] || 0;
-    const activo = tab === _notifTabActual;
-    btn.innerHTML = etiquetas[tab] + (n > 0
-      ? ' <span style="display:inline-block;min-width:16px;padding:0 4px;border-radius:99px;font-size:10px;font-weight:800;background:' + (activo ? 'rgba(255,255,255,.25)' : 'var(--bg)') + ';margin-left:2px">' + n + '</span>'
-      : '');
-  });
-}
-
 function renderNotifLista() {
   const lista = document.getElementById('notifPanelLista');
   if (!lista) return;
 
-  _actualizarConteosTabsNotif();
-
-  const filtradas = _notifTabActual === 'todas'
-    ? _notifsCache
-    : _notifsCache.filter(function(n) { return _categoriaNotif(n.tipo) === _notifTabActual; });
+  // Solo se muestran los anuncios que manda el admin — las notis automáticas de
+  // ministerio (visitas/asignaciones) ya llegan como push flotante, no hace falta
+  // repetirlas aquí en la lista.
+  const filtradas = _notifsCache.filter(function(n) { return _categoriaNotif(n.tipo) === 'anuncios'; });
 
   if (!filtradas.length) {
     lista.innerHTML = '<div style="padding:60px 20px;text-align:center;color:var(--tx3)">'
