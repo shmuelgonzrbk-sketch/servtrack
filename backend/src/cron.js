@@ -3,40 +3,42 @@ const pool = require('./db/pool');
 const { sendPush } = require('./pushSender');
 
 /* ================================================================
-   CRON PRINCIPAL — cada minuto revisa avisos YA PROGRAMADOS
-   cuya fecha_disparo ya llegó, y los manda.
+   CRON PRINCIPAL — Corre CADA MINUTO como respaldo real
    Toda la lógica de "cuándo" se calculó de antemano al crear/editar
-   la persona o asignación (ver notifHelper.js), así que aquí no hay
-   ninguna comparación de fechas ni ventanas frágiles.
+   la persona o asignación (ver notifHelper.js).
 ================================================================ */
-cron.schedule('0 */3 * * *', async () => { // respaldo: solo por si el servidor se reinició y perdió las alarmas en memoria
+cron.schedule('*/1 * * * *', async () => { 
   try {
-    console.log('Cron corriendo, hora servidor:', new Date().toString());
-
     const pendientes = await pool.query(
       `SELECT id, usuario_id, titulo, cuerpo, referencia_id, referencia_tabla
        FROM notificaciones_programadas
-       WHERE enviada = false AND fecha_disparo <= NOW() - interval '2 minutes'
+       WHERE enviada = false AND fecha_disparo <= NOW()
        ORDER BY fecha_disparo ASC
        LIMIT 50`
     );
 
-    console.log('Avisos pendientes encontrados:', pendientes.rows.length);
+    if (pendientes.rows.length > 0) {
+      console.log('[Cron] Avisos pendientes encontrados:', pendientes.rows.length);
+    }
 
     for (const n of pendientes.rows) {
       const cardId = n.referencia_tabla === 'personas' ? n.referencia_id : null;
+      
+      // Enviamos la notificación push
       await sendPush(n.usuario_id, n.titulo, n.cuerpo, cardId);
-      await pool.query('UPDATE notificaciones_programadas SET enviada = true WHERE id = $1', [n.id]);
+      
+      // Marcamos como enviada usando la sintaxis correcta de Postgres
+      await pool.query('UPDATE notificaciones_programadas SET enviada = true WHERE id = \$1', [n.id]);
 
-      // Recordatorios personales de tipo 'semanal': reprogramar el siguiente aviso automáticamente
+      // Reprogramar semanal (Cálculo matemático corregido en ms)
       if (n.referencia_tabla === 'recordatorios_personales') {
         try {
           const rec = await pool.query(
-            'SELECT tipo_notificacion, titulo, cuerpo FROM recordatorios_personales WHERE id = $1',
+            'SELECT tipo_notificacion, titulo, cuerpo FROM recordatorios_personales WHERE id = \$1',
             [n.referencia_id]
           );
           if (rec.rows[0] && rec.rows[0].tipo_notificacion === 'semanal') {
-            const siguienteDisparo = new Date(Date.now() + 7 * 24 * 60 * 60000);
+            const siguienteDisparo = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); 
             await pool.query(
               `INSERT INTO notificaciones_programadas
                (usuario_id, tipo, referencia_tabla, referencia_id, titulo, cuerpo, fecha_disparo)
@@ -46,10 +48,6 @@ cron.schedule('0 */3 * * *', async () => { // respaldo: solo por si el servidor 
           }
         } catch (e) { console.error('Error reprogramando recordatorio semanal:', e.message); }
       }
-    }
-
-    if (pendientes.rows.length > 0) {
-      console.log(`${pendientes.rows.length} notificación(es) enviada(s)`);
     }
   } catch (err) {
     console.error('Error en cron de notificaciones programadas:', err.message);
@@ -64,11 +62,10 @@ console.log('Cron jobs iniciados');
    mueve la visita al mismo día de la siguiente semana.
    Máximo 4 reprogramaciones (4 semanas).
 ================================================================ */
-cron.schedule('0 8 * * *', async () => { // 1 vez al día, suficiente para reprogramar visitas vencidas
+cron.schedule('0 8 * * *', async () => { 
   try {
     const ahora = new Date();
     
-    // Buscar personas con visita vencida que no fueron editadas recientemente
     const vencidas = await pool.query(
       `SELECT p.id, p.usuario_id, p.nombre, p.proxima_visita, p.proxima_visita_hora,
               p.pub, COALESCE(p.auto_reprogramada, 0) as auto_reprogramada
@@ -86,12 +83,10 @@ cron.schedule('0 8 * * *', async () => { // 1 vez al día, suficiente para repro
     }
 
     for (const p of vencidas.rows) {
-      // Calcular siguiente semana (mismo día, misma hora, +7 días)
       const fechaVieja = new Date(p.proxima_visita);
       const nuevaFecha = new Date(fechaVieja.getTime() + 7 * 24 * 60 * 60 * 1000);
       const nuevaFechaStr = nuevaFecha.toISOString().split('T')[0];
       
-      // Actualizar la fecha en la BD
       await pool.query(
         `UPDATE personas 
          SET proxima_visita = $1, 
@@ -100,7 +95,6 @@ cron.schedule('0 8 * * *', async () => { // 1 vez al día, suficiente para repro
         [nuevaFechaStr, p.id]
       );
 
-      // Reprogramar notificaciones
       const { programarAvisosVisita } = require('./notifHelper');
       await programarAvisosVisita({
         usuarioId: p.usuario_id,
