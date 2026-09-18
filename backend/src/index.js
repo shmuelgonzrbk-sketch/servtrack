@@ -236,7 +236,9 @@ app.post('/control/panel/:key/api/notificar/:userId', adminAuth, async (req, res
   const { userId } = req.params;
   let enviados = 0;
 
-  // 1. FCM primero (app Android)
+  // Se manda por AMBOS canales de forma independiente — antes, si FCM "tenía éxito"
+  // (Firebase acepta el envío aunque el token ya no sirva), nunca se intentaba el
+  // web push y la notificación se perdía sin avisar en el navegador.
   try {
     const fcmResult = await pool.query('SELECT token FROM fcm_tokens WHERE usuario_id = $1', [userId]);
     if (fcmResult.rows.length) {
@@ -246,16 +248,13 @@ app.post('/control/panel/:key/api/notificar/:userId', adminAuth, async (req, res
     }
   } catch(e) { console.error('FCM error:', e.message); }
 
-  // 2. Web push como fallback
-  if (!enviados) {
-    try {
-      const sub = await pool.query('SELECT subscription FROM push_subscriptions WHERE usuario_id = $1', [userId]);
-      if (sub.rows.length) {
-        await webpush.sendNotification(JSON.parse(sub.rows[0].subscription), JSON.stringify({ title: titulo, body: cuerpo }));
-        enviados = 1;
-      }
-    } catch(e) { console.error('WebPush error:', e.message); }
-  }
+  try {
+    const sub = await pool.query('SELECT subscription FROM push_subscriptions WHERE usuario_id = $1', [userId]);
+    if (sub.rows.length) {
+      await webpush.sendNotification(JSON.parse(sub.rows[0].subscription), JSON.stringify({ title: titulo, body: cuerpo }));
+      enviados = 1;
+    }
+  } catch(e) { console.error('WebPush error:', e.message); }
 
   res.json({ enviados });
 });
