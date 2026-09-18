@@ -11,10 +11,26 @@ function headers() {
   };
 }
 
+// ── INTERCEPTOR DE ACTUALIZACIONES/AUTH ──
+// Detecta de forma global si el backend rechazó la petición por un token obsoleto
+async function handleApiResponse(res) {
+  if (res.status === 401 || res.status === 403) {
+    console.warn('[Auth] Sesión inválida detectada debido a actualización. Forzando renovación...');
+    localStorage.removeItem('st_token');
+    localStorage.removeItem('st_user');
+    alert('Tu sesión ha expirado debido a una actualización del sistema. Por favor, vuelve a ingresar.');
+    window.location.href = '/login';
+    
+    // Retornamos un error controlado para romper el flujo de ejecución limpio
+    throw new Error('Sesión expirada');
+  }
+  return res;
+}
 
 // ── REPORTES ──
 async function apiGetReportes() {
   const res = await fetch(API_URL + '/reportes', { headers: headers() });
+  await handleApiResponse(res);
   if (!res.ok) throw new Error('Error ' + res.status);
   return res.json();
 }
@@ -22,18 +38,21 @@ async function apiEnviarReporte(mensaje, categoria) {
   const res = await fetch(API_URL + '/reportes', {
     method: 'POST', headers: headers(), body: JSON.stringify({ mensaje, categoria })
   });
+  await handleApiResponse(res);
   return res.json();
 }
 async function apiEditarReporte(id, mensaje) {
   const res = await fetch(API_URL + '/reportes/' + id, {
     method: 'PUT', headers: headers(), body: JSON.stringify({ mensaje })
   });
+  await handleApiResponse(res);
   return res.json();
 }
 async function apiEliminarReporte(id, tipo) {
   const res = await fetch(API_URL + '/reportes/' + id + '?tipo=' + tipo, {
     method: 'DELETE', headers: headers()
   });
+  await handleApiResponse(res);
   return res.json();
 }
 
@@ -88,6 +107,7 @@ async function apiUpdatePrec(tipo, meta_horas) {
   const res = await fetch(API_URL + '/precursorado', {
     method: 'PUT', headers: headers(), body: JSON.stringify({ tipo, meta_horas })
   });
+  await handleApiResponse(res);
   return res.json();
 }
 
@@ -101,6 +121,7 @@ async function apiResetHoras() {
   const res = await fetch(API_URL + '/precursorado/horas', {
     method: 'DELETE', headers: headers()
   });
+  await handleApiResponse(res);
   return res.json();
 }
 
@@ -113,6 +134,7 @@ async function apiCreateAsignacion(data) {
   const res = await fetch(API_URL + '/asignaciones', {
     method: 'POST', headers: headers(), body: JSON.stringify(data)
   });
+  await handleApiResponse(res);
   return res.json();
 }
 
@@ -120,6 +142,7 @@ async function apiUpdateAsignacion(id, data) {
   const res = await fetch(API_URL + '/asignaciones/' + id, {
     method: 'PUT', headers: headers(), body: JSON.stringify(data)
   });
+  await handleApiResponse(res);
   return res.json();
 }
 
@@ -127,6 +150,7 @@ async function apiDeleteAsignacion(id) {
   const res = await fetch(API_URL + '/asignaciones/' + id, {
     method: 'DELETE', headers: headers()
   });
+  await handleApiResponse(res);
   return res.json();
 }
 
@@ -139,6 +163,7 @@ async function apiSaveInforme(data) {
   const res = await fetch(API_URL + '/informes', {
     method: 'POST', headers: headers(), body: JSON.stringify(data)
   });
+  await handleApiResponse(res);
   return res.json();
 }
 
@@ -146,12 +171,14 @@ async function apiEnviarInforme(id) {
   const res = await fetch(API_URL + '/informes/' + id + '/enviar', {
     method: 'PUT', headers: headers()
   });
+  await handleApiResponse(res);
   return res.json();
 }
 
 // ── EXPERIENCIAS ──
 async function apiGetExperiencias() {
   const res = await fetch(API_URL + '/experiencias', { headers: headers() });
+  await handleApiResponse(res);
   return res.json();
 }
 
@@ -159,6 +186,7 @@ async function apiCreateExperiencia(texto) {
   const res = await fetch(API_URL + '/experiencias', {
     method: 'POST', headers: headers(), body: JSON.stringify({ texto })
   });
+  await handleApiResponse(res);
   return res.json();
 }
 
@@ -166,6 +194,7 @@ async function apiDeleteExperiencia(id) {
   const res = await fetch(API_URL + '/experiencias/' + id, {
     method: 'DELETE', headers: headers()
   });
+  await handleApiResponse(res);
   return res.json();
 }
 
@@ -178,6 +207,7 @@ async function apiUpdateAjustes(data) {
   const res = await fetch(API_URL + '/ajustes', {
     method: 'PUT', headers: headers(), body: JSON.stringify(data)
   });
+  await handleApiResponse(res);
   return res.json();
 }
 
@@ -196,7 +226,6 @@ function getUser() {
   return u ? JSON.parse(u) : null;
 }
 
-// Actualiza silenciosamente la foto del usuario desde el servidor
 async function refreshUserPicture() {
   const token = localStorage.getItem('st_token');
   if (!token) return;
