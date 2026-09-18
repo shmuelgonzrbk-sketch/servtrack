@@ -151,3 +151,21 @@ cron.schedule('0 20 * * *', async () => {
     console.error('Error en recordatorio fin de mes:', err.message);
   }
 });
+
+/* ================================================================
+   REINICIO SEMANAL DE SESIONES — cada domingo a las 2am
+   Manda una señal a todas las webs/apps conectadas para que
+   recarguen datos frescos y reconecten, sin cerrar sesión real.
+   Corre mientras las personas duermen, para no interrumpir a nadie.
+================================================================ */
+const { getIo } = require('./socketRegistry');
+
+cron.schedule('0 2 * * 0', () => {
+  const io = getIo();
+  if (io) {
+    io.emit('sesion:reiniciar');
+    console.log('[Cron] Reinicio semanal de sesiones enviado a todas las webs/apps conectadas');
+  } else {
+    console.error('[Cron] No se pudo enviar el reinicio semanal: socket no disponible');
+  }
+});

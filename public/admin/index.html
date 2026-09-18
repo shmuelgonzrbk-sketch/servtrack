@@ -104,6 +104,7 @@
     <div class="nav-item" onclick="goSection('usuarios',this)"> Usuarios</div>
     
     <div class="nav-item" onclick="goSection('notificaciones',this)"> Notificaciones</div>
+    <div class="nav-item" onclick="goSection('reinicio',this)"> Reiniciar sesión</div>
     <div class="nav-item" id="navReportes" onclick="goSection('reportes',this)"> Reportes <span id="reportesBadge" style="display:none;background:var(--red);color:#fff;font-size:10px;font-weight:700;padding:1px 6px;border-radius:99px;margin-left:4px"></span></div>
   </nav>
   <div class="sidebar-footer">v1.0.0 · Admin</div>
@@ -196,6 +197,22 @@
       </div>
     </div>
 
+    <div class="section" id="sec-reinicio">
+      <div class="table-card">
+        <div class="table-header"><span class="table-title">Reiniciar sesión</span></div>
+        <div id="reinicioMsg" style="display:none;padding:12px 16px;border-radius:10px;font-size:13px;font-weight:600;margin-top:4px"></div>
+        <div style="padding:20px;display:flex;flex-direction:column;gap:12px">
+        <div style="font-size:13px;color:var(--tx3);margin-bottom:4px">
+          Fuerza a que la web/app de la persona elegida (o de todos) recargue datos frescos y reconecte. No cierra su sesión de verdad — no le pedirá contraseña.
+        </div>
+        <select id="reinicioDestinatario" style="padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;outline:none;background:var(--bg)">
+            <option value="todos">Todos los usuarios</option>
+        </select>
+        <button class="btn-sm" style="width:fit-content" onclick="reiniciarSesion()">Reiniciar</button>
+        </div>
+      </div>
+    </div>
+
     <div class="section" id="sec-reportes">
       <div id="reportesGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px"></div>
     </div>
@@ -251,8 +268,8 @@ function toggleSidebar() {
   document.getElementById('sidebarScrim').classList.toggle('open');
 }
 
-function mostrarMensaje(msg, tipo) {
-  const el = document.getElementById('notifMsg');
+function mostrarMensaje(msg, tipo, elId) {
+  const el = document.getElementById(elId || 'notifMsg');
   const colores = {
     green: { bg: '#edf7ef', color: '#1e7e34' },
     amber: { bg: '#fff8ee', color: '#a0660a' },
@@ -379,6 +396,7 @@ async function loadUsuarios() {
               </div>
             </div>
             <button onclick="document.getElementById('notif-form-${u.id}').style.display='block'" style="padding:6px 14px;border-radius:8px;font-size:12px;border:1px solid var(--border);background:var(--surface);cursor:pointer">📢 Notificar</button>
+            <button onclick="reiniciarSesion(${u.id})" style="padding:6px 14px;border-radius:8px;font-size:12px;border:1px solid var(--border);background:var(--surface);cursor:pointer;margin-left:8px">🔄 Reiniciar sesión</button>
           </div>
         </div>
       </div>
@@ -524,6 +542,40 @@ async function cargarDestinatarios() {
   });
 }
 
+async function cargarDestinatariosReinicio() {
+  const data = await api('/usuarios');
+  const sel = document.getElementById('reinicioDestinatario');
+  while (sel.options.length > 1) sel.remove(1);
+  data.forEach(u => {
+    const opt = document.createElement('option');
+    opt.value = u.id;
+    opt.textContent = u.nombre + ' — ' + u.email;
+    sel.appendChild(opt);
+  });
+}
+
+async function reiniciarSesion(userIdDirecto) {
+  const sel = document.getElementById('reinicioDestinatario');
+  const dest = userIdDirecto !== undefined ? userIdDirecto : sel.value;
+  const nombreDest = userIdDirecto !== undefined
+    ? 'este usuario'
+    : (dest === 'todos' ? 'TODOS los usuarios' : sel.selectedOptions[0].textContent);
+
+  if (!confirm('¿Reiniciar sesión de ' + nombreDest + '? Recargará su web/app en segundo plano, sin pedirle contraseña.')) return;
+
+  try {
+    const res = await fetch(ADMIN_URL + '/control/panel/' + adminKey + '/api/reiniciar-sesion/' + dest, { method: 'POST' });
+    const data = await res.json();
+    if (data.ok) {
+      mostrarMensaje('Reinicio enviado a ' + nombreDest, 'green', 'reinicioMsg');
+    } else {
+      mostrarMensaje(data.error || 'No se pudo reiniciar (¿está conectado ahora mismo?)', 'amber', 'reinicioMsg');
+    }
+  } catch(e) {
+    mostrarMensaje('Error de conexión', 'red', 'reinicioMsg');
+  }
+}
+
 async function enviarNotif() {
   const dest = document.getElementById('notifDestinatario').value;
   const titulo = document.getElementById('notifTitulo').value.trim();
@@ -571,9 +623,10 @@ function goSection(id, el) {
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById('sec-' + id).classList.add('active');
   el.classList.add('active');
-  const titles = {dashboard:'Dashboard',usuarios:'Usuarios',personas:'Personas',informes:'Informes',asignaciones:'Asignaciones',notificaciones:'Notificaciones',reportes:'Reportes'};
+  const titles = {dashboard:'Dashboard',usuarios:'Usuarios',personas:'Personas',informes:'Informes',asignaciones:'Asignaciones',notificaciones:'Notificaciones',reinicio:'Reiniciar sesión',reportes:'Reportes'};
   document.getElementById('topbarTitle').textContent = titles[id]||id;
   if (id === 'notificaciones') cargarDestinatarios();
+  if (id === 'reinicio') cargarDestinatariosReinicio();
   if (id==='usuarios') loadUsuarios();
   if (id==='personas') loadPersonas();
   if (id==='informes') loadInformes();

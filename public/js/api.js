@@ -256,6 +256,12 @@ window.addEventListener('load', () => {
   if (user?.id) _socket.emit('user:activo', user.id);
 });
 
+// Reinicio silencioso: el admin (o el cron semanal) puede pedir que esta pestaña
+// recargue datos frescos. Como el token sigue en localStorage, no pide contraseña.
+_socket.on('sesion:reiniciar', () => {
+  window.location.reload();
+});
+
 async function apiGetHoras() {
   return offlineFetch(API_URL + '/precursorado/horas', { headers: headers() }, 'horas');
 }

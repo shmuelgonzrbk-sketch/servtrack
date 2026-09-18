@@ -23,13 +23,19 @@ const http = require('http');
 const { Server } = require('socket.io');
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: '*' } });
+require('./socketRegistry').setIo(io);
 
 // Usuarios activos
 const usuariosActivos = new Set();
+// Mapa usuario_id -> socket.id más reciente, para poder mandarle eventos a ese usuario específico
+const socketsByUser = new Map();
 
 io.on('connection', (socket) => {
   socket.on('user:activo', (userId) => {
-    usuariosActivos.add(parseInt(userId));
+    const uid = parseInt(userId);
+    usuariosActivos.add(uid);
+    socketsByUser.set(uid, socket.id);
+    socket.data.userId = uid;
     io.emit('activos:update', [...usuariosActivos]);
   });
   socket.on('get:activos', () => {
@@ -252,6 +258,26 @@ app.post('/control/panel/:key/api/notificar/:userId', adminAuth, async (req, res
   }
 
   res.json({ enviados });
+});
+
+// Fuerza a que la web/app del usuario (o de todos) recargue datos frescos y reconecte,
+// sin cerrar sesión de verdad — útil tras subir cambios o para resolver bugs de caché.
+app.post('/control/panel/:key/api/reiniciar-sesion/:userId', adminAuth, async (req, res) => {
+  const { userId } = req.params;
+  const io = require('./socketRegistry').getIo();
+  if (!io) return res.status(500).json({ error: 'Socket no disponible' });
+
+  if (userId === 'todos') {
+    io.emit('sesion:reiniciar');
+    return res.json({ ok: true, alcance: 'todos' });
+  }
+
+  const sid = socketsByUser.get(parseInt(userId));
+  if (!sid) {
+    return res.json({ ok: false, error: 'Usuario no está conectado en este momento' });
+  }
+  io.to(sid).emit('sesion:reiniciar');
+  res.json({ ok: true, alcance: userId });
 });
 
 // ── API ROUTES ──
