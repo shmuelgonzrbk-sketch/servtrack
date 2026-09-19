@@ -101,10 +101,20 @@ app.get('/control/panel/:key/api/informes',     adminAuth, async (req, res) => {
 app.get('/control/panel/:key/api/asignaciones', adminAuth, async (req, res) => { const r = await pool.query('SELECT * FROM asignaciones ORDER BY id DESC'); res.json(r.rows); });
 app.post('/control/panel/:key/api/notificar',   adminAuth, async (req, res) => {
   const { titulo, cuerpo } = req.body;
-  const subs = await pool.query('SELECT subscription FROM push_subscriptions');
+  const { sendPush } = require('./pushSender');
+  const usuarios = await pool.query('SELECT id FROM usuarios');
   let enviados = 0;
-  for (const s of subs.rows) {
-    try { await webpush.sendNotification(JSON.parse(s.subscription), JSON.stringify({ title: titulo, body: cuerpo })); enviados++; } catch(e) {}
+  for (const u of usuarios.rows) {
+    try {
+      await sendPush(u.id, titulo, cuerpo);
+      await pool.query(
+        `INSERT INTO notificaciones_programadas
+         (usuario_id, tipo, referencia_tabla, referencia_id, titulo, cuerpo, fecha_disparo, enviada)
+         VALUES ($1,'anuncio_admin',NULL,NULL,$2,$3,NOW(),true)`,
+        [u.id, titulo, cuerpo]
+      );
+      enviados++;
+    } catch(e) { console.error('Error notificando a usuario', u.id, e.message); }
   }
   res.json({ enviados });
 });

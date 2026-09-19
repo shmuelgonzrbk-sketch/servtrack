@@ -7586,7 +7586,9 @@ function renderNotifLista() {
         ? '<img src="/img/logotipo.png" alt="AssendApp" style="width:22px;height:22px;object-fit:contain">'
         : '<svg viewBox="0 0 24 24" width="19" height="19" fill="' + ic.color + '">' + ic.svg + '</svg>';
       const puntoColor = ic.logo ? 'var(--navy)' : ic.color;
-      return '<div style="display:flex;gap:12px;padding:13px 16px 13px 13px;background:var(--card-bg);border-bottom:1px solid var(--border);border-left:4px solid ' + puntoColor + ';align-items:flex-start">'
+      const tituloEsc = n.titulo.replace(/'/g, "\\'");
+      const cuerpoEsc = n.cuerpo.replace(/'/g, "\\'");
+      return '<div onclick="abrirDetalleNotif(\'' + tituloEsc + '\',\'' + cuerpoEsc + '\',\'' + hora + '\')" style="display:flex;gap:12px;padding:13px 16px 13px 13px;background:var(--card-bg);border-bottom:1px solid var(--border);border-left:4px solid ' + puntoColor + ';align-items:flex-start;cursor:pointer">'
         + '<div style="width:38px;height:38px;border-radius:12px;background:' + ic.bg + ';display:flex;align-items:center;justify-content:center;flex-shrink:0">' + iconoHtml + '</div>'
         + '<div style="flex:1;min-width:0">'
           + '<div style="font-size:13.5px;font-weight:' + (n.leida ? '600' : '800') + ';color:var(--tx)">' + n.titulo + '</div>'
@@ -7606,6 +7608,23 @@ function renderNotifLista() {
 
   html += '<div style="padding:16px;text-align:center;font-size:11px;color:var(--tx3);opacity:.7">Mantén tus notificaciones activas para no perder ninguna actividad importante.</div>';
   lista.innerHTML = html;
+}
+
+function abrirDetalleNotif(titulo, cuerpo, hora) {
+  const modal = document.createElement('div');
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:10000;display:flex;align-items:flex-end;justify-content:center';
+  modal.onclick = function(e) { if (e.target === modal) modal.remove(); };
+  modal.innerHTML = '<div style="background:var(--card-bg);border-radius:20px 20px 0 0;padding:22px 20px calc(20px + var(--safe-b));width:100%;max-width:480px">'
+    + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">'
+      + '<div style="width:34px;height:34px;border-radius:10px;background:#eef3fa;display:flex;align-items:center;justify-content:center;flex-shrink:0">'
+        + '<svg viewBox="0 0 24 24" width="18" height="18" fill="#4a5fc1"><path d="M18 11V4l-7 4H4v6h1.44L4 20.5 5.5 21l1.7-6.72L11 15v7h2v-7.4l5 2.86V11zm-2-3.72v6.62l-6-3.31V9.03l6-3.75z"/></svg>'
+      + '</div>'
+      + '<div style="flex:1"><div style="font-weight:800;font-size:15px;color:var(--tx)">' + titulo + '</div><div style="font-size:11px;color:var(--tx3)">' + hora + '</div></div>'
+      + '<button onclick="this.closest(\'div[style*=fixed]\').remove()" style="background:var(--bg);border:none;border-radius:50%;width:26px;height:26px;cursor:pointer;color:var(--tx3)">✕</button>'
+    + '</div>'
+    + '<div style="background:var(--bg);border-radius:14px;padding:16px;font-size:14px;line-height:1.6;color:var(--tx)">' + cuerpo + '</div>'
+  + '</div>';
+  document.body.appendChild(modal);
 }
 
 async function borrarNotif(id) {
