@@ -1572,7 +1572,7 @@ html, body {
 .ptr-indicator {
   position: absolute;
   left: 50%;
-  top: calc(var(--safe-t) + 44px);
+  top: calc(var(--safe-t) + 130px);
   width: 40px; height: 40px;
   transform: translate(-50%, -60px) scale(.7);
   display: flex; align-items: center; justify-content: center;
