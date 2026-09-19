@@ -7654,7 +7654,9 @@ async function borrarTodasNotifs() {
 setTimeout(checkNotifBadge, 2000);
 
 // ================================================================
-// PULL TO REFRESH — gesto físico de arrastre, sin dependencias
+// PULL TO REFRESH — se revela físicamente desde debajo del header,
+// solo cuando el gesto es realmente "arrastrar hacia abajo estando
+// arriba del todo" — nunca durante un scroll normal.
 // ================================================================
 (function () {
   const indicator = document.getElementById('ptrIndicator');
@@ -7662,18 +7664,20 @@ setTimeout(checkNotifBadge, 2000);
   const arrow = document.getElementById('ptrArrow');
   if (!indicator || !ring || !arrow) return;
 
-  const THRESHOLD = 70;   // px de arrastre visual necesarios para soltar y refrescar
+  const DEADZONE = 8;     // px que debe arrastrar antes de que se confirme el gesto
+  const THRESHOLD = 70;   // px de arrastre (ya pasada la zona muerta) para activar
   const MAX_PULL = 95;
-  const CIRC = 100.53;    // 2*PI*16 (radio del círculo del SVG)
+  const CIRC = 100.53;    // 2*PI*16
 
   let startY = 0;
-  let pulling = false;
-  let currentScroller = null;
+  let candidateScroller = null; // el contenedor real que hace scroll, capturado al tocar
+  let confirmedPull = false;    // recién se vuelve true tras pasar la zona muerta
   let progress = 0;
 
-  function getActiveScroller() {
-    const activeView = document.querySelector('.view.active .view-scroll');
-    return activeView || document.querySelector('.view-scroll');
+  function getScrollerFromTarget(target) {
+    const el = target && target.closest ? target.closest('.view-scroll') : null;
+    if (el) return el;
+    return document.querySelector('.view.active .view-scroll') || document.querySelector('.view-scroll');
   }
 
   function applyProgress(p) {
@@ -7688,88 +7692,86 @@ setTimeout(checkNotifBadge, 2000);
   }
 
   function reset() {
-    indicator.classList.remove('ptr-dragging');
+    indicator.classList.remove('ptr-dragging', 'ptr-loading');
     indicator.classList.add('ptr-settle');
     applyProgress(0);
-    pulling = false;
-    currentScroller = null;
+    confirmedPull = false;
+    candidateScroller = null;
   }
 
   function dispararRefresh() {
+    indicator.classList.remove('ptr-dragging');
     indicator.classList.add('ptr-loading');
     indicator.style.transform = 'translate(-50%, 0px) scale(1)';
     indicator.style.opacity = '1';
     setTimeout(() => { window.location.reload(); }, 550);
   }
 
-  function onStart(y) {
-    const scroller = getActiveScroller();
-    if (!scroller || scroller.scrollTop > 0) return;
-    currentScroller = scroller;
-    startY = y;
-    pulling = true;
-    indicator.classList.remove('ptr-settle');
-    indicator.classList.add('ptr-dragging');
-  }
-
-  function onMove(y) {
-    if (!pulling || !currentScroller) return false;
-    if (currentScroller.scrollTop > 0) { reset(); return false; }
-    const delta = y - startY;
-    if (delta <= 0) { applyProgress(0); return false; }
-    // Resistencia progresiva, como un resorte — no es 1 a 1 con el dedo
-    const damped = Math.min(MAX_PULL, delta * 0.45);
-    applyProgress(damped / THRESHOLD);
-    return true; // se está usando el gesto — evitar el scroll/rebote nativo
-  }
-
-  function onEnd() {
-    if (!pulling) return;
-    if (progress >= 1) {
-      dispararRefresh();
-    } else {
-      reset();
-    }
-    pulling = false;
-  }
-
-  // Touch (móvil)
+  // --- Táctil (móvil) ---
   document.addEventListener('touchstart', (e) => {
-    onStart(e.touches[0].clientY);
+    const scroller = getScrollerFromTarget(e.target);
+    if (!scroller || scroller.scrollTop > 0) { candidateScroller = null; return; }
+    candidateScroller = scroller;
+    startY = e.touches[0].clientY;
+    confirmedPull = false;
   }, { passive: true });
 
   document.addEventListener('touchmove', (e) => {
-    const usando = onMove(e.touches[0].clientY);
-    if (usando) e.preventDefault();
-  }, { passive: false });
+    if (!candidateScroller) return;
+    if (candidateScroller.scrollTop > 0) { reset(); return; }
 
-  document.addEventListener('touchend', onEnd, { passive: true });
-  document.addEventListener('touchcancel', reset, { passive: true });
+    const delta = e.touches[0].clientY - startY;
+    if (delta <= 0) { if (confirmedPull) applyProgress(0); return; }
 
-  // Trackpad / rueda (escritorio) — acumula el gesto de "empujar hacia abajo"
-  let wheelAccum = 0;
-  let wheelTimer = null;
-  document.addEventListener('wheel', (e) => {
-    const scroller = getActiveScroller();
-    if (!scroller || scroller.scrollTop > 0 || e.deltaY >= 0) {
-      if (wheelAccum > 0 && (!scroller || scroller.scrollTop > 0)) { wheelAccum = 0; reset(); }
-      return;
-    }
-    wheelAccum = Math.min(MAX_PULL, wheelAccum + Math.abs(e.deltaY) * 0.28);
-    if (wheelAccum > 4) {
-      e.preventDefault();
+    if (!confirmedPull) {
+      // Todavía dentro de la zona muerta — no se muestra nada, es indistinguible
+      // de un toque casual hasta que se confirme una intención real de arrastrar.
+      if (delta < DEADZONE) return;
+      confirmedPull = true;
       indicator.classList.remove('ptr-settle');
       indicator.classList.add('ptr-dragging');
-      applyProgress(wheelAccum / THRESHOLD);
     }
+
+    e.preventDefault(); // recién acá se toma el control del gesto
+    const desdeZonaMuerta = delta - DEADZONE;
+    const damped = Math.min(MAX_PULL, desdeZonaMuerta * 0.45);
+    applyProgress(damped / THRESHOLD);
+  }, { passive: false });
+
+  document.addEventListener('touchend', () => {
+    if (!confirmedPull) { candidateScroller = null; return; }
+    if (progress >= 1) dispararRefresh(); else reset();
+  }, { passive: true });
+
+  document.addEventListener('touchcancel', reset, { passive: true });
+
+  // --- Trackpad / rueda (escritorio) ---
+  let wheelAccum = 0;
+  let wheelConfirmed = false;
+  let wheelTimer = null;
+  document.addEventListener('wheel', (e) => {
+    const scroller = getScrollerFromTarget(e.target);
+    if (!scroller || scroller.scrollTop > 0 || e.deltaY >= 0) {
+      if (wheelConfirmed) { wheelAccum = 0; wheelConfirmed = false; reset(); }
+      return;
+    }
+    wheelAccum += Math.abs(e.deltaY) * 0.28;
+    if (!wheelConfirmed) {
+      if (wheelAccum < DEADZONE) return;
+      wheelConfirmed = true;
+      indicator.classList.remove('ptr-settle');
+      indicator.classList.add('ptr-dragging');
+    }
+    e.preventDefault();
+    const desdeZonaMuerta = Math.min(MAX_PULL, wheelAccum - DEADZONE);
+    applyProgress(desdeZonaMuerta / THRESHOLD);
+
     clearTimeout(wheelTimer);
     wheelTimer = setTimeout(() => {
-      if (wheelAccum / THRESHOLD >= 1) {
-        dispararRefresh();
-      } else {
-        wheelAccum = 0;
-        reset();
-      }
+      if (!wheelConfirmed) return;
+      if (progress >= 1) dispararRefresh(); else reset();
+      wheelAccum = 0;
+      wheelConfirmed = false;
     }, 140);
   }, { passive: false });
 })();
