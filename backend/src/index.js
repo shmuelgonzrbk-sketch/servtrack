@@ -236,6 +236,17 @@ app.post('/control/panel/:key/api/notificar/:userId', adminAuth, async (req, res
   const { userId } = req.params;
   let enviados = 0;
 
+  // Guardar el anuncio en notificaciones_programadas (ya "enviada") para que
+  // aparezca en la lista de Notificaciones dentro de la web/app del usuario.
+  try {
+    await pool.query(
+      `INSERT INTO notificaciones_programadas
+       (usuario_id, tipo, referencia_tabla, referencia_id, titulo, cuerpo, fecha_disparo, enviada)
+       VALUES ($1,'anuncio_admin',NULL,NULL,$2,$3,NOW(),true)`,
+      [userId, titulo, cuerpo]
+    );
+  } catch(e) { console.error('Error guardando anuncio en notificaciones_programadas:', e.message); }
+
   // Se manda por AMBOS canales de forma independiente — antes, si FCM "tenía éxito"
   // (Firebase acepta el envío aunque el token ya no sirva), nunca se intentaba el
   // web push y la notificación se perdía sin avisar en el navegador.

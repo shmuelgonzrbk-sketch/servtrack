@@ -7,7 +7,7 @@ const { sendPush } = require('./pushSender');
    Toda la lógica de "cuándo" se calculó de antemano al crear/editar
    la persona o asignación (ver notifHelper.js).
 ================================================================ */
-cron.schedule('*/1 * * * *', async () => { 
+cron.schedule('0 */3 * * *', async () => { // respaldo: la precisión real la da notifScheduler.js (en memoria)
   try {
     const pendientes = await pool.query(
       `SELECT id, usuario_id, titulo, cuerpo, referencia_id, referencia_tabla

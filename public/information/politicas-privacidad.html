@@ -1,0 +1,2265 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Política de Privacidad — AssendApp</title>
+
+    <meta
+        name="description"
+        content="Consulta la Política de Privacidad de AssendApp y conoce cómo se trata y protege la información de los usuarios."
+    >
+
+    <meta
+        name="author"
+        content="SΛX"
+    >
+
+    <meta
+        name="robots"
+        content="index, follow"
+    >
+
+    <link
+        rel="canonical"
+        href="https://assendapp.com/privacy"
+    >
+
+    <meta
+        property="og:title"
+        content="Política de Privacidad — AssendApp"
+    >
+
+    <meta
+        property="og:description"
+        content="Conoce cómo AssendApp trata y protege la información de sus usuarios."
+    >
+
+    <meta
+        property="og:type"
+        content="website"
+    >
+
+    <meta
+        property="og:url"
+        content="https://assendapp.com/privacy"
+    >
+
+    <style>
+
+        /* =====================================================
+           RESET
+        ===================================================== */
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+
+        html {
+            scroll-behavior: smooth;
+            scroll-padding-top: 100px;
+        }
+
+
+        body {
+            font-family:
+                Inter,
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                sans-serif;
+
+            color: #172033;
+            background: #f7f9fc;
+
+            line-height: 1.7;
+            -webkit-font-smoothing: antialiased;
+        }
+
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+
+        button {
+            font: inherit;
+        }
+
+
+        /* =====================================================
+           VARIABLES
+        ===================================================== */
+
+        :root {
+            --navy: #132238;
+            --navy-soft: #1a2b40;
+
+            --blue: #4c7dff;
+            --blue-dark: #3565e8;
+            --blue-light: #eaf0ff;
+
+            --text: #172033;
+            --muted: #657086;
+
+            --border: #e5e9f0;
+            --surface: #ffffff;
+            --background: #f7f9fc;
+
+            --radius-lg: 22px;
+            --radius-md: 14px;
+
+            --container: 1180px;
+        }
+
+
+        /* =====================================================
+           HEADER
+        ===================================================== */
+
+        .site-header {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+
+            height: 76px;
+
+            background: rgba(255, 255, 255, 0.88);
+
+            border-bottom: 1px solid rgba(229, 233, 240, 0.8);
+
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+        }
+
+
+        .header-container {
+            width: min(
+                calc(100% - 40px),
+                var(--container)
+            );
+
+            height: 100%;
+            margin: auto;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+
+            font-size: 1.08rem;
+            font-weight: 750;
+            letter-spacing: -0.02em;
+        }
+
+
+        .brand-mark {
+            width: 32px;
+            height: 32px;
+
+            display: grid;
+            place-items: center;
+
+            color: white;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #5c86ff,
+                    #7c65e8
+                );
+
+            border-radius: 10px;
+
+            font-size: 0.85rem;
+            font-weight: 800;
+
+            box-shadow:
+                0 7px 20px rgba(76, 125, 255, 0.22);
+        }
+
+
+        .desktop-nav {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+
+            color: #59657a;
+            font-size: 0.92rem;
+            font-weight: 600;
+        }
+
+
+        .desktop-nav a {
+            transition:
+                color 0.2s ease;
+        }
+
+
+        .desktop-nav a:hover {
+            color: var(--blue);
+        }
+
+
+        .header-button {
+            padding: 10px 16px;
+
+            color: white;
+
+            background: var(--navy);
+
+            border-radius: 10px;
+
+            transition:
+                transform 0.2s ease,
+                background 0.2s ease;
+        }
+
+
+        .header-button:hover {
+            transform: translateY(-1px);
+            background: #1d314b;
+        }
+
+
+        .menu-button {
+            display: none;
+
+            width: 42px;
+            height: 42px;
+
+            border: 1px solid var(--border);
+            border-radius: 11px;
+
+            background: white;
+
+            cursor: pointer;
+        }
+
+
+        .menu-button span {
+            display: block;
+
+            width: 18px;
+            height: 2px;
+
+            margin: 4px auto;
+
+            background: var(--navy);
+
+            border-radius: 10px;
+        }
+
+
+        /* =====================================================
+           MOBILE NAV
+        ===================================================== */
+
+        .mobile-nav {
+            display: none;
+
+            padding: 12px 20px 20px;
+
+            background: white;
+
+            border-bottom: 1px solid var(--border);
+        }
+
+
+        .mobile-nav.active {
+            display: block;
+        }
+
+
+        .mobile-nav a {
+            display: block;
+
+            padding: 13px 4px;
+
+            color: var(--text);
+
+            font-weight: 600;
+
+            border-bottom: 1px solid #edf0f5;
+        }
+
+
+        /* =====================================================
+           HERO
+        ===================================================== */
+
+        .privacy-hero {
+            position: relative;
+
+            overflow: hidden;
+
+            padding:
+                90px
+                20px
+                76px;
+
+            color: white;
+
+            background:
+                radial-gradient(
+                    circle at 15% 20%,
+                    rgba(76, 125, 255, 0.24),
+                    transparent 35%
+                ),
+                radial-gradient(
+                    circle at 85% 10%,
+                    rgba(128, 105, 232, 0.18),
+                    transparent 32%
+                ),
+                var(--navy);
+        }
+
+
+        .privacy-hero::before {
+            content: "";
+
+            position: absolute;
+            inset: 0;
+
+            opacity: 0.16;
+
+            background-image:
+                linear-gradient(
+                    rgba(255,255,255,0.08) 1px,
+                    transparent 1px
+                ),
+                linear-gradient(
+                    90deg,
+                    rgba(255,255,255,0.08) 1px,
+                    transparent 1px
+                );
+
+            background-size: 42px 42px;
+
+            mask-image:
+                linear-gradient(
+                    to bottom,
+                    black,
+                    transparent
+                );
+        }
+
+
+        .hero-container {
+            position: relative;
+
+            width: min(
+                calc(100% - 40px),
+                900px
+            );
+
+            margin: auto;
+
+            text-align: center;
+        }
+
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+
+            margin-bottom: 18px;
+            padding: 7px 12px;
+
+            color: #c9d7ff;
+
+            background: rgba(255,255,255,0.07);
+
+            border: 1px solid rgba(255,255,255,0.1);
+
+            border-radius: 999px;
+
+            font-size: 0.76rem;
+            font-weight: 750;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+
+        .privacy-hero h1 {
+            font-size:
+                clamp(2.4rem, 6vw, 4.6rem);
+
+            line-height: 1.04;
+
+            letter-spacing: -0.055em;
+
+            margin-bottom: 22px;
+        }
+
+
+        .privacy-hero h1 span {
+            color: #8ca9ff;
+        }
+
+
+        .privacy-hero p {
+            max-width: 680px;
+            margin: auto;
+
+            color: #b8c4d8;
+
+            font-size:
+                clamp(1rem, 2vw, 1.15rem);
+        }
+
+
+        .last-update {
+            margin-top: 26px;
+
+            color: #8e9db5;
+
+            font-size: 0.86rem;
+        }
+
+
+        /* =====================================================
+           MAIN
+        ===================================================== */
+
+        .main-container {
+            width: min(
+                calc(100% - 40px),
+                var(--container)
+            );
+
+            margin: 0 auto;
+
+            display: grid;
+
+            grid-template-columns:
+                250px
+                minmax(0, 1fr);
+
+            gap: 70px;
+
+            padding:
+                75px
+                0
+                100px;
+        }
+
+
+        /* =====================================================
+           SIDEBAR
+        ===================================================== */
+
+        .privacy-sidebar {
+            position: sticky;
+            top: 105px;
+
+            align-self: start;
+        }
+
+
+        .sidebar-title {
+            margin-bottom: 15px;
+
+            color: #8993a5;
+
+            font-size: 0.72rem;
+            font-weight: 800;
+
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+
+        .sidebar-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+
+        .sidebar-nav a {
+            padding: 9px 12px;
+
+            color: #69758a;
+
+            border-radius: 9px;
+
+            font-size: 0.88rem;
+            font-weight: 600;
+
+            transition:
+                color 0.2s ease,
+                background 0.2s ease;
+        }
+
+
+        .sidebar-nav a:hover,
+        .sidebar-nav a.active {
+            color: var(--blue);
+            background: var(--blue-light);
+        }
+
+
+        /* =====================================================
+           CONTENT
+        ===================================================== */
+
+        .privacy-content {
+            min-width: 0;
+
+            background: var(--surface);
+
+            border: 1px solid var(--border);
+
+            border-radius: var(--radius-lg);
+
+            padding:
+                clamp(28px, 5vw, 58px);
+
+            box-shadow:
+                0 18px 50px rgba(22, 34, 55, 0.05);
+        }
+
+
+        .privacy-section {
+            padding-bottom: 48px;
+            margin-bottom: 48px;
+
+            border-bottom: 1px solid var(--border);
+        }
+
+
+        .privacy-section:last-child {
+            padding-bottom: 0;
+            margin-bottom: 0;
+
+            border-bottom: 0;
+        }
+
+
+        .section-number {
+            display: block;
+
+            margin-bottom: 8px;
+
+            color: var(--blue);
+
+            font-size: 0.75rem;
+            font-weight: 800;
+
+            letter-spacing: 0.08em;
+        }
+
+
+        .privacy-section h2 {
+            margin-bottom: 17px;
+
+            color: var(--navy);
+
+            font-size:
+                clamp(1.45rem, 3vw, 1.9rem);
+
+            line-height: 1.2;
+
+            letter-spacing: -0.035em;
+        }
+
+
+        .privacy-section h3 {
+            margin:
+                28px
+                0
+                10px;
+
+            color: var(--navy);
+
+            font-size: 1.05rem;
+        }
+
+
+        .privacy-section p {
+            margin-bottom: 15px;
+
+            color: var(--muted);
+
+            font-size: 0.98rem;
+        }
+
+
+        .privacy-section ul {
+            margin:
+                12px
+                0
+                20px
+                20px;
+
+            color: var(--muted);
+        }
+
+
+        .privacy-section li {
+            margin-bottom: 8px;
+            padding-left: 4px;
+        }
+
+
+        .privacy-section strong {
+            color: var(--text);
+        }
+
+
+        .highlight {
+            margin: 24px 0;
+            padding: 19px 20px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #f4f7ff,
+                    #fafbff
+                );
+
+            border: 1px solid #dfe7ff;
+
+            border-left:
+                3px solid var(--blue);
+
+            border-radius: 12px;
+        }
+
+
+        .highlight p {
+            margin: 0;
+
+            color: #45526a;
+        }
+
+
+        .contact-card {
+            margin-top: 22px;
+            padding: 23px;
+
+            background: #f7f9fc;
+
+            border: 1px solid var(--border);
+
+            border-radius: 14px;
+        }
+
+
+        .contact-card strong {
+            display: block;
+
+            margin-bottom: 6px;
+
+            color: var(--navy);
+        }
+
+
+        .contact-card a {
+            color: var(--blue);
+            font-weight: 700;
+        }
+
+
+        /* =====================================================
+           BACK TOP
+        ===================================================== */
+
+        .back-top {
+            position: fixed;
+
+            right: 24px;
+            bottom: 24px;
+
+            width: 45px;
+            height: 45px;
+
+            display: grid;
+            place-items: center;
+
+            color: white;
+
+            background: var(--navy);
+
+            border: 0;
+            border-radius: 12px;
+
+            cursor: pointer;
+
+            opacity: 0;
+            visibility: hidden;
+
+            transform: translateY(10px);
+
+            transition:
+                opacity 0.25s ease,
+                visibility 0.25s ease,
+                transform 0.25s ease;
+        }
+
+
+        .back-top.visible {
+            opacity: 1;
+            visibility: visible;
+
+            transform: translateY(0);
+        }
+
+
+        /* =====================================================
+           FOOTER
+        ===================================================== */
+
+        .site-footer {
+            color: #aeb9ca;
+
+            background: var(--navy);
+
+            padding:
+                42px
+                20px
+                30px;
+        }
+
+
+        .footer-container {
+            width: min(
+                calc(100% - 40px),
+                var(--container)
+            );
+
+            margin: auto;
+        }
+
+
+        .footer-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            padding-bottom: 28px;
+
+            border-bottom:
+                1px solid rgba(255,255,255,0.08);
+        }
+
+
+        .footer-brand {
+            color: white;
+
+            font-weight: 750;
+        }
+
+
+        .footer-tagline {
+            margin-top: 6px;
+
+            color: #8794a9;
+
+            font-size: 0.88rem;
+        }
+
+
+        .footer-links {
+            display: flex;
+            gap: 24px;
+
+            font-size: 0.86rem;
+        }
+
+
+        .footer-links a {
+            transition: color 0.2s ease;
+        }
+
+
+        .footer-links a:hover {
+            color: white;
+        }
+
+
+        .footer-bottom {
+            display: flex;
+            justify-content: space-between;
+
+            padding-top: 24px;
+
+            color: #748198;
+
+            font-size: 0.78rem;
+        }
+
+
+        /* =====================================================
+           REVEAL
+        ===================================================== */
+
+        .reveal {
+            opacity: 0;
+
+            transform:
+                translateY(18px);
+
+            transition:
+                opacity 0.6s ease,
+                transform 0.6s ease;
+        }
+
+
+        .reveal.visible {
+            opacity: 1;
+
+            transform:
+                translateY(0);
+        }
+
+
+        /* =====================================================
+           RESPONSIVE
+        ===================================================== */
+
+        @media (max-width: 900px) {
+
+            .desktop-nav {
+                display: none;
+            }
+
+
+            .menu-button {
+                display: block;
+            }
+
+
+            .main-container {
+                grid-template-columns: 1fr;
+
+                gap: 25px;
+
+                padding-top: 45px;
+            }
+
+
+            .privacy-sidebar {
+                position: static;
+            }
+
+
+            .sidebar-nav {
+                display: grid;
+
+                grid-template-columns:
+                    repeat(2, minmax(0, 1fr));
+
+                gap: 6px;
+            }
+
+
+            .privacy-content {
+                padding:
+                    34px
+                    28px;
+            }
+
+        }
+
+
+        @media (max-width: 600px) {
+
+            .site-header {
+                height: 68px;
+            }
+
+
+            .header-container {
+                width:
+                    calc(100% - 28px);
+            }
+
+
+            .privacy-hero {
+                padding:
+                    65px
+                    16px
+                    58px;
+            }
+
+
+            .hero-container {
+                width:
+                    calc(100% - 20px);
+            }
+
+
+            .privacy-hero h1 {
+                font-size: 2.65rem;
+            }
+
+
+            .main-container {
+                width:
+                    calc(100% - 24px);
+
+                padding:
+                    28px
+                    0
+                    65px;
+            }
+
+
+            .sidebar-nav {
+                grid-template-columns: 1fr;
+            }
+
+
+            .privacy-content {
+                padding: 25px 20px;
+
+                border-radius: 17px;
+            }
+
+
+            .privacy-section {
+                padding-bottom: 36px;
+                margin-bottom: 36px;
+            }
+
+
+            .privacy-section p,
+            .privacy-section li {
+                font-size: 0.94rem;
+            }
+
+
+            .footer-top,
+            .footer-bottom {
+                flex-direction: column;
+                align-items: flex-start;
+
+                gap: 20px;
+            }
+
+
+            .footer-links {
+                flex-wrap: wrap;
+                gap: 14px;
+            }
+
+
+            .back-top {
+                right: 16px;
+                bottom: 16px;
+            }
+
+        }
+
+    </style>
+</head>
+
+
+<body>
+
+
+    <!-- =====================================================
+         HEADER
+    ===================================================== -->
+
+    <header class="site-header">
+
+        <div class="header-container">
+
+            <a
+                href="/"
+                class="brand"
+                aria-label="AssendApp - Inicio"
+            >
+
+                <span class="brand-mark">
+                    A
+                </span>
+
+                <span>
+                    AssendApp
+                </span>
+
+            </a>
+
+
+            <nav class="desktop-nav">
+
+                <a href="/features">
+                    Funciones
+                </a>
+
+                <a href="/how-it-works">
+                    Cómo funciona
+                </a>
+
+                <a href="/guides">
+                    Guías
+                </a>
+
+                <a href="/support">
+                    Soporte
+                </a>
+
+                <a
+                    href="/"
+                    class="header-button"
+                >
+                    Ir a AssendApp ↗
+                </a>
+
+            </nav>
+
+
+            <button
+                class="menu-button"
+                id="menuButton"
+                aria-label="Abrir menú"
+                aria-expanded="false"
+            >
+
+                <span></span>
+                <span></span>
+                <span></span>
+
+            </button>
+
+        </div>
+
+
+        <nav
+            class="mobile-nav"
+            id="mobileNav"
+        >
+
+            <a href="/features">
+                Funciones
+            </a>
+
+            <a href="/how-it-works">
+                Cómo funciona
+            </a>
+
+            <a href="/guides">
+                Guías
+            </a>
+
+            <a href="/support">
+                Soporte
+            </a>
+
+            <a href="/faq">
+                Preguntas frecuentes
+            </a>
+
+            <a href="/">
+                Ir a AssendApp ↗
+            </a>
+
+        </nav>
+
+    </header>
+
+
+
+    <!-- =====================================================
+         HERO
+    ===================================================== -->
+
+    <section class="privacy-hero">
+
+        <div class="hero-container reveal">
+
+            <span class="eyebrow">
+                Información legal
+            </span>
+
+            <h1>
+                Política de
+                <span>Privacidad.</span>
+            </h1>
+
+            <p>
+                Queremos que conozcas de forma clara cómo AssendApp
+                trata la información necesaria para ofrecer sus
+                funciones y proteger tu cuenta.
+            </p>
+
+            <div class="last-update">
+                Última actualización: septiembre de 2026
+            </div>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =====================================================
+         MAIN
+    ===================================================== -->
+
+    <main class="main-container">
+
+
+        <!-- SIDEBAR -->
+
+        <aside class="privacy-sidebar">
+
+            <div class="sidebar-title">
+                En esta página
+            </div>
+
+
+            <nav class="sidebar-nav">
+
+                <a
+                    href="#introduccion"
+                    class="active"
+                >
+                    Introducción
+                </a>
+
+                <a href="#informacion">
+                    Información tratada
+                </a>
+
+                <a href="#finalidades">
+                    Finalidades
+                </a>
+
+                <a href="#terceros">
+                    Datos de otras personas
+                </a>
+
+                <a href="#cookies">
+                    Cookies y sesiones
+                </a>
+
+                <a href="#proveedores">
+                    Proveedores
+                </a>
+
+                <a href="#transferencias">
+                    Tratamiento internacional
+                </a>
+
+                <a href="#seguridad">
+                    Seguridad
+                </a>
+
+                <a href="#conservacion">
+                    Conservación
+                </a>
+
+                <a href="#eliminacion">
+                    Eliminación
+                </a>
+
+                <a href="#derechos">
+                    Derechos
+                </a>
+
+                <a href="#menores">
+                    Menores de edad
+                </a>
+
+                <a href="#cambios">
+                    Cambios
+                </a>
+
+                <a href="#contacto">
+                    Contacto
+                </a>
+
+            </nav>
+
+        </aside>
+
+
+
+        <!-- CONTENT -->
+
+        <article class="privacy-content">
+
+
+            <!-- 01 -->
+
+            <section
+                class="privacy-section reveal"
+                id="introduccion"
+            >
+
+                <span class="section-number">
+                    01
+                </span>
+
+                <h2>
+                    Introducción
+                </h2>
+
+                <p>
+                    AssendApp es una herramienta digital gratuita
+                    desarrollada de manera independiente para ayudar
+                    a los testigos de Jehová a organizar su ministerio
+                    y servicio del campo.
+                </p>
+
+                <p>
+                    Esta Política de Privacidad explica qué información
+                    puede ser tratada al utilizar AssendApp, para qué
+                    se utiliza y qué principios se aplican a su
+                    protección.
+                </p>
+
+                <p>
+                    AssendApp procura tratar los datos personales de
+                    acuerdo con la legislación aplicable en materia
+                    de protección de datos personales, incluida la
+                    Ley N.º 29733, Ley de Protección de Datos Personales,
+                    y su Reglamento.
+                </p>
+
+            </section>
+
+
+
+            <!-- 02 -->
+
+            <section
+                class="privacy-section reveal"
+                id="informacion"
+            >
+
+                <span class="section-number">
+                    02
+                </span>
+
+                <h2>
+                    ¿Qué información puede tratar AssendApp?
+                </h2>
+
+                <p>
+                    La información tratada depende de las funciones
+                    que utilice el usuario y de los datos que decida
+                    registrar.
+                </p>
+
+
+                <h3>
+                    Información de la cuenta
+                </h3>
+
+                <p>
+                    AssendApp puede tratar información necesaria para
+                    crear, identificar y mantener una cuenta de usuario.
+                </p>
+
+                <p>
+                    Cuando el usuario utiliza un mecanismo de
+                    autenticación proporcionado por Google, pueden
+                    procesarse determinados datos necesarios para
+                    realizar la autenticación.
+                </p>
+
+
+                <h3>
+                    Personas interesadas y revisitas
+                </h3>
+
+                <p>
+                    El usuario puede registrar información relacionada
+                    con personas que haya conocido durante su actividad
+                    de ministerio.
+                </p>
+
+                <ul>
+                    <li>
+                        Información identificativa introducida por el usuario.
+                    </li>
+
+                    <li>
+                        Notas relacionadas con conversaciones.
+                    </li>
+
+                    <li>
+                        Temas tratados.
+                    </li>
+
+                    <li>
+                        Publicaciones bíblicas dejadas.
+                    </li>
+
+                    <li>
+                        Preguntas pendientes.
+                    </li>
+
+                    <li>
+                        Información relacionada con futuras revisitas.
+                    </li>
+
+                    <li>
+                        Recordatorios establecidos por el usuario.
+                    </li>
+                </ul>
+
+
+                <h3>
+                    Territorios
+                </h3>
+
+                <p>
+                    AssendApp permite registrar el número correspondiente
+                    al territorio asignado, facilitando al usuario su
+                    organización y seguimiento.
+                </p>
+
+
+                <h3>
+                    Actividad de servicio
+                </h3>
+
+                <p>
+                    AssendApp puede almacenar información introducida
+                    por el usuario relacionada con su actividad de
+                    servicio, como:
+                </p>
+
+                <ul>
+
+                    <li>
+                        Tiempo de servicio.
+                    </li>
+
+                    <li>
+                        Publicaciones distribuidas.
+                    </li>
+
+                    <li>
+                        Publicaciones digitales.
+                    </li>
+
+                    <li>
+                        Videos mostrados.
+                    </li>
+
+                    <li>
+                        Cursos bíblicos.
+                    </li>
+
+                </ul>
+
+                <p>
+                    Esta información se almacena para permitir al usuario
+                    consultar y conservar su historial de actividad,
+                    evitando que sus registros se pierdan y facilitando
+                    la preparación de su informe mensual.
+                </p>
+
+            </section>
+
+
+
+            <!-- 03 -->
+
+            <section
+                class="privacy-section reveal"
+                id="finalidades"
+            >
+
+                <span class="section-number">
+                    03
+                </span>
+
+                <h2>
+                    ¿Para qué utilizamos esta información?
+                </h2>
+
+                <p>
+                    La información se utiliza para proporcionar las
+                    funciones de AssendApp y mantener el servicio.
+                </p>
+
+                <ul>
+
+                    <li>
+                        Permitir el acceso a la cuenta.
+                    </li>
+
+                    <li>
+                        Guardar la información introducida por el usuario.
+                    </li>
+
+                    <li>
+                        Organizar personas interesadas y revisitas.
+                    </li>
+
+                    <li>
+                        Gestionar recordatorios.
+                    </li>
+
+                    <li>
+                        Organizar territorios.
+                    </li>
+
+                    <li>
+                        Registrar actividad de servicio.
+                    </li>
+
+                    <li>
+                        Facilitar la preparación del informe mensual.
+                    </li>
+
+                    <li>
+                        Mantener y mejorar el funcionamiento del servicio.
+                    </li>
+
+                    <li>
+                        Detectar y solucionar problemas técnicos.
+                    </li>
+
+                    <li>
+                        Proteger la seguridad de las cuentas y del servicio.
+                    </li>
+
+                </ul>
+
+            </section>
+
+
+
+            <!-- 04 -->
+
+            <section
+                class="privacy-section reveal"
+                id="terceros"
+            >
+
+                <span class="section-number">
+                    04
+                </span>
+
+                <h2>
+                    Información sobre otras personas
+                </h2>
+
+                <p>
+                    Algunas funciones de AssendApp permiten que el usuario
+                    registre información relacionada con personas distintas
+                    de él mismo.
+                </p>
+
+                <p>
+                    Por ejemplo, el usuario puede registrar información
+                    relacionada con una persona interesada, una conversación
+                    o una futura revisita.
+                </p>
+
+                <div class="highlight">
+
+                    <p>
+                        <strong>
+                            Recomendación:
+                        </strong>
+
+                        registra únicamente la información que sea
+                        necesaria para utilizar las funciones de AssendApp
+                        y evita introducir información personal innecesaria.
+                    </p>
+
+                </div>
+
+                <p>
+                    El usuario debe utilizar estas funciones de manera
+                    responsable y respetar los derechos de las personas
+                    cuya información registre.
+                </p>
+
+            </section>
+
+
+
+            <!-- 05 -->
+
+            <section
+                class="privacy-section reveal"
+                id="cookies"
+            >
+
+                <span class="section-number">
+                    05
+                </span>
+
+                <h2>
+                    Cookies y tecnologías similares
+                </h2>
+
+                <h3>
+                    Cookies
+                </h3>
+
+                <p>
+                    AssendApp no utiliza cookies con fines de publicidad,
+                    seguimiento o análisis del comportamiento de los usuarios.
+                </p>
+
+                <h3>
+                    Sesiones y autenticación
+                </h3>
+
+                <p>
+                    AssendApp utiliza mecanismos técnicos necesarios para
+                    mantener la autenticación y seguridad de las cuentas
+                    de los usuarios.
+                </p>
+
+                <p>
+                    Estos mecanismos permiten mantener la sesión iniciada
+                    y reconocer que una solicitud corresponde a una cuenta
+                    autenticada.
+                </p>
+
+                <h3>
+                    Analytics
+                </h3>
+
+                <p>
+                    AssendApp no utiliza actualmente herramientas de
+                    análisis de terceros para realizar un seguimiento
+                    publicitario del comportamiento de los usuarios.
+                </p>
+
+            </section>
+
+
+
+            <!-- 06 -->
+
+            <section
+                class="privacy-section reveal"
+                id="proveedores"
+            >
+
+                <span class="section-number">
+                    06
+                </span>
+
+                <h2>
+                    Proveedores tecnológicos
+                </h2>
+
+                <p>
+                    Para proporcionar y mantener AssendApp pueden utilizarse
+                    servicios tecnológicos de terceros.
+                </p>
+
+                <p>
+                    Entre los servicios utilizados por el proyecto se
+                    encuentran proveedores relacionados con alojamiento,
+                    autenticación, infraestructura y almacenamiento de datos.
+                </p>
+
+                <p>
+                    El uso de estos proveedores puede implicar el tratamiento
+                    de información necesario para proporcionar las funciones
+                    correspondientes.
+                </p>
+
+                <p>
+                    AssendApp procura limitar dicho tratamiento a las
+                    finalidades necesarias para el funcionamiento del servicio.
+                </p>
+
+            </section>
+
+
+
+            <!-- 07 -->
+
+            <section
+                class="privacy-section reveal"
+                id="transferencias"
+            >
+
+                <span class="section-number">
+                    07
+                </span>
+
+                <h2>
+                    Tratamiento internacional de datos
+                </h2>
+
+                <p>
+                    Algunos proveedores tecnológicos utilizados por AssendApp
+                    pueden procesar información desde infraestructuras ubicadas
+                    fuera del Perú.
+                </p>
+
+                <p>
+                    Determinados servicios proporcionados por Google y Firebase,
+                    por ejemplo, pueden utilizar infraestructura internacional
+                    para proporcionar sus servicios.
+                </p>
+
+                <p>
+                    Cuando corresponda, AssendApp procurará que estos tratamientos
+                    se realicen de acuerdo con la legislación aplicable en materia
+                    de protección de datos personales.
+                </p>
+
+            </section>
+
+
+
+            <!-- 08 -->
+
+            <section
+                class="privacy-section reveal"
+                id="seguridad"
+            >
+
+                <span class="section-number">
+                    08
+                </span>
+
+                <h2>
+                    Seguridad
+                </h2>
+
+                <p>
+                    AssendApp implementa medidas técnicas y organizativas
+                    destinadas a proteger la información frente a accesos
+                    no autorizados, alteraciones, pérdida, uso indebido
+                    o divulgación no autorizada.
+                </p>
+
+                <p>
+                    Estas medidas pueden evolucionar a medida que el proyecto
+                    y su infraestructura tecnológica continúen desarrollándose.
+                </p>
+
+                <div class="highlight">
+
+                    <p>
+                        La seguridad es un proceso continuo. AssendApp
+                        revisará y mejorará sus mecanismos de protección
+                        conforme evolucione el servicio.
+                    </p>
+
+                </div>
+
+            </section>
+
+
+
+            <!-- 09 -->
+
+            <section
+                class="privacy-section reveal"
+                id="conservacion"
+            >
+
+                <span class="section-number">
+                    09
+                </span>
+
+                <h2>
+                    Conservación de los datos
+                </h2>
+
+                <p>
+                    Los datos se conservarán durante el tiempo necesario
+                    para proporcionar las funciones de AssendApp o mientras
+                    la cuenta permanezca activa, salvo que exista una
+                    obligación legal que requiera conservar determinada
+                    información durante un período adicional.
+                </p>
+
+                <p>
+                    Cuando corresponda, el usuario podrá solicitar la
+                    eliminación de sus datos.
+                </p>
+
+            </section>
+
+
+
+            <!-- 10 -->
+
+            <section
+                class="privacy-section reveal"
+                id="eliminacion"
+            >
+
+                <span class="section-number">
+                    10
+                </span>
+
+                <h2>
+                    Eliminación de la cuenta y de los datos
+                </h2>
+
+                <p>
+                    El usuario puede solicitar la eliminación de su cuenta
+                    y de los datos personales asociados a ella comunicándose
+                    con AssendApp.
+                </p>
+
+                <p>
+                    Cuando la eliminación sea procedente, los datos
+                    correspondientes serán eliminados o tratados de acuerdo
+                    con las obligaciones legales y técnicas aplicables.
+                </p>
+
+                <p>
+                    Determinada información podría conservarse cuando exista
+                    una obligación legal o cuando resulte necesario para
+                    mantener registros técnicos o atender cuestiones de
+                    seguridad.
+                </p>
+
+                <div class="contact-card">
+
+                    <strong>
+                        Solicitudes de eliminación
+                    </strong>
+
+                    <a href="mailto:soporte.assend@gmail.com">
+                        soporte.assend@gmail.com
+                    </a>
+
+                    <br>
+
+                    <span>
+                        +51 929 742 215
+                    </span>
+
+                </div>
+
+            </section>
+
+
+
+            <!-- 11 -->
+
+            <section
+                class="privacy-section reveal"
+                id="derechos"
+            >
+
+                <span class="section-number">
+                    11
+                </span>
+
+                <h2>
+                    Derechos de los usuarios
+                </h2>
+
+                <p>
+                    Los titulares de datos personales cuentan con los
+                    derechos reconocidos por la legislación aplicable
+                    en materia de protección de datos personales.
+                </p>
+
+                <p>
+                    Estos pueden incluir solicitudes relacionadas con
+                    el acceso, actualización, rectificación, supresión
+                    u oposición al tratamiento de determinados datos,
+                    según corresponda.
+                </p>
+
+                <p>
+                    Para realizar una solicitud relacionada con tus datos,
+                    puedes utilizar los canales de contacto indicados
+                    al final de esta política.
+                </p>
+
+            </section>
+
+
+
+            <!-- 12 -->
+
+            <section
+                class="privacy-section reveal"
+                id="menores"
+            >
+
+                <span class="section-number">
+                    12
+                </span>
+
+                <h2>
+                    Menores de edad
+                </h2>
+
+                <p>
+                    AssendApp puede ser utilizado por adolescentes siempre
+                    que su uso se realice de manera responsable y de acuerdo
+                    con la legislación aplicable.
+                </p>
+
+                <p>
+                    Los usuarios menores de edad deben evitar introducir
+                    información personal innecesaria, especialmente
+                    información sobre ellos mismos, sus familiares u
+                    otras personas.
+                </p>
+
+                <p>
+                    AssendApp está diseñado como una herramienta de
+                    organización del ministerio y no debe utilizarse
+                    para recopilar, compartir o almacenar información
+                    que no sea necesaria para las funciones que ofrece.
+                </p>
+
+                <p>
+                    Se recomienda que los usuarios menores de edad
+                    cuenten con la orientación de sus padres, tutores
+                    o responsables cuando corresponda.
+                </p>
+
+                <div class="highlight">
+
+                    <p>
+                        <strong>
+                            Regla de privacidad:
+                        </strong>
+
+                        no introduzcas en AssendApp información personal
+                        que no sea necesaria para organizar tu actividad.
+                    </p>
+
+                </div>
+
+            </section>
+
+
+
+            <!-- 13 -->
+
+            <section
+                class="privacy-section reveal"
+                id="cambios"
+            >
+
+                <span class="section-number">
+                    13
+                </span>
+
+                <h2>
+                    Cambios en esta política
+                </h2>
+
+                <p>
+                    AssendApp puede actualizar esta Política de Privacidad
+                    cuando sea necesario debido a cambios en el servicio,
+                    funcionamiento técnico o legislación aplicable.
+                </p>
+
+                <p>
+                    Cuando se realicen cambios relevantes, se actualizará
+                    la fecha indicada al comienzo de esta página.
+                </p>
+
+            </section>
+
+
+
+            <!-- 14 -->
+
+            <section
+                class="privacy-section reveal"
+                id="contacto"
+            >
+
+                <span class="section-number">
+                    14
+                </span>
+
+                <h2>
+                    Contacto
+                </h2>
+
+                <p>
+                    Si tienes preguntas relacionadas con esta Política
+                    de Privacidad, protección de datos personales o
+                    solicitudes relacionadas con tu información, puedes
+                    comunicarte con AssendApp.
+                </p>
+
+                <div class="contact-card">
+
+                    <strong>
+                        AssendApp
+                    </strong>
+
+                    <p>
+                        Desarrollado de manera independiente por SΛX.
+                    </p>
+
+                    <strong>
+                        Soporte
+                    </strong>
+
+                    <a href="mailto:soporte.assend@gmail.com">
+                        soporte.assend@gmail.com
+                    </a>
+
+                    <br>
+
+                    <span>
+                        +51 929 742 215
+                    </span>
+
+                </div>
+
+            </section>
+
+
+        </article>
+
+    </main>
+
+
+
+    <!-- =====================================================
+         FOOTER
+    ===================================================== -->
+
+    <footer class="site-footer">
+
+        <div class="footer-container">
+
+            <div class="footer-top">
+
+                <div>
+
+                    <div class="footer-brand">
+                        AssendApp
+                    </div>
+
+                    <div class="footer-tagline">
+                        Organización para el ministerio.
+                    </div>
+
+                </div>
+
+
+                <nav class="footer-links">
+
+                    <a href="/">
+                        Inicio
+                    </a>
+
+                    <a href="/terms">
+                        Términos
+                    </a>
+
+                    <a href="/support">
+                        Soporte
+                    </a>
+
+                </nav>
+
+            </div>
+
+
+            <div class="footer-bottom">
+
+                <span>
+                    © 2026 AssendApp
+                </span>
+
+                <span>
+                    SΛX
+                </span>
+
+            </div>
+
+        </div>
+
+    </footer>
+
+
+
+    <!-- BACK TO TOP -->
+
+    <button
+        class="back-top"
+        id="backTop"
+        aria-label="Volver arriba"
+    >
+        ↑
+    </button>
+
+
+
+    <!-- =====================================================
+         JAVASCRIPT
+    ===================================================== -->
+
+    <script>
+
+        /* =====================================================
+           MOBILE MENU
+        ===================================================== */
+
+        const menuButton =
+            document.getElementById("menuButton");
+
+        const mobileNav =
+            document.getElementById("mobileNav");
+
+
+        menuButton.addEventListener(
+            "click",
+            () => {
+
+                const active =
+                    mobileNav.classList.toggle("active");
+
+                menuButton.setAttribute(
+                    "aria-expanded",
+                    active
+                );
+
+            }
+        );
+
+
+        mobileNav
+            .querySelectorAll("a")
+            .forEach(link => {
+
+                link.addEventListener(
+                    "click",
+                    () => {
+
+                        mobileNav.classList.remove(
+                            "active"
+                        );
+
+                        menuButton.setAttribute(
+                            "aria-expanded",
+                            "false"
+                        );
+
+                    }
+                );
+
+            });
+
+
+
+        /* =====================================================
+           REVEAL ANIMATIONS
+        ===================================================== */
+
+        const revealElements =
+            document.querySelectorAll(".reveal");
+
+
+        const revealObserver =
+            new IntersectionObserver(
+                entries => {
+
+                    entries.forEach(entry => {
+
+                        if (
+                            entry.isIntersecting
+                        ) {
+
+                            entry.target.classList.add(
+                                "visible"
+                            );
+
+                            revealObserver.unobserve(
+                                entry.target
+                            );
+
+                        }
+
+                    });
+
+                },
+                {
+                    threshold: 0.08
+                }
+            );
+
+
+        revealElements.forEach(
+            element => {
+                revealObserver.observe(element);
+            }
+        );
+
+
+
+        /* =====================================================
+           SIDEBAR ACTIVE SECTION
+        ===================================================== */
+
+        const sections =
+            document.querySelectorAll(
+                ".privacy-section"
+            );
+
+        const sidebarLinks =
+            document.querySelectorAll(
+                ".sidebar-nav a"
+            );
+
+
+        const sectionObserver =
+            new IntersectionObserver(
+                entries => {
+
+                    entries.forEach(entry => {
+
+                        if (
+                            entry.isIntersecting
+                        ) {
+
+                            sidebarLinks.forEach(
+                                link => {
+                                    link.classList.remove(
+                                        "active"
+                                    );
+                                }
+                            );
+
+
+                            const activeLink =
+                                document.querySelector(
+                                    `.sidebar-nav a[href="#${entry.target.id}"]`
+                                );
+
+
+                            if (activeLink) {
+
+                                activeLink.classList.add(
+                                    "active"
+                                );
+
+                            }
+
+                        }
+
+                    });
+
+                },
+                {
+                    rootMargin:
+                        "-20% 0px -65% 0px"
+                }
+            );
+
+
+        sections.forEach(
+            section => {
+                sectionObserver.observe(section);
+            }
+        );
+
+
+
+        /* =====================================================
+           BACK TO TOP
+        ===================================================== */
+
+        const backTop =
+            document.getElementById("backTop");
+
+
+        window.addEventListener(
+            "scroll",
+            () => {
+
+                if (
+                    window.scrollY > 500
+                ) {
+
+                    backTop.classList.add(
+                        "visible"
+                    );
+
+                } else {
+
+                    backTop.classList.remove(
+                        "visible"
+                    );
+
+                }
+
+            },
+            {
+                passive: true
+            }
+        );
+
+
+        backTop.addEventListener(
+            "click",
+            () => {
+
+                window.scrollTo({
+                    top: 0,
+                    behavior: "smooth"
+                });
+
+            }
+        );
+
+
+
+        /* =====================================================
+           CLOSE MENU WITH ESC
+        ===================================================== */
+
+        document.addEventListener(
+            "keydown",
+            event => {
+
+                if (
+                    event.key === "Escape"
+                ) {
+
+                    mobileNav.classList.remove(
+                        "active"
+                    );
+
+                    menuButton.setAttribute(
+                        "aria-expanded",
+                        "false"
+                    );
+
+                }
+
+            }
+        );
+
+    </script>
+
+</body>
+</html>
