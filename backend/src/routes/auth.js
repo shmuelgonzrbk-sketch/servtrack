@@ -41,6 +41,9 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ error: 'Email o contraseña incorrectos' });
     }
     const user = result.rows[0];
+    if (user.bloqueado) {
+      return res.status(403).json({ error: 'Esta cuenta ha sido bloqueada' });
+    }
     const validPassword = await bcrypt.compare(password, user.password_hash);
     if (!validPassword) {
       return res.status(401).json({ error: 'Email o contraseña incorrectos' });
@@ -80,6 +83,9 @@ router.post('/google', async (req, res) => {
       );
     }
     const user = result.rows[0];
+    if (user.bloqueado) {
+      return res.status(403).json({ error: 'Esta cuenta ha sido bloqueada' });
+    }
     const updatedUser = await pool.query('UPDATE usuarios SET ultimo_acceso = NOW(), picture = $2 WHERE id = $1 RETURNING *', [user.id, picture || null]);
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '30d' });
     const u = updatedUser.rows[0];

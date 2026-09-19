@@ -4,7 +4,8 @@ CREATE TABLE IF NOT EXISTS usuarios (
   email VARCHAR(100) UNIQUE NOT NULL,
   password_hash VARCHAR(255) NOT NULL,
   congregacion VARCHAR(100),
-  fecha_registro TIMESTAMP DEFAULT NOW()
+  fecha_registro TIMESTAMP DEFAULT NOW(),
+  bloqueado BOOLEAN DEFAULT false
 );
 
 CREATE TABLE IF NOT EXISTS personas (

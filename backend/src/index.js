@@ -60,6 +60,26 @@ app.use((req, res, next) => {
 
 // ── ADMIN ──
 
+// Backup completo de la base de datos — descubre todas las tablas del schema
+// público automáticamente y las exporta todas como un solo JSON descargable.
+app.get('/control/panel/:key/api/backup', adminAuth, async (req, res) => {
+  try {
+    const tablas = await pool.query(`SELECT tablename FROM pg_tables WHERE schemaname = 'public'`);
+    const backup = {};
+    for (const t of tablas.rows) {
+      const nombre = t.tablename;
+      const datos = await pool.query(`SELECT * FROM "${nombre}"`);
+      backup[nombre] = datos.rows;
+    }
+    const fecha = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
+    res.setHeader('Content-Disposition', `attachment; filename="backup-assendapp-${fecha}.json"`);
+    res.setHeader('Content-Type', 'application/json');
+    res.json(backup);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 
 app.get('/control/panel/:key/api/usuarios/fotos', adminAuth, async (req, res) => {
   try {
@@ -107,12 +127,6 @@ app.post('/control/panel/:key/api/notificar',   adminAuth, async (req, res) => {
   for (const u of usuarios.rows) {
     try {
       await sendPush(u.id, titulo, cuerpo);
-      await pool.query(
-        `INSERT INTO notificaciones_programadas
-         (usuario_id, tipo, referencia_tabla, referencia_id, titulo, cuerpo, fecha_disparo, enviada)
-         VALUES ($1,'anuncio_admin',NULL,NULL,$2,$3,NOW(),true)`,
-        [u.id, titulo, cuerpo]
-      );
       enviados++;
     } catch(e) { console.error('Error notificando a usuario', u.id, e.message); }
   }
@@ -144,10 +158,20 @@ app.get('/control/panel/:key/api/usuarios/fotos', adminAuth, async (req, res) =>
   } catch(err) { res.status(500).json({ error: err.message }); }
 });
 
+app.put('/control/panel/:key/api/usuarios/:id/bloqueo', adminAuth, async (req, res) => {
+  const { bloqueado } = req.body;
+  try {
+    await pool.query('UPDATE usuarios SET bloqueado = $1 WHERE id = $2', [bloqueado, req.params.id]);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.get('/control/panel/:key/api/usuarios', adminAuth, async (req, res) => {
   try {
     const usuarios = await pool.query(
-      `SELECT u.id, u.nombre, u.email, u.congregacion, u.picture, u.fecha_registro, u.ultimo_acceso,
+      `SELECT u.id, u.nombre, u.email, u.congregacion, u.picture, u.fecha_registro, u.ultimo_acceso, u.bloqueado,
               COUNT(DISTINCT p.id) as personas_count,
               COALESCE(SUM(rh.horas), 0) as horas_mes,
               COUNT(DISTINCT a.id) as asignaciones_count,
@@ -246,16 +270,6 @@ app.post('/control/panel/:key/api/notificar/:userId', adminAuth, async (req, res
   const { userId } = req.params;
   let enviados = 0;
 
-  // Guardar el anuncio en notificaciones_programadas (ya "enviada") para que
-  // aparezca en la lista de Notificaciones dentro de la web/app del usuario.
-  try {
-    await pool.query(
-      `INSERT INTO notificaciones_programadas
-       (usuario_id, tipo, referencia_tabla, referencia_id, titulo, cuerpo, fecha_disparo, enviada)
-       VALUES ($1,'anuncio_admin',NULL,NULL,$2,$3,NOW(),true)`,
-      [userId, titulo, cuerpo]
-    );
-  } catch(e) { console.error('Error guardando anuncio en notificaciones_programadas:', e.message); }
 
   // Se manda por AMBOS canales de forma independiente — antes, si FCM "tenía éxito"
   // (Firebase acepta el envío aunque el token ya no sirva), nunca se intentaba el

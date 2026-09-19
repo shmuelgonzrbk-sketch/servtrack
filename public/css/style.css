@@ -1565,3 +1565,52 @@ html, body {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
+
+/* ================================================================
+   PULL TO REFRESH — indicador nativo/premium, integrado al header
+================================================================ */
+.ptr-indicator {
+  position: absolute;
+  left: 50%;
+  top: calc(var(--safe-t) + 44px);
+  width: 40px; height: 40px;
+  transform: translate(-50%, -60px) scale(.7);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0;
+  z-index: 90;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+.ptr-indicator.ptr-dragging { transition: none; }
+.ptr-indicator.ptr-settle {
+  transition: transform .35s cubic-bezier(.34,1.2,.64,1), opacity .3s ease;
+}
+.ptr-ring-bg, .ptr-ring {
+  fill: none;
+  stroke-width: 2.2;
+}
+.ptr-ring-bg { stroke: var(--border); }
+.ptr-ring {
+  stroke: var(--navy);
+  stroke-linecap: round;
+  stroke-dasharray: 100.5;
+  stroke-dashoffset: 100.5;
+  transform: rotate(-90deg);
+  transform-origin: 50% 50%;
+  transition: stroke-dashoffset .05s linear;
+}
+.ptr-indicator svg.ptr-ring-bg, .ptr-indicator svg { position: absolute; }
+.ptr-arrow {
+  position: absolute;
+  fill: var(--navy);
+  transition: transform .08s linear;
+}
+.ptr-indicator.ptr-loading .ptr-ring {
+  stroke-dashoffset: 25;
+  animation: ptrSpin .8s linear infinite;
+}
+.ptr-indicator.ptr-loading .ptr-arrow { opacity: 0; }
+@keyframes ptrSpin {
+  from { transform: rotate(-90deg); }
+  to { transform: rotate(270deg); }
+}

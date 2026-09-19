@@ -107,6 +107,9 @@
     <div class="nav-item" onclick="goSection('reinicio',this)"> Reiniciar sesión</div>
     <div class="nav-item" id="navReportes" onclick="goSection('reportes',this)"> Reportes <span id="reportesBadge" style="display:none;background:var(--red);color:#fff;font-size:10px;font-weight:700;padding:1px 6px;border-radius:99px;margin-left:4px"></span></div>
   </nav>
+  <div style="padding:0 16px 10px">
+    <button onclick="descargarBackup()" style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--tx);font-size:12px;font-weight:700;cursor:pointer">💾 Descargar backup completo</button>
+  </div>
   <div class="sidebar-footer">v1.0.0 · Admin</div>
 </div>
 
@@ -397,6 +400,7 @@ async function loadUsuarios() {
             </div>
             <button onclick="document.getElementById('notif-form-${u.id}').style.display='block'" style="padding:6px 14px;border-radius:8px;font-size:12px;border:1px solid var(--border);background:var(--surface);cursor:pointer">📢 Notificar</button>
             <button onclick="reiniciarSesion(${u.id})" style="padding:6px 14px;border-radius:8px;font-size:12px;border:1px solid var(--border);background:var(--surface);cursor:pointer;margin-left:8px">🔄 Reiniciar sesión</button>
+            <button onclick="toggleBloqueo(${u.id}, ${!u.bloqueado})" style="padding:6px 14px;border-radius:8px;font-size:12px;border:1px solid ${u.bloqueado ? '#1e7e34' : '#9b2335'};background:${u.bloqueado ? '#edf7ef' : '#fef0f2'};color:${u.bloqueado ? '#1e7e34' : '#9b2335'};cursor:pointer;margin-left:8px">${u.bloqueado ? '✅ Desbloquear' : '🚫 Bloquear'}</button>
           </div>
         </div>
       </div>
@@ -527,6 +531,24 @@ async function enviarNotifUsuario(userId) {
   setTimeout(() => msg.remove(), 3000);
 }
 
+async function descargarBackup() {
+  try {
+    const res = await fetch(ADMIN_URL + '/control/panel/' + adminKey + '/api/backup');
+    if (!res.ok) throw new Error('fallo');
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'backup-assendapp-' + new Date().toISOString().slice(0, 10) + '.json';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  } catch (e) {
+    alert('Error al descargar el backup');
+  }
+}
+
 async function cargarDestinatarios() {
   const data = await api('/usuarios');
   const sel = document.getElementById('notifDestinatario');
@@ -552,6 +574,21 @@ async function cargarDestinatariosReinicio() {
     opt.textContent = u.nombre + ' — ' + u.email;
     sel.appendChild(opt);
   });
+}
+
+async function toggleBloqueo(userId, nuevoEstado) {
+  const accion = nuevoEstado ? 'bloquear' : 'desbloquear';
+  if (!confirm('¿Seguro que quieres ' + accion + ' esta cuenta?')) return;
+  try {
+    const res = await fetch(ADMIN_URL + '/control/panel/' + adminKey + '/api/usuarios/' + userId + '/bloqueo', {
+      method: 'PUT', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ bloqueado: nuevoEstado })
+    });
+    if (!res.ok) throw new Error();
+    loadUsuarios();
+  } catch (e) {
+    alert('Error al ' + accion + ' la cuenta');
+  }
 }
 
 async function reiniciarSesion(userIdDirecto) {

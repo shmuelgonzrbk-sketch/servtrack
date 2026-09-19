@@ -256,9 +256,32 @@ window.addEventListener('load', () => {
   if (user?.id) _socket.emit('user:activo', user.id);
 });
 
+// Aviso en vivo: cuando el admin manda un anuncio, esta pestaña actualiza el
+// puntito de la campanita al toque, y si el panel de notificaciones está abierto,
+// también recarga la lista para que aparezca sin que el usuario tenga que hacer nada.
+_socket.on('nueva-notificacion', () => {
+  if (typeof checkNotifBadge === 'function') checkNotifBadge();
+  const overlay = document.getElementById('notifPanelOverlay');
+  if (overlay && overlay.style.display === 'flex' && typeof cargarNotifPanel === 'function') {
+    cargarNotifPanel();
+  }
+});
+
 // Reinicio silencioso: el admin (o el cron semanal) puede pedir que esta pestaña
 // recargue datos frescos. Como el token sigue en localStorage, no pide contraseña.
-_socket.on('sesion:reiniciar', () => {
+// Se borra el caché y se desregistra el Service Worker viejo ANTES de recargar,
+// para no depender de que el navegador detecte solo que hay una versión nueva.
+_socket.on('sesion:reiniciar', async () => {
+  try {
+    if ('caches' in window) {
+      const keys = await caches.keys();
+      await Promise.all(keys.map(k => caches.delete(k)));
+    }
+    if ('serviceWorker' in navigator) {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map(r => r.unregister()));
+    }
+  } catch (e) { console.error('Error limpiando caché/SW:', e); }
   window.location.reload();
 });
 

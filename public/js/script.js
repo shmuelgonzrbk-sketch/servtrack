@@ -7652,3 +7652,124 @@ async function borrarTodasNotifs() {
 
 // Revisa si hay notificaciones no leídas al cargar la app
 setTimeout(checkNotifBadge, 2000);
+
+// ================================================================
+// PULL TO REFRESH — gesto físico de arrastre, sin dependencias
+// ================================================================
+(function () {
+  const indicator = document.getElementById('ptrIndicator');
+  const ring = document.getElementById('ptrRing');
+  const arrow = document.getElementById('ptrArrow');
+  if (!indicator || !ring || !arrow) return;
+
+  const THRESHOLD = 70;   // px de arrastre visual necesarios para soltar y refrescar
+  const MAX_PULL = 95;
+  const CIRC = 100.53;    // 2*PI*16 (radio del círculo del SVG)
+
+  let startY = 0;
+  let pulling = false;
+  let currentScroller = null;
+  let progress = 0;
+
+  function getActiveScroller() {
+    const activeView = document.querySelector('.view.active .view-scroll');
+    return activeView || document.querySelector('.view-scroll');
+  }
+
+  function applyProgress(p) {
+    progress = Math.max(0, Math.min(1, p));
+    const offset = CIRC - progress * (CIRC * 0.72);
+    ring.style.strokeDashoffset = offset;
+    arrow.style.transform = 'rotate(' + (progress * 230) + 'deg)';
+    const translateY = -60 + progress * 60;
+    const scale = 0.7 + progress * 0.3;
+    indicator.style.transform = 'translate(-50%, ' + translateY + 'px) scale(' + scale + ')';
+    indicator.style.opacity = String(Math.min(1, progress * 1.3));
+  }
+
+  function reset() {
+    indicator.classList.remove('ptr-dragging');
+    indicator.classList.add('ptr-settle');
+    applyProgress(0);
+    pulling = false;
+    currentScroller = null;
+  }
+
+  function dispararRefresh() {
+    indicator.classList.add('ptr-loading');
+    indicator.style.transform = 'translate(-50%, 0px) scale(1)';
+    indicator.style.opacity = '1';
+    setTimeout(() => { window.location.reload(); }, 550);
+  }
+
+  function onStart(y) {
+    const scroller = getActiveScroller();
+    if (!scroller || scroller.scrollTop > 0) return;
+    currentScroller = scroller;
+    startY = y;
+    pulling = true;
+    indicator.classList.remove('ptr-settle');
+    indicator.classList.add('ptr-dragging');
+  }
+
+  function onMove(y) {
+    if (!pulling || !currentScroller) return false;
+    if (currentScroller.scrollTop > 0) { reset(); return false; }
+    const delta = y - startY;
+    if (delta <= 0) { applyProgress(0); return false; }
+    // Resistencia progresiva, como un resorte — no es 1 a 1 con el dedo
+    const damped = Math.min(MAX_PULL, delta * 0.45);
+    applyProgress(damped / THRESHOLD);
+    return true; // se está usando el gesto — evitar el scroll/rebote nativo
+  }
+
+  function onEnd() {
+    if (!pulling) return;
+    if (progress >= 1) {
+      dispararRefresh();
+    } else {
+      reset();
+    }
+    pulling = false;
+  }
+
+  // Touch (móvil)
+  document.addEventListener('touchstart', (e) => {
+    onStart(e.touches[0].clientY);
+  }, { passive: true });
+
+  document.addEventListener('touchmove', (e) => {
+    const usando = onMove(e.touches[0].clientY);
+    if (usando) e.preventDefault();
+  }, { passive: false });
+
+  document.addEventListener('touchend', onEnd, { passive: true });
+  document.addEventListener('touchcancel', reset, { passive: true });
+
+  // Trackpad / rueda (escritorio) — acumula el gesto de "empujar hacia abajo"
+  let wheelAccum = 0;
+  let wheelTimer = null;
+  document.addEventListener('wheel', (e) => {
+    const scroller = getActiveScroller();
+    if (!scroller || scroller.scrollTop > 0 || e.deltaY >= 0) {
+      if (wheelAccum > 0 && (!scroller || scroller.scrollTop > 0)) { wheelAccum = 0; reset(); }
+      return;
+    }
+    wheelAccum = Math.min(MAX_PULL, wheelAccum + Math.abs(e.deltaY) * 0.28);
+    if (wheelAccum > 4) {
+      e.preventDefault();
+      indicator.classList.remove('ptr-settle');
+      indicator.classList.add('ptr-dragging');
+      applyProgress(wheelAccum / THRESHOLD);
+    }
+    clearTimeout(wheelTimer);
+    wheelTimer = setTimeout(() => {
+      if (wheelAccum / THRESHOLD >= 1) {
+        dispararRefresh();
+      } else {
+        wheelAccum = 0;
+        reset();
+      }
+    }, 140);
+  }, { passive: false });
+})();
