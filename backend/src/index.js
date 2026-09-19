@@ -91,18 +91,39 @@ app.get('/control/panel/:key/api/usuarios/fotos', adminAuth, async (req, res) =>
 // Endpoint de usuarios movido abajo con datos completos
 
 app.get('/control/panel/st26', (req, res) => {
-  res.sendFile(path.join(__dirname, '../../public/admin/index.html'));
+  res.sendFile(path.join(__dirname, '../../public/panel-k9x2mq7f/index.html'));
 });
 
+// Freno anti fuerza bruta: máximo 5 intentos fallidos por IP cada 10 minutos
+const _intentosLogin = new Map();
+function bloqueadoPorIntentos(ip) {
+  const registro = _intentosLogin.get(ip);
+  if (!registro) return false;
+  if (Date.now() - registro.desde > 10 * 60 * 1000) { _intentosLogin.delete(ip); return false; }
+  return registro.fallos >= 5;
+}
+function registrarFallo(ip) {
+  const registro = _intentosLogin.get(ip) || { fallos: 0, desde: Date.now() };
+  registro.fallos++;
+  _intentosLogin.set(ip, registro);
+}
+
 app.get('/control/panel/verify/:key', (req, res) => {
+  const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+  if (bloqueadoPorIntentos(ip)) {
+    return res.status(429).json({ error: 'Demasiados intentos. Intenta de nuevo en unos minutos.' });
+  }
   try {
     const { user, pass } = JSON.parse(Buffer.from(req.params.key, 'base64').toString());
     if (user === process.env.ADMIN_USER && pass === process.env.ADMIN_PASS) {
+      _intentosLogin.delete(ip);
       res.json({ ok: true });
     } else {
+      registrarFallo(ip);
       res.status(403).json({ error: 'Acceso denegado' });
     }
   } catch(e) {
+    registrarFallo(ip);
     res.status(403).json({ error: 'Clave inválida' });
   }
 });
